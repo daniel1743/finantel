@@ -16,7 +16,9 @@ import {
 import NotificationsModal from '@/components/modals/NotificationsModal';
 import CurrencyModal from '@/components/modals/CurrencyModal';
 import TwoFactorAuthModal from '@/components/modals/TwoFactorAuthModal';
+import EditProfileModal from '@/components/modals/EditProfileModal';
 import { supabase } from '@/lib/customSupabaseClient';
+import { useBilling } from '@/hooks/useBilling';
 
 const ProfileSection = ({ title, children }) => (
   <div className="bg-white rounded-[22px] border border-gray-100 shadow-sm overflow-hidden mb-6">
@@ -29,19 +31,30 @@ const ProfileSection = ({ title, children }) => (
   </div>
 );
 
-const ProfileRow = ({ icon: Icon, label, value, action }) => (
-  <div className="flex items-center justify-between py-4 border-b border-gray-50 last:border-0">
+const ProfileRow = ({ icon: Icon, label, value, action, onClick }) => (
+  <div 
+    className={`flex items-center justify-between py-4 border-b border-gray-50 dark:border-white/5 last:border-0 ${
+      onClick || action ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg px-2 -mx-2 transition-colors' : ''
+    }`}
+    onClick={onClick}
+  >
     <div className="flex items-center gap-4">
-      <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-[#6E6E73]">
+      <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center text-[#6E6E73] dark:text-gray-400">
         <Icon className="w-5 h-5" />
       </div>
       <div>
-        <p className="text-sm font-medium text-[#6E6E73]">{label}</p>
-        <p className="text-base font-bold text-[#1a1a1a]">{value}</p>
+        <p className="text-sm font-medium text-[#6E6E73] dark:text-gray-400">{label}</p>
+        <p className="text-base font-bold text-[#1a1a1a] dark:text-white">{value}</p>
       </div>
     </div>
     {action && (
-      <button className="text-sm font-medium text-[#1C8FA0] hover:text-[#167a8a] transition-colors">
+      <button 
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick?.();
+        }}
+        className="text-sm font-medium text-[#1C8FA0] hover:text-[#167a8a] transition-colors"
+      >
         {action}
       </button>
     )}
@@ -50,25 +63,62 @@ const ProfileRow = ({ icon: Icon, label, value, action }) => (
 
 const Profile = () => {
   const { user, signOut } = useAuth();
+  const { subscription } = useBilling(user?.id);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [twoFactorOpen, setTwoFactorOpen] = useState(false);
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [currency, setCurrency] = useState('USD');
   const [currencyName, setCurrencyName] = useState('Dólar Estadounidense');
+  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [avatarStyle, setAvatarStyle] = useState({ fontStyle: 'bold', color: '#1C8FA0' });
 
   useEffect(() => {
     if (user?.id) {
       loadCurrency();
+      loadAvatar();
     }
   }, [user?.id]);
 
+  const loadAvatar = async () => {
+    try {
+      // Cargar foto de perfil si existe
+      if (user?.user_metadata?.avatar_url) {
+        setAvatarUrl(user.user_metadata.avatar_url);
+      }
+
+      // Cargar preferencias de avatar si es plan gratis
+      const isFreePlan = !subscription || subscription?.plan === 'free';
+      if (isFreePlan) {
+        const { data } = await supabase
+          .from('profile_preferences')
+          .select('avatar_font_style, avatar_color')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (data) {
+          setAvatarStyle({
+            fontStyle: data.avatar_font_style || 'bold',
+            color: data.avatar_color || '#1C8FA0',
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error loading avatar:', error);
+    }
+  };
+
   const loadCurrency = async () => {
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('profile_preferences')
         .select('currency')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle(); // Usar maybeSingle en lugar de single
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
 
       if (data?.currency) {
         setCurrency(data.currency);
@@ -83,9 +133,16 @@ const Profile = () => {
           'PEN': 'Sol Peruano',
         };
         setCurrencyName(currencyNames[data.currency] || data.currency);
+      } else {
+        // Si no hay preferencias, usar el default
+        setCurrency('USD');
+        setCurrencyName('Dólar Estadounidense');
       }
     } catch (error) {
       console.error('Error loading currency:', error);
+      // En caso de error, usar default
+      setCurrency('USD');
+      setCurrencyName('Dólar Estadounidense');
     }
   };
 
@@ -102,16 +159,44 @@ const Profile = () => {
         transition={{ duration: 0.5 }}
       >
         {/* Main Info */}
-        <div className="bg-white rounded-[26px] p-8 border border-gray-100 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)] mb-8 flex flex-col md:flex-row items-center gap-8">
+        <div className="bg-white dark:bg-[#1a1a1a] rounded-[26px] p-8 border border-gray-100 dark:border-white/5 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)] mb-8 flex flex-col md:flex-row items-center gap-8">
           <div className="relative">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#1C8FA0] to-[#167a8a] p-[3px] shadow-xl shadow-[#1C8FA0]/20">
-              <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
-                <span className="text-3xl font-bold text-[#1C8FA0]">
-                  {user?.email?.charAt(0).toUpperCase() || 'U'}
-                </span>
+            {avatarUrl ? (
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#1C8FA0] to-[#167a8a] p-[3px] shadow-xl shadow-[#1C8FA0]/20">
+                <img
+                  src={avatarUrl}
+                  alt="Profile"
+                  className="w-full h-full rounded-full object-cover"
+                />
               </div>
-            </div>
-            <button className="absolute bottom-0 right-0 w-8 h-8 bg-[#1a1a1a] rounded-full text-white flex items-center justify-center border-2 border-white shadow-md hover:scale-110 transition-transform">
+            ) : (
+              <div 
+                className="w-24 h-24 rounded-full p-[3px] shadow-xl"
+                style={{ 
+                  background: `linear-gradient(135deg, ${avatarStyle.color}, ${avatarStyle.color}dd)`,
+                  boxShadow: `0 20px 40px -12px ${avatarStyle.color}33`
+                }}
+              >
+                <div className="w-full h-full rounded-full bg-white dark:bg-[#1a1a1a] flex items-center justify-center overflow-hidden">
+                  <span 
+                    className={`text-3xl ${
+                      avatarStyle.fontStyle === 'bold' ? 'font-bold' :
+                      avatarStyle.fontStyle === 'semibold' ? 'font-semibold' :
+                      avatarStyle.fontStyle === 'medium' ? 'font-medium' :
+                      avatarStyle.fontStyle === 'regular' ? 'font-normal' :
+                      'font-light'
+                    }`}
+                    style={{ color: avatarStyle.color }}
+                  >
+                    {(user?.user_metadata?.full_name || user?.email || 'U').charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              </div>
+            )}
+            <button 
+              onClick={() => setEditProfileOpen(true)}
+              className="absolute bottom-0 right-0 w-8 h-8 bg-[#1a1a1a] dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center border-2 border-white dark:border-[#1a1a1a] shadow-md hover:scale-110 transition-transform"
+            >
               <Settings className="w-4 h-4" />
             </button>
           </div>
@@ -142,9 +227,25 @@ const Profile = () => {
         </div>
 
         <ProfileSection title="Información Personal">
-          <ProfileRow icon={User} label="Nombre Completo" value={user?.user_metadata?.full_name || 'No definido'} action="Editar" />
-          <ProfileRow icon={Mail} label="Correo Electrónico" value={user?.email} />
-          <ProfileRow icon={Shield} label="Contraseña" value="••••••••••••" action="Cambiar" />
+          <ProfileRow 
+            icon={User} 
+            label="Nombre Completo" 
+            value={user?.user_metadata?.full_name || 'No definido'} 
+            action="Editar"
+            onClick={() => setEditProfileOpen(true)}
+          />
+          <ProfileRow 
+            icon={Mail} 
+            label="Correo Electrónico" 
+            value={user?.email}
+          />
+          <ProfileRow 
+            icon={Shield} 
+            label="Contraseña" 
+            value="••••••••••••" 
+            action="Cambiar"
+            onClick={() => setEditProfileOpen(true)}
+          />
         </ProfileSection>
 
         <ProfileSection title="Preferencias">
@@ -216,6 +317,20 @@ const Profile = () => {
         <TwoFactorAuthModal 
           isOpen={twoFactorOpen} 
           onClose={() => setTwoFactorOpen(false)} 
+        />
+        <EditProfileModal 
+          isOpen={editProfileOpen} 
+          initialTab="profile"
+          onClose={() => {
+            setEditProfileOpen(false);
+            loadAvatar(); // Recargar avatar después de editar
+          }}
+          onUpdate={() => {
+            loadAvatar();
+            loadCurrency();
+            // Recargar usuario para obtener datos actualizados
+            window.location.reload();
+          }}
         />
       </motion.div>
     </div>

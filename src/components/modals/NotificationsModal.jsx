@@ -34,9 +34,9 @@ const NotificationsModal = ({ isOpen, onClose }) => {
         .from('profile_preferences')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle(); // Usar maybeSingle en lugar de single
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+      if (error && error.code !== 'PGRST116') {
         throw error;
       }
 
@@ -50,6 +50,7 @@ const NotificationsModal = ({ isOpen, onClose }) => {
           monthly_report: data.monthly_report ?? true,
         });
       }
+      // Si no hay datos, las preferencias ya están en los defaults (true)
     } catch (error) {
       console.error('Error loading preferences:', error);
       toast({

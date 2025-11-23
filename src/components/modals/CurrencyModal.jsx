@@ -76,7 +76,7 @@ const CurrencyModal = ({ isOpen, onClose }) => {
         .from('profile_preferences')
         .select('currency')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle(); // Usar maybeSingle en lugar de single
 
       if (error && error.code !== 'PGRST116') {
         throw error;
@@ -84,9 +84,14 @@ const CurrencyModal = ({ isOpen, onClose }) => {
 
       if (data?.currency) {
         setSelectedCurrency(data.currency);
+      } else {
+        // Si no hay preferencias, usar USD como default
+        setSelectedCurrency('USD');
       }
     } catch (error) {
       console.error('Error loading currency:', error);
+      // En caso de error, usar USD como default
+      setSelectedCurrency('USD');
     } finally {
       setLoading(false);
     }

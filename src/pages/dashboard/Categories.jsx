@@ -47,44 +47,63 @@ const categoriesData = [
   { id: 8, name: "Tecnología", type: "Gasto", amount: 59.99, color: "bg-blue-500", icon: Smartphone },
 ];
 
-const CategoryCard = ({ category, delay }) => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.9 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ duration: 0.4, delay }}
-    className="group relative bg-white rounded-[22px] p-6 border border-gray-100 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-  >
-    <div className="flex justify-between items-start mb-4">
-      <div className={cn(
-        "w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg transition-transform group-hover:scale-110",
-        category.color
-      )}>
-        <category.icon className="w-6 h-6" />
-      </div>
-      <button className="p-2 text-gray-300 hover:text-[#1a1a1a] transition-colors opacity-0 group-hover:opacity-100">
-        <MoreVertical className="w-5 h-5" />
-      </button>
-    </div>
-    
-    <h3 className="text-lg font-bold text-[#1a1a1a] mb-1">{category.name}</h3>
-    <div className="flex items-center gap-2 mb-4">
-      <span className="text-xs font-medium text-[#6E6E73] bg-gray-100 px-2 py-0.5 rounded-full">
-        {category.type}
-      </span>
-    </div>
-    
-    <div className="pt-4 border-t border-gray-50">
-      <p className="text-xs text-[#6E6E73] mb-1">Gasto mensual</p>
-      <p className="text-xl font-bold text-[#1a1a1a] font-mono">${category.amount.toFixed(2)}</p>
-    </div>
+const CategoryCard = ({ category, delay }) => {
+  // Determinar si usar style (hex) o className (clase de Tailwind)
+  const iconBgStyle = category.colorHex 
+    ? { backgroundColor: category.colorHex }
+    : undefined;
+  
+  const iconBgClass = category.colorClass 
+    ? category.colorClass
+    : category.colorHex 
+      ? undefined 
+      : 'bg-[#1C8FA0]'; // Fallback
 
-    {/* Glow Effect on Hover */}
-    <div className={cn(
-      "absolute inset-0 rounded-[22px] opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none",
-      category.color
-    )} />
-  </motion.div>
-);
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.4, delay }}
+      className="group relative bg-white dark:bg-[#1a1a1a] rounded-[22px] p-6 border border-gray-100 dark:border-white/5 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+    >
+      <div className="flex justify-between items-start mb-4">
+        <div 
+          className={cn(
+            "w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg transition-transform group-hover:scale-110",
+            iconBgClass
+          )}
+          style={iconBgStyle}
+        >
+          <category.icon className="w-6 h-6" />
+        </div>
+        <button className="p-2 text-gray-300 dark:text-gray-600 hover:text-[#1a1a1a] dark:hover:text-white transition-colors opacity-0 group-hover:opacity-100">
+          <MoreVertical className="w-5 h-5" />
+        </button>
+      </div>
+    
+      <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white mb-1">{category.name}</h3>
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-xs font-medium text-[#6E6E73] dark:text-gray-400 bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-full">
+          {category.type}
+        </span>
+      </div>
+      
+      <div className="pt-4 border-t border-gray-50 dark:border-white/5">
+        <p className="text-xs text-[#6E6E73] dark:text-gray-400 mb-1">Gasto mensual</p>
+        <p className="text-xl font-bold text-[#1a1a1a] dark:text-white font-mono">${category.amount.toFixed(2)}</p>
+      </div>
+
+      {/* Glow Effect on Hover */}
+      <div 
+        className={cn(
+          "absolute inset-0 rounded-[22px] opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none",
+          iconBgClass
+        )}
+        style={iconBgStyle ? { backgroundColor: category.colorHex, opacity: iconBgStyle ? undefined : 0 } : undefined}
+      />
+    </motion.div>
+  );
+};
 
 const AddCategoryModal = ({ isOpen, onClose, onSuccess }) => {
   const { user } = useAuth();
@@ -408,15 +427,16 @@ const Categories = () => {
             const iconIndex = iconNames.indexOf(cat.icon || 'Home');
             const IconComponent = availableIcons[iconIndex >= 0 ? iconIndex : 0] || Home;
             
-            // Convertir color hex a clase bg si es necesario
-            const colorClass = cat.color?.startsWith('#') 
-              ? `bg-[${cat.color}]` 
-              : (cat.color || 'bg-[#1C8FA0]');
+            // Obtener color (hex o clase)
+            const categoryColor = cat.color || '#1C8FA0';
+            const isHexColor = categoryColor.startsWith('#');
             
             const categoryWithIcon = {
               ...cat,
               icon: IconComponent,
-              color: colorClass,
+              color: categoryColor, // Guardar el color original (hex o clase)
+              colorHex: isHexColor ? categoryColor : undefined, // Para usar con style
+              colorClass: !isHexColor ? categoryColor : undefined, // Para usar con className
               type: cat.type === 'expense' ? 'Gasto' : cat.type === 'income' ? 'Ingreso' : (cat.type || 'Gasto'),
               amount: 0 // Se calcularía desde transacciones
             };
