@@ -1,24 +1,31 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Search, 
-  Filter, 
-  Download, 
-  ChevronDown, 
-  MoreHorizontal, 
-  ShoppingBag, 
-  Coffee, 
-  Home, 
-  Car, 
+import {
+  Search,
+  Filter,
+  Download,
+  ChevronDown,
+  MoreHorizontal,
+  ShoppingBag,
+  Coffee,
+  Home,
+  Car,
   Plane,
   ArrowUpRight,
   ArrowDownRight,
   Edit2,
   Copy,
   Trash2,
-  X
+  X,
+  Plus,
+  Loader2,
+  Calendar,
+  DollarSign
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { useFinance } from '@/hooks/useFinance';
+import { useToast } from '@/components/ui/use-toast';
 
 const transactionsData = [
   { id: 1, name: "Supermercado Metro", category: "Alimentación", type: "Gasto", amount: -124.50, date: "21 Nov, 2023", icon: ShoppingBag, color: "bg-orange-100 text-orange-600" },
@@ -33,8 +40,8 @@ const transactionsData = [
 const FilterButton = ({ label, active }) => (
   <button className={cn(
     "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all",
-    active 
-      ? "bg-[#1C8FA0]/10 text-[#1C8FA0] border border-[#1C8FA0]/20" 
+    active
+      ? "bg-[#1C8FA0]/10 text-[#1C8FA0] border border-[#1C8FA0]/20"
       : "bg-white border border-gray-200 text-[#6E6E73] hover:border-gray-300 hover:text-[#1a1a1a]"
   )}>
     {label}
@@ -42,12 +49,467 @@ const FilterButton = ({ label, active }) => (
   </button>
 );
 
+// =====================================================
+// Categorías Predefinidas
+// =====================================================
+const INCOME_CATEGORIES = [
+  { id: 'sueldo', name: 'Sueldo' },
+  { id: 'bono', name: 'Bono' },
+  { id: 'vacaciones', name: 'Vacaciones' },
+  { id: 'sumer-extra', name: 'Sumer Extra' },
+  { id: 'personalizar-ingreso', name: '+ Personalizar' }
+];
+
+const EXPENSE_CATEGORIES = [
+  { id: 'hogar', name: 'Hogar' },
+  { id: 'alimentacion', name: 'Alimentación' },
+  { id: 'medicinas', name: 'Medicinas' },
+  { id: 'salud', name: 'Salud' },
+  { id: 'deudas', name: 'Deudas' },
+  { id: 'gasolina', name: 'Gasolina' },
+  { id: 'compras-extras', name: 'Compras Extras' },
+  { id: 'personalizar-gasto', name: '+ Personalizar' }
+];
+
+const NECESSITY_LEVELS = [
+  { id: 'muy-necesario', name: 'Muy Necesario', color: 'text-red-600' },
+  { id: 'necesario', name: 'Necesario', color: 'text-orange-600' },
+  { id: 'poco-necesario', name: 'Poco Necesario', color: 'text-yellow-600' },
+  { id: 'nada-necesario', name: 'Nada Necesario', color: 'text-blue-600' },
+  { id: 'innecesario', name: 'Innecesario', color: 'text-purple-600' },
+  { id: 'impulso', name: 'Compra por Impulso', color: 'text-pink-600' },
+  { id: 'arrepentimiento', name: 'Arrepentimiento/Malgasto', color: 'text-gray-600' }
+];
+
+// =====================================================
+// Modal de Nueva Transacción
+// =====================================================
+const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
+  const { user } = useAuth();
+  const { addTransaction, categories } = useFinance(user?.id);
+  const { toast } = useToast();
+
+  const [formData, setFormData] = useState({
+    description: '',
+    amount: '',
+    category_id: '',
+    custom_category: '',
+    date: new Date().toISOString().split('T')[0],
+    type: 'expense',
+    necessity_level: '',
+    notes: ''
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [showCustomCategory, setShowCustomCategory] = useState(false);
+
+  const handleCategoryChange = (value) => {
+    if (value === 'personalizar-ingreso' || value === 'personalizar-gasto') {
+      setShowCustomCategory(true);
+      setFormData({ ...formData, category_id: value, custom_category: '' });
+    } else {
+      setShowCustomCategory(false);
+      setFormData({ ...formData, category_id: value, custom_category: '' });
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!formData.description.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Por favor ingresa una descripción",
+      });
+      return;
+    }
+
+    if (!formData.amount || parseFloat(formData.amount) <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Por favor ingresa un monto válido",
+      });
+      return;
+    }
+
+    if (!formData.category_id) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Por favor selecciona una categoría",
+      });
+      return;
+    }
+
+    if (showCustomCategory && !formData.custom_category.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Por favor ingresa el nombre de la categoría personalizada",
+      });
+      return;
+    }
+
+    if (formData.type === 'expense' && !formData.necessity_level) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Por favor selecciona el nivel de necesidad",
+      });
+      return;
+    }
+
+    if (!user?.id) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo identificar el usuario",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Determinar el nombre final de la categoría
+      const finalCategory = showCustomCategory
+        ? formData.custom_category.trim()
+        : formData.category_id;
+
+      const transactionData = {
+        description: formData.description.trim(),
+        amount: parseFloat(formData.amount),
+        category: finalCategory,
+        date: formData.date,
+        type: formData.type,
+        necessity_level: formData.type === 'expense' ? formData.necessity_level : null,
+        notes: formData.notes.trim() || null,
+      };
+
+      await addTransaction(transactionData);
+
+      toast({
+        title: "¡Éxito!",
+        description: "Transacción creada correctamente",
+      });
+
+      // Reset form
+      setFormData({
+        description: '',
+        amount: '',
+        category_id: '',
+        custom_category: '',
+        date: new Date().toISOString().split('T')[0],
+        type: 'expense',
+        necessity_level: '',
+        notes: ''
+      });
+      setShowCustomCategory(false);
+
+      onClose();
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      console.error('Error creating transaction:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "No se pudo crear la transacción. Intenta de nuevo.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        onClick={(e) => e.stopPropagation()}
+        className="relative bg-white dark:bg-[#1a1a1a] rounded-[26px] p-6 sm:p-8 w-full max-w-md shadow-2xl border border-gray-100 dark:border-white/10 z-10 max-h-[90vh] overflow-y-auto overflow-x-hidden"
+      >
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-[#1a1a1a] dark:text-white">Nueva Transacción</h2>
+          <button
+            onClick={onClose}
+            disabled={isLoading}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors disabled:opacity-50"
+          >
+            <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Descripción */}
+          <div>
+            <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
+              Descripción
+            </label>
+            <input
+              type="text"
+              placeholder="Ej. Compra de supermercado"
+              required
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              disabled={isLoading}
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50"
+            />
+          </div>
+
+          {/* Tipo */}
+          <div>
+            <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">Tipo</label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, type: 'expense' })}
+                disabled={isLoading}
+                className={cn(
+                  "flex-1 py-2.5 rounded-xl font-medium text-sm transition-all",
+                  formData.type === 'expense'
+                    ? "bg-[#E47B45] text-white shadow-lg shadow-[#E47B45]/20"
+                    : "bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-[#6E6E73] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10",
+                  isLoading && "opacity-50 cursor-not-allowed"
+                )}
+              >
+                Gasto
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, type: 'income' })}
+                disabled={isLoading}
+                className={cn(
+                  "flex-1 py-2.5 rounded-xl font-medium text-sm transition-all",
+                  formData.type === 'income'
+                    ? "bg-[#1C8FA0] text-white shadow-lg shadow-[#1C8FA0]/20"
+                    : "bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-[#6E6E73] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10",
+                  isLoading && "opacity-50 cursor-not-allowed"
+                )}
+              >
+                Ingreso
+              </button>
+            </div>
+          </div>
+
+          {/* Monto */}
+          <div>
+            <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
+              Monto
+            </label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                required
+                value={formData.amount}
+                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                disabled={isLoading}
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50"
+              />
+            </div>
+          </div>
+
+          {/* Categoría */}
+          <div className="relative">
+            <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
+              Categoría
+            </label>
+            <div className="relative">
+              <select
+                value={formData.category_id}
+                onChange={(e) => handleCategoryChange(e.target.value)}
+                disabled={isLoading}
+                required
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50 appearance-none cursor-pointer pr-10"
+                style={{
+                  borderRadius: '12px',
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none',
+                }}
+              >
+                <option value="" className="rounded-xl">Selecciona una categoría</option>
+                {formData.type === 'income'
+                  ? INCOME_CATEGORIES.map((cat) => (
+                      <option key={cat.id} value={cat.id} className="rounded-xl">
+                        {cat.name}
+                      </option>
+                    ))
+                  : EXPENSE_CATEGORIES.map((cat) => (
+                      <option key={cat.id} value={cat.id} className="rounded-xl">
+                        {cat.name}
+                      </option>
+                    ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6E6E73] dark:text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Categoría Personalizada (si se selecciona "Personalizar") */}
+          {showCustomCategory && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+            >
+              <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
+                Nombre de Categoría Personalizada
+              </label>
+              <input
+                type="text"
+                placeholder="Ej. Entretenimiento, Mascotas..."
+                required
+                value={formData.custom_category}
+                onChange={(e) => setFormData({ ...formData, custom_category: e.target.value })}
+                disabled={isLoading}
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50"
+              />
+            </motion.div>
+          )}
+
+          {/* Nivel de Necesidad (solo para Gastos) */}
+          {formData.type === 'expense' && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="relative"
+            >
+              <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
+                Nivel de Necesidad
+              </label>
+              <div className="relative">
+                <select
+                  value={formData.necessity_level}
+                  onChange={(e) => setFormData({ ...formData, necessity_level: e.target.value })}
+                  disabled={isLoading}
+                  required
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50 appearance-none cursor-pointer pr-10"
+                style={{
+                  borderRadius: '12px',
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none',
+                }}
+                >
+                  <option value="" className="rounded-xl">Selecciona nivel de necesidad</option>
+                  {NECESSITY_LEVELS.map((level) => (
+                    <option key={level.id} value={level.id} className="rounded-xl">
+                      {level.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6E6E73] dark:text-gray-400 pointer-events-none" />
+              </div>
+            </motion.div>
+          )}
+
+          {/* Fecha */}
+          <div>
+            <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
+              Fecha
+            </label>
+            <div className="relative">
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+              <input
+                type="date"
+                required
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                disabled={isLoading}
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50"
+              />
+            </div>
+          </div>
+
+          {/* Notas (Opcional) */}
+          <div>
+            <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
+              Notas <span className="text-xs">(opcional)</span>
+            </label>
+            <textarea
+              placeholder="Detalles adicionales..."
+              rows={3}
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              disabled={isLoading}
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50 resize-none"
+            />
+          </div>
+
+          {/* Botones */}
+          <div className="pt-4 flex gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isLoading}
+              className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-white/10 text-[#6E6E73] dark:text-gray-400 font-medium hover:bg-gray-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={
+                isLoading ||
+                !formData.description.trim() ||
+                !formData.amount ||
+                !formData.category_id ||
+                (showCustomCategory && !formData.custom_category.trim()) ||
+                (formData.type === 'expense' && !formData.necessity_level)
+              }
+              className="flex-1 py-3 rounded-xl bg-[#1a1a1a] dark:bg-white text-white dark:text-black font-medium hover:bg-black dark:hover:bg-gray-100 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                'Guardar Transacción'
+              )}
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </div>
+  );
+};
+
 const Transactions = () => {
+  const { user } = useAuth();
+  const { transactions, loading, refresh } = useFinance(user?.id);
   const [selectedRow, setSelectedRow] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleTransactionAdded = () => {
+    refresh();
+  };
 
   return (
     <div className="space-y-6 pb-12 h-full flex flex-col">
+      <AnimatePresence>
+        {isModalOpen && (
+          <AddTransactionModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            onSuccess={handleTransactionAdded}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -58,8 +520,12 @@ const Transactions = () => {
           <button className="p-2.5 bg-white border border-gray-200 rounded-xl text-[#6E6E73] hover:text-[#1a1a1a] transition-colors shadow-sm">
             <Download className="w-5 h-5" />
           </button>
-          <button className="px-4 py-2.5 bg-[#1a1a1a] text-white rounded-xl text-sm font-medium hover:bg-black transition-colors shadow-lg shadow-black/10">
-            + Nueva Transacción
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-4 py-2.5 bg-[#1a1a1a] text-white rounded-xl text-sm font-medium hover:bg-black transition-colors shadow-lg shadow-black/10 flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Nueva Transacción
           </button>
         </div>
       </div>

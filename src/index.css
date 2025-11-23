@@ -32,3 +32,44 @@ h1, h2, h3, h4, h5, h6 {
 ::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
 }
+
+/* Dropdown styles - Esquinas redondeadas y responsive */
+select {
+  border-radius: 12px !important;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Asegurar que los dropdowns no sobresalgan en responsive */
+select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(28, 143, 160, 0.2);
+}
+
+/* Contenedor de modales responsive */
+.modal-container {
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Opciones del dropdown con esquinas redondeadas */
+select option {
+  border-radius: 8px;
+  padding: 8px;
+}
+
+/* Prevenir que los selects sobresalgan en mobile */
+@media (max-width: 640px) {
+  select {
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  /* Asegurar que el modal no se desborde */
+  .modal-container {
+    max-width: calc(100vw - 2rem);
+    margin: 1rem;
+  }
+}

@@ -65,8 +65,18 @@ export const useFinance = (userId) => {
   };
 
   const addCategory = async (data) => {
-    const { error } = await supabase.from('categories').insert([{ ...data, user_id: userId }]);
-    if (error) throw error;
+    // Asegurar que type tenga un valor por defecto si no viene
+    const categoryData = {
+      ...data,
+      user_id: userId,
+      type: data.type || 'expense', // Fallback por si acaso
+    };
+    
+    const { error } = await supabase.from('categories').insert([categoryData]);
+    if (error) {
+      console.error('Error creating category:', error);
+      throw error;
+    }
     toast({ title: "Success", description: "Category created." });
     fetchData();
   };
