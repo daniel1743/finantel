@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
@@ -80,6 +80,113 @@ const NECESSITY_LEVELS = [
   { id: 'impulso', name: 'Compra por Impulso', color: 'text-pink-600' },
   { id: 'arrepentimiento', name: 'Arrepentimiento/Malgasto', color: 'text-gray-600' }
 ];
+
+// =====================================================
+// Componente Dropdown Personalizado
+// =====================================================
+const CustomDropdown = ({ 
+  value, 
+  onChange, 
+  options, 
+  placeholder, 
+  disabled = false,
+  required = false,
+  className = ""
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = React.useRef(null);
+
+  const selectedOption = options.find(opt => opt.id === value || opt.value === value);
+
+  // Cerrar al hacer click fuera
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const handleSelect = (option) => {
+    onChange(option.id || option.value);
+    setIsOpen(false);
+  };
+
+  return (
+    <div ref={dropdownRef} className={`relative ${className}`}>
+      <button
+        type="button"
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
+        className={cn(
+          "w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl",
+          "focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0]",
+          "transition-all disabled:opacity-50 text-left flex items-center justify-between",
+          "cursor-pointer",
+          isOpen && "ring-2 ring-[#1C8FA0]/20 border-[#1C8FA0]"
+        )}
+      >
+        <span className={cn(
+          "truncate",
+          !selectedOption && "text-gray-400 dark:text-gray-500"
+        )}>
+          {selectedOption ? (selectedOption.name || selectedOption.label) : placeholder}
+        </span>
+        <ChevronDown className={cn(
+          "w-5 h-5 text-[#6E6E73] dark:text-gray-400 transition-transform flex-shrink-0 ml-2",
+          isOpen && "transform rotate-180"
+        )} />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="absolute z-[60] w-full mt-2 bg-white dark:bg-[#1a1a1a] rounded-xl shadow-xl border border-gray-200 dark:border-white/10 overflow-hidden max-h-60 overflow-y-auto"
+            style={{
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            }}
+          >
+            {options.map((option) => {
+              const optionValue = option.id || option.value;
+              const optionLabel = option.name || option.label;
+              const isSelected = value === optionValue;
+              
+              return (
+                <button
+                  key={optionValue}
+                  type="button"
+                  onClick={() => handleSelect(option)}
+                  className={cn(
+                    "w-full px-4 py-3 text-left transition-colors",
+                    "hover:bg-gray-50 dark:hover:bg-white/5",
+                    isSelected && "bg-[#1C8FA0]/10 text-[#1C8FA0] dark:bg-[#1C8FA0]/20",
+                    !isSelected && "text-[#1a1a1a] dark:text-white"
+                  )}
+                >
+                  {optionLabel}
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 // =====================================================
 // Modal de Nueva Transacción
@@ -237,7 +344,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         onClick={(e) => e.stopPropagation()}
-        className="relative bg-white dark:bg-[#1a1a1a] rounded-[26px] p-6 sm:p-8 w-full max-w-md shadow-2xl border border-gray-100 dark:border-white/10 z-10 max-h-[90vh] overflow-y-auto overflow-x-hidden"
+        className="relative bg-white dark:bg-[#1a1a1a] rounded-[26px] p-6 sm:p-8 w-full max-w-md shadow-2xl border border-gray-100 dark:border-white/10 z-10 max-h-[90vh] overflow-y-auto"
       >
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-[#1a1a1a] dark:text-white">Nueva Transacción</h2>
@@ -250,7 +357,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6" style={{ position: 'relative', zIndex: 1 }}>
           {/* Descripción */}
           <div>
             <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
@@ -324,38 +431,18 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
           </div>
 
           {/* Categoría */}
-          <div className="relative">
+          <div>
             <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
               Categoría
             </label>
-            <div className="relative">
-              <select
-                value={formData.category_id}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-                disabled={isLoading}
-                required
-                className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50 appearance-none cursor-pointer pr-10"
-                style={{
-                  borderRadius: '12px',
-                  WebkitAppearance: 'none',
-                  MozAppearance: 'none',
-                }}
-              >
-                <option value="" className="rounded-xl">Selecciona una categoría</option>
-                {formData.type === 'income'
-                  ? INCOME_CATEGORIES.map((cat) => (
-                      <option key={cat.id} value={cat.id} className="rounded-xl">
-                        {cat.name}
-                      </option>
-                    ))
-                  : EXPENSE_CATEGORIES.map((cat) => (
-                      <option key={cat.id} value={cat.id} className="rounded-xl">
-                        {cat.name}
-                      </option>
-                    ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6E6E73] dark:text-gray-400 pointer-events-none" />
-            </div>
+            <CustomDropdown
+              value={formData.category_id}
+              onChange={(value) => handleCategoryChange(value)}
+              options={formData.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES}
+              placeholder="Selecciona una categoría"
+              disabled={isLoading}
+              required
+            />
           </div>
 
           {/* Categoría Personalizada (si se selecciona "Personalizar") */}
@@ -386,33 +473,18 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="relative"
             >
               <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
                 Nivel de Necesidad
               </label>
-              <div className="relative">
-                <select
-                  value={formData.necessity_level}
-                  onChange={(e) => setFormData({ ...formData, necessity_level: e.target.value })}
-                  disabled={isLoading}
-                  required
-                className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50 appearance-none cursor-pointer pr-10"
-                style={{
-                  borderRadius: '12px',
-                  WebkitAppearance: 'none',
-                  MozAppearance: 'none',
-                }}
-                >
-                  <option value="" className="rounded-xl">Selecciona nivel de necesidad</option>
-                  {NECESSITY_LEVELS.map((level) => (
-                    <option key={level.id} value={level.id} className="rounded-xl">
-                      {level.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6E6E73] dark:text-gray-400 pointer-events-none" />
-              </div>
+              <CustomDropdown
+                value={formData.necessity_level}
+                onChange={(value) => setFormData({ ...formData, necessity_level: value })}
+                options={NECESSITY_LEVELS}
+                placeholder="Selecciona nivel de necesidad"
+                disabled={isLoading}
+                required
+              />
             </motion.div>
           )}
 
