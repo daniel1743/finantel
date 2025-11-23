@@ -1,0 +1,178 @@
+
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { 
+  LayoutDashboard, 
+  Compass, 
+  CreditCard, 
+  Layers, 
+  Target, 
+  Receipt,
+  Bot, 
+  Sparkles, 
+  BarChart3, 
+  Bell,
+  Users, 
+  Share2, 
+  ArrowLeftRight,
+  LogOut,
+  Settings,
+  User,
+  Download
+} from 'lucide-react';
+
+const MenuSection = ({ title, items, isCollapsed, currentPath }) => (
+  <div className="mb-6">
+    {title && (
+      <h3 className={cn(
+        "text-xs font-bold text-[#6E6E73]/60 dark:text-gray-500 uppercase tracking-wider mb-3 px-4 transition-all duration-300",
+        isCollapsed ? "opacity-0 h-0 mb-0 overflow-hidden" : "opacity-100"
+      )}>
+        {title}
+      </h3>
+    )}
+    <div className="space-y-1">
+      {items.map((item) => {
+        const isActive = currentPath === item.path;
+        const Icon = item.icon;
+        
+        return (
+          <Link
+            key={item.name}
+            to={item.path}
+            className={cn(
+              "group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 relative overflow-hidden",
+              isActive 
+                ? "bg-[#1C8FA0]/10 text-[#1C8FA0]" 
+                : "text-[#6E6E73] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-[#1a1a1a] dark:hover:text-white"
+            )}
+          >
+            {isActive && (
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#1C8FA0] rounded-r-full" />
+            )}
+            
+            <Icon className={cn(
+              "w-5 h-5 transition-all duration-300",
+              isActive ? "text-[#1C8FA0] drop-shadow-[0_0_8px_rgba(28,143,160,0.5)]" : "group-hover:scale-110",
+              isCollapsed ? "mx-auto" : ""
+            )} />
+            
+            <span className={cn(
+              "font-medium text-sm whitespace-nowrap transition-all duration-300",
+              isCollapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100 w-auto"
+            )}>
+              {item.name}
+            </span>
+          </Link>
+        );
+      })}
+    </div>
+  </div>
+);
+
+const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
+  const location = useLocation();
+  const currentPath = location.pathname;
+  const { signOut } = useAuth();
+
+  const menuStructure = [
+    {
+      title: "Panel Principal",
+      items: [
+        { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+        { name: "Visión General", icon: Compass, path: "/dashboard/overview" },
+        { name: "Transacciones", icon: CreditCard, path: "/dashboard/transactions" },
+        { name: "Categorías", icon: Layers, path: "/dashboard/categories" },
+        { name: "Metas y Ahorros", icon: Target, path: "/dashboard/goals" },
+        { name: "Presupuestos", icon: Receipt, path: "/dashboard/budgets" },
+      ]
+    },
+    {
+      title: "Inteligencia",
+      items: [
+        { name: "Asistente IA", icon: Bot, path: "/dashboard/ai-assistant" },
+        { name: "Predicciones", icon: Sparkles, path: "/dashboard/predictions" },
+        { name: "Análisis Profundo", icon: BarChart3, path: "/dashboard/analysis" },
+        { name: "Alertas", icon: Bell, path: "/dashboard/alerts" },
+      ]
+    },
+    {
+      title: "Familia",
+      items: [
+        { name: "Mi Familia", icon: Users, path: "/dashboard/family" },
+        { name: "Gastos Compartidos", icon: Share2, path: "/dashboard/shared" },
+        { name: "Deudas", icon: ArrowLeftRight, path: "/dashboard/debts" },
+      ]
+    },
+    {
+      title: "Configuración",
+      items: [
+        { name: "Exportar Datos", icon: Download, path: "/dashboard/export" },
+      ]
+    }
+  ];
+
+  return (
+    <>
+      {/* Mobile Overlay */}
+      <div 
+        className={cn(
+          "fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300",
+          isMobileOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => setIsMobileOpen(false)}
+      />
+
+      {/* Sidebar Container */}
+      <aside className={cn(
+        "fixed lg:static inset-y-0 left-0 z-50 bg-white dark:bg-[#1a1a1a] border-r border-gray-100 dark:border-white/5 shadow-[inset_-1px_0_0_0_rgba(0,0,0,0.05)] transition-all duration-300 ease-in-out flex flex-col",
+        "w-[280px]", // Fixed width for desktop
+        isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+      )}>
+        {/* Logo Section */}
+        <div className="h-24 flex items-center justify-center border-b border-gray-50/50 dark:border-white/5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-[#1C8FA0] rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-[#1C8FA0]/20">
+              F
+            </div>
+            <span className="text-xl font-bold tracking-tight text-[#1a1a1a] dark:text-white font-['Inter_Tight']">
+              FINANTEL
+            </span>
+          </div>
+        </div>
+
+        {/* Scrollable Menu */}
+        <div className="flex-1 overflow-y-auto py-8 px-4 space-y-8 scrollbar-hide">
+          {menuStructure.map((section, idx) => (
+            <MenuSection 
+              key={idx} 
+              title={section.title} 
+              items={section.items} 
+              currentPath={currentPath}
+              isCollapsed={false} 
+            />
+          ))}
+        </div>
+
+        {/* Bottom Actions */}
+        <div className="p-4 border-t border-gray-50 dark:border-white/5 space-y-1">
+          <Link to="/dashboard/profile" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[#6E6E73] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-[#1a1a1a] dark:hover:text-white transition-all group">
+            <User className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            <span className="font-medium text-sm">Mi Perfil</span>
+          </Link>
+          <button 
+            onClick={signOut}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[#6E6E73] dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 transition-all group"
+          >
+            <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            <span className="font-medium text-sm">Cerrar Sesión</span>
+          </button>
+        </div>
+      </aside>
+    </>
+  );
+};
+
+export default Sidebar;
