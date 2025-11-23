@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS public.shared_expenses (
     amount DECIMAL(12, 2) NOT NULL CHECK (amount > 0),
     currency TEXT DEFAULT 'USD',
     expense_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
+    category_id UUID, -- Se agregará FK después si categories existe
     status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'settled', 'cancelled')),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
@@ -145,11 +145,11 @@ CREATE TABLE IF NOT EXISTS public.alerts (
     message TEXT NOT NULL,
     recommendation TEXT,
     
-    -- Contexto de la alerta
-    category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
-    budget_id UUID REFERENCES public.budgets(id) ON DELETE SET NULL,
-    goal_id UUID REFERENCES public.goals(id) ON DELETE SET NULL,
-    transaction_id UUID REFERENCES public.transactions(id) ON DELETE SET NULL,
+    -- Contexto de la alerta (FKs se agregarán después si las tablas existen)
+    category_id UUID,
+    budget_id UUID,
+    goal_id UUID,
+    transaction_id UUID,
     
     -- Estado y prioridad
     priority INTEGER DEFAULT 5 CHECK (priority >= 1 AND priority <= 10), -- 1 = más alta, 10 = más baja
@@ -250,4 +250,97 @@ COMMENT ON TABLE public.shared_expenses IS 'Gastos compartidos entre miembros de
 COMMENT ON TABLE public.shared_expense_splits IS 'División de gastos compartidos entre usuarios';
 COMMENT ON TABLE public.profile_preferences IS 'Preferencias de usuario (moneda, idioma, notificaciones, etc.)';
 COMMENT ON TABLE public.alerts IS 'Alertas inteligentes generadas automáticamente para el usuario';
+
+-- =====================================================
+-- AGREGAR FOREIGN KEYS SI LAS TABLAS BASE EXISTEN
+-- =====================================================
+
+-- Agregar FK de shared_expenses a categories si existe
+DO $$ 
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'categories') THEN
+        -- Eliminar constraint si existe
+        IF EXISTS (
+            SELECT 1 FROM information_schema.table_constraints 
+            WHERE constraint_schema = 'public' 
+            AND table_name = 'shared_expenses' 
+            AND constraint_name = 'shared_expenses_category_id_fkey'
+        ) THEN
+            ALTER TABLE public.shared_expenses DROP CONSTRAINT shared_expenses_category_id_fkey;
+        END IF;
+        
+        -- Agregar FK
+        ALTER TABLE public.shared_expenses 
+        ADD CONSTRAINT shared_expenses_category_id_fkey 
+        FOREIGN KEY (category_id) REFERENCES public.categories(id) ON DELETE SET NULL;
+        
+        RAISE NOTICE '✅ FK agregada: shared_expenses.category_id -> categories.id';
+    ELSE
+        RAISE NOTICE '⚠️ Tabla categories no existe. FK de category_id no se agregó.';
+    END IF;
+END $$;
+
+-- Agregar FKs de alerts a las tablas base si existen
+DO $$ 
+BEGIN
+    -- FK a categories
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'categories') THEN
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.table_constraints 
+            WHERE constraint_schema = 'public' 
+            AND table_name = 'alerts' 
+            AND constraint_name = 'alerts_category_id_fkey'
+        ) THEN
+            ALTER TABLE public.alerts 
+            ADD CONSTRAINT alerts_category_id_fkey 
+            FOREIGN KEY (category_id) REFERENCES public.categories(id) ON DELETE SET NULL;
+            RAISE NOTICE '✅ FK agregada: alerts.category_id -> categories.id';
+        END IF;
+    END IF;
+    
+    -- FK a budgets
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'budgets') THEN
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.table_constraints 
+            WHERE constraint_schema = 'public' 
+            AND table_name = 'alerts' 
+            AND constraint_name = 'alerts_budget_id_fkey'
+        ) THEN
+            ALTER TABLE public.alerts 
+            ADD CONSTRAINT alerts_budget_id_fkey 
+            FOREIGN KEY (budget_id) REFERENCES public.budgets(id) ON DELETE SET NULL;
+            RAISE NOTICE '✅ FK agregada: alerts.budget_id -> budgets.id';
+        END IF;
+    END IF;
+    
+    -- FK a goals
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'goals') THEN
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.table_constraints 
+            WHERE constraint_schema = 'public' 
+            AND table_name = 'alerts' 
+            AND constraint_name = 'alerts_goal_id_fkey'
+        ) THEN
+            ALTER TABLE public.alerts 
+            ADD CONSTRAINT alerts_goal_id_fkey 
+            FOREIGN KEY (goal_id) REFERENCES public.goals(id) ON DELETE SET NULL;
+            RAISE NOTICE '✅ FK agregada: alerts.goal_id -> goals.id';
+        END IF;
+    END IF;
+    
+    -- FK a transactions
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'transactions') THEN
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.table_constraints 
+            WHERE constraint_schema = 'public' 
+            AND table_name = 'alerts' 
+            AND constraint_name = 'alerts_transaction_id_fkey'
+        ) THEN
+            ALTER TABLE public.alerts 
+            ADD CONSTRAINT alerts_transaction_id_fkey 
+            FOREIGN KEY (transaction_id) REFERENCES public.transactions(id) ON DELETE SET NULL;
+            RAISE NOTICE '✅ FK agregada: alerts.transaction_id -> transactions.id';
+        END IF;
+    END IF;
+END $$;
 

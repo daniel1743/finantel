@@ -101,7 +101,7 @@ supabase db push
 
 ```bash
 # Conectar a tu base de datos
-psql -h db.lhiqfsikextxysoedssz.supabase.co -U postgres -d postgres
+psql -h db.yzakmqxbzwzbsdsadzej.supabase.co -U postgres -d postgres
 
 # Ejecutar migraciones
 \i supabase/migrations/001_create_missing_tables.sql

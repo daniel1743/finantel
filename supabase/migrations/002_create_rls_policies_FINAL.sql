@@ -1,8 +1,9 @@
 -- =====================================================
--- FASE 1: POLÍTICAS RLS (ROW LEVEL SECURITY) - VERSIÓN CORREGIDA
+-- FASE 1: POLÍTICAS RLS (ROW LEVEL SECURITY) - VERSIÓN FINAL
 -- =====================================================
 -- Este script crea las políticas de seguridad para las nuevas tablas
--- CRÍTICO: Ejecutar DESPUÉS de 001_create_missing_tables.sql
+-- CRÍTICO: Ejecutar DESPUÉS de 001_create_missing_tables.sql o 000_migracion_completa_unificada.sql
+-- Este script es IDEMPOTENTE: se puede ejecutar múltiples veces sin errores
 -- =====================================================
 
 -- Habilitar RLS en todas las tablas (solo si existen)
@@ -34,11 +35,29 @@ BEGIN
 END $$;
 
 -- =====================================================
+-- FUNCIÓN AUXILIAR: Eliminar política si existe
+-- =====================================================
+CREATE OR REPLACE FUNCTION drop_policy_if_exists(
+    policy_name TEXT,
+    table_name TEXT
+) RETURNS void AS $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE schemaname = 'public' 
+        AND tablename = table_name
+        AND policyname = policy_name
+    ) THEN
+        EXECUTE format('DROP POLICY %I ON public.%I', policy_name, table_name);
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =====================================================
 -- 1. FAMILY_GROUPS - Políticas RLS
 -- =====================================================
 
--- Los usuarios pueden ver grupos donde son miembros
-DROP POLICY IF EXISTS "Users can view groups they belong to" ON public.family_groups;
+SELECT drop_policy_if_exists('Users can view groups they belong to', 'family_groups');
 CREATE POLICY "Users can view groups they belong to"
     ON public.family_groups
     FOR SELECT
@@ -51,25 +70,13 @@ CREATE POLICY "Users can view groups they belong to"
         )
     );
 
--- Los usuarios pueden crear grupos
-DO $$ 
-BEGIN
-    IF EXISTS (
-        SELECT 1 FROM pg_policies 
-        WHERE schemaname = 'public' 
-        AND tablename = 'family_groups' 
-        AND policyname = 'Users can create family groups'
-    ) THEN
-        DROP POLICY "Users can create family groups" ON public.family_groups;
-    END IF;
-END $$;
+SELECT drop_policy_if_exists('Users can create family groups', 'family_groups');
 CREATE POLICY "Users can create family groups"
     ON public.family_groups
     FOR INSERT
     WITH CHECK (auth.uid() = created_by);
 
--- Los usuarios pueden actualizar grupos donde son admin
-DROP POLICY IF EXISTS "Admins can update their groups" ON public.family_groups;
+SELECT drop_policy_if_exists('Admins can update their groups', 'family_groups');
 CREATE POLICY "Admins can update their groups"
     ON public.family_groups
     FOR UPDATE
@@ -83,8 +90,7 @@ CREATE POLICY "Admins can update their groups"
         )
     );
 
--- Solo el creador puede eliminar grupos
-DROP POLICY IF EXISTS "Only creator can delete groups" ON public.family_groups;
+SELECT drop_policy_if_exists('Only creator can delete groups', 'family_groups');
 CREATE POLICY "Only creator can delete groups"
     ON public.family_groups
     FOR DELETE
@@ -94,8 +100,7 @@ CREATE POLICY "Only creator can delete groups"
 -- 2. FAMILY_GROUP_MEMBERS - Políticas RLS
 -- =====================================================
 
--- Los usuarios pueden ver miembros de grupos donde pertenecen
-DROP POLICY IF EXISTS "Users can view members of their groups" ON public.family_group_members;
+SELECT drop_policy_if_exists('Users can view members of their groups', 'family_group_members');
 CREATE POLICY "Users can view members of their groups"
     ON public.family_group_members
     FOR SELECT
@@ -108,8 +113,7 @@ CREATE POLICY "Users can view members of their groups"
         )
     );
 
--- Los admins pueden agregar miembros
-DROP POLICY IF EXISTS "Admins can add members" ON public.family_group_members;
+SELECT drop_policy_if_exists('Admins can add members', 'family_group_members');
 CREATE POLICY "Admins can add members"
     ON public.family_group_members
     FOR INSERT
@@ -123,8 +127,7 @@ CREATE POLICY "Admins can add members"
         )
     );
 
--- Los admins pueden actualizar miembros (cambiar rol, etc.)
-DROP POLICY IF EXISTS "Admins can update members" ON public.family_group_members;
+SELECT drop_policy_if_exists('Admins can update members', 'family_group_members');
 CREATE POLICY "Admins can update members"
     ON public.family_group_members
     FOR UPDATE
@@ -138,16 +141,13 @@ CREATE POLICY "Admins can update members"
         )
     );
 
--- Los admins pueden remover miembros (o el usuario puede salirse)
-DROP POLICY IF EXISTS "Admins can remove members or user can leave" ON public.family_group_members;
+SELECT drop_policy_if_exists('Admins can remove members or user can leave', 'family_group_members');
 CREATE POLICY "Admins can remove members or user can leave"
     ON public.family_group_members
     FOR DELETE
     USING (
-        -- El usuario puede eliminarse a sí mismo
         user_id = auth.uid()
         OR
-        -- O un admin puede eliminar a otros
         EXISTS (
             SELECT 1 FROM public.family_group_members fgm
             WHERE fgm.family_group_id = family_group_members.family_group_id
@@ -161,8 +161,7 @@ CREATE POLICY "Admins can remove members or user can leave"
 -- 3. SHARED_EXPENSES - Políticas RLS
 -- =====================================================
 
--- Los usuarios pueden ver gastos de grupos donde son miembros
-DROP POLICY IF EXISTS "Users can view expenses of their groups" ON public.shared_expenses;
+SELECT drop_policy_if_exists('Users can view expenses of their groups', 'shared_expenses');
 CREATE POLICY "Users can view expenses of their groups"
     ON public.shared_expenses
     FOR SELECT
@@ -175,8 +174,7 @@ CREATE POLICY "Users can view expenses of their groups"
         )
     );
 
--- Los usuarios pueden crear gastos en grupos donde son miembros
-DROP POLICY IF EXISTS "Users can create expenses in their groups" ON public.shared_expenses;
+SELECT drop_policy_if_exists('Users can create expenses in their groups', 'shared_expenses');
 CREATE POLICY "Users can create expenses in their groups"
     ON public.shared_expenses
     FOR INSERT
@@ -190,8 +188,7 @@ CREATE POLICY "Users can create expenses in their groups"
         )
     );
 
--- Solo quien pagó o un admin puede actualizar
-DROP POLICY IF EXISTS "Payer or admin can update expenses" ON public.shared_expenses;
+SELECT drop_policy_if_exists('Payer or admin can update expenses', 'shared_expenses');
 CREATE POLICY "Payer or admin can update expenses"
     ON public.shared_expenses
     FOR UPDATE
@@ -207,8 +204,7 @@ CREATE POLICY "Payer or admin can update expenses"
         )
     );
 
--- Solo quien pagó o un admin puede eliminar
-DROP POLICY IF EXISTS "Payer or admin can delete expenses" ON public.shared_expenses;
+SELECT drop_policy_if_exists('Payer or admin can delete expenses', 'shared_expenses');
 CREATE POLICY "Payer or admin can delete expenses"
     ON public.shared_expenses
     FOR DELETE
@@ -228,8 +224,7 @@ CREATE POLICY "Payer or admin can delete expenses"
 -- 4. SHARED_EXPENSE_SPLITS - Políticas RLS
 -- =====================================================
 
--- Los usuarios pueden ver splits de gastos de sus grupos
-DROP POLICY IF EXISTS "Users can view splits of their group expenses" ON public.shared_expense_splits;
+SELECT drop_policy_if_exists('Users can view splits of their group expenses', 'shared_expense_splits');
 CREATE POLICY "Users can view splits of their group expenses"
     ON public.shared_expense_splits
     FOR SELECT
@@ -243,8 +238,7 @@ CREATE POLICY "Users can view splits of their group expenses"
         )
     );
 
--- Solo quien pagó o un admin puede crear splits
-DROP POLICY IF EXISTS "Payer or admin can create splits" ON public.shared_expense_splits;
+SELECT drop_policy_if_exists('Payer or admin can create splits', 'shared_expense_splits');
 CREATE POLICY "Payer or admin can create splits"
     ON public.shared_expense_splits
     FOR INSERT
@@ -266,9 +260,7 @@ CREATE POLICY "Payer or admin can create splits"
         )
     );
 
--- Los usuarios pueden actualizar sus propios splits (marcar como pagado)
--- O quien pagó/admin puede actualizar cualquier split
-DROP POLICY IF EXISTS "Users can update splits" ON public.shared_expense_splits;
+SELECT drop_policy_if_exists('Users can update splits', 'shared_expense_splits');
 CREATE POLICY "Users can update splits"
     ON public.shared_expense_splits
     FOR UPDATE
@@ -292,8 +284,7 @@ CREATE POLICY "Users can update splits"
         )
     );
 
--- Solo quien pagó o un admin puede eliminar splits
-DROP POLICY IF EXISTS "Payer or admin can delete splits" ON public.shared_expense_splits;
+SELECT drop_policy_if_exists('Payer or admin can delete splits', 'shared_expense_splits');
 CREATE POLICY "Payer or admin can delete splits"
     ON public.shared_expense_splits
     FOR DELETE
@@ -319,29 +310,25 @@ CREATE POLICY "Payer or admin can delete splits"
 -- 5. PROFILE_PREFERENCES - Políticas RLS
 -- =====================================================
 
--- Los usuarios solo pueden ver sus propias preferencias
-DROP POLICY IF EXISTS "Users can view own preferences" ON public.profile_preferences;
+SELECT drop_policy_if_exists('Users can view own preferences', 'profile_preferences');
 CREATE POLICY "Users can view own preferences"
     ON public.profile_preferences
     FOR SELECT
     USING (auth.uid() = user_id);
 
--- Los usuarios pueden crear sus propias preferencias
-DROP POLICY IF EXISTS "Users can create own preferences" ON public.profile_preferences;
+SELECT drop_policy_if_exists('Users can create own preferences', 'profile_preferences');
 CREATE POLICY "Users can create own preferences"
     ON public.profile_preferences
     FOR INSERT
     WITH CHECK (auth.uid() = user_id);
 
--- Los usuarios solo pueden actualizar sus propias preferencias
-DROP POLICY IF EXISTS "Users can update own preferences" ON public.profile_preferences;
+SELECT drop_policy_if_exists('Users can update own preferences', 'profile_preferences');
 CREATE POLICY "Users can update own preferences"
     ON public.profile_preferences
     FOR UPDATE
     USING (auth.uid() = user_id);
 
--- Los usuarios pueden eliminar sus propias preferencias
-DROP POLICY IF EXISTS "Users can delete own preferences" ON public.profile_preferences;
+SELECT drop_policy_if_exists('Users can delete own preferences', 'profile_preferences');
 CREATE POLICY "Users can delete own preferences"
     ON public.profile_preferences
     FOR DELETE
@@ -351,36 +338,37 @@ CREATE POLICY "Users can delete own preferences"
 -- 6. ALERTS - Políticas RLS
 -- =====================================================
 
--- Los usuarios solo pueden ver sus propias alertas
-DROP POLICY IF EXISTS "Users can view own alerts" ON public.alerts;
+SELECT drop_policy_if_exists('Users can view own alerts', 'alerts');
 CREATE POLICY "Users can view own alerts"
     ON public.alerts
     FOR SELECT
     USING (auth.uid() = user_id);
 
--- Solo el sistema puede crear alertas (usando service_role)
--- Para usuarios normales, no permitir INSERT directo
--- (Las alertas se crearán mediante funciones o triggers)
-DROP POLICY IF EXISTS "Only system can create alerts" ON public.alerts;
+SELECT drop_policy_if_exists('Only system can create alerts', 'alerts');
 CREATE POLICY "Only system can create alerts"
     ON public.alerts
     FOR INSERT
     WITH CHECK (false); -- Bloquear INSERT directo desde cliente
 
--- Los usuarios pueden actualizar sus propias alertas (marcar como leída, etc.)
-DROP POLICY IF EXISTS "Users can update own alerts" ON public.alerts;
+SELECT drop_policy_if_exists('Users can update own alerts', 'alerts');
 CREATE POLICY "Users can update own alerts"
     ON public.alerts
     FOR UPDATE
     USING (auth.uid() = user_id)
     WITH CHECK (auth.uid() = user_id);
 
--- Los usuarios pueden eliminar sus propias alertas
-DROP POLICY IF EXISTS "Users can delete own alerts" ON public.alerts;
+SELECT drop_policy_if_exists('Users can delete own alerts', 'alerts');
 CREATE POLICY "Users can delete own alerts"
     ON public.alerts
     FOR DELETE
     USING (auth.uid() = user_id);
 
+-- =====================================================
+-- LIMPIAR FUNCIÓN AUXILIAR (opcional)
+-- =====================================================
+DROP FUNCTION IF EXISTS drop_policy_if_exists(TEXT, TEXT);
 
+-- =====================================================
+-- ✅ POLÍTICAS RLS CREADAS EXITOSAMENTE
+-- =====================================================
 

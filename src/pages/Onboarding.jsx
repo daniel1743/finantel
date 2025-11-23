@@ -2,12 +2,18 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Check, Plus, Wallet, ShoppingBag, Coffee, Home, Car, Plane, Sparkles } from 'lucide-react';
+import { ArrowRight, Check, Plus, Wallet, ShoppingBag, Coffee, Home, Car, Plane, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { supabase } from '@/lib/customSupabaseClient';
+import { useToast } from '@/components/ui/use-toast';
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [step, setStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     income: '',
     goal: '',
@@ -17,8 +23,72 @@ const Onboarding = () => {
   const nextStep = () => setStep(s => Math.min(s + 1, 3));
   const prevStep = () => setStep(s => Math.max(s - 1, 1));
 
-  const handleFinish = () => {
-    navigate('/');
+  const handleFinish = async () => {
+    if (!user?.id) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.",
+      });
+      navigate('/auth');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Convertir valores a números
+      const monthlyIncome = parseFloat(formData.income) || 0;
+      const savingsGoal = parseFloat(formData.goal) || 0;
+
+      // Llamar a la función de Supabase para completar el onboarding
+      const { data, error } = await supabase.rpc('complete_user_onboarding', {
+        user_uuid: user.id,
+        monthly_income: monthlyIncome > 0 ? monthlyIncome : null,
+        savings_goal: savingsGoal > 0 ? savingsGoal : null,
+        generate_samples: monthlyIncome > 0 // Solo generar muestras si hay ingreso
+      });
+
+      if (error) {
+        console.error('Error en onboarding:', error);
+        throw error;
+      }
+
+      // Si hay meta de ahorro, crear una meta (goal)
+      if (savingsGoal > 0) {
+        const { error: goalError } = await supabase.from('goals').insert({
+          user_id: user.id,
+          name: 'Meta de Ahorro Inicial',
+          description: 'Meta de ahorro establecida durante el onboarding',
+          target_amount: savingsGoal,
+          current_amount: 0,
+          priority: 'high',
+          status: 'active'
+        });
+
+        if (goalError) {
+          console.error('Error creando meta:', goalError);
+          // No lanzar error, solo registrar
+        }
+      }
+
+      toast({
+        title: "¡Bienvenido a Finantel!",
+        description: "Tu cuenta ha sido configurada exitosamente.",
+      });
+
+      // Redirigir al dashboard
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error completando onboarding:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "No se pudo completar la configuración. Intenta de nuevo.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -263,8 +333,19 @@ const Onboarding = () => {
                   </div>
                 </div>
 
-                <Button onClick={handleFinish} className="w-full bg-[#1C8FA0] hover:bg-[#167a8a] text-white py-7 rounded-2xl text-xl font-medium shadow-xl shadow-[#1C8FA0]/20 transition-all hover:shadow-[#1C8FA0]/30 hover:-translate-y-1">
-                  Ir a mi Dashboard
+                <Button 
+                  onClick={handleFinish} 
+                  disabled={isLoading}
+                  className="w-full bg-[#1C8FA0] hover:bg-[#167a8a] text-white py-7 rounded-2xl text-xl font-medium shadow-xl shadow-[#1C8FA0]/20 transition-all hover:shadow-[#1C8FA0]/30 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin inline" />
+                      Configurando tu cuenta...
+                    </>
+                  ) : (
+                    'Ir a mi Dashboard'
+                  )}
                 </Button>
               </motion.div>
             )}

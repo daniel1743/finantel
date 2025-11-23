@@ -26,6 +26,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useFinance } from '@/hooks/useFinance';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/lib/customSupabaseClient';
 
 const transactionsData = [
   { id: 1, name: "Supermercado Metro", category: "Alimentación", type: "Gasto", amount: -124.50, date: "21 Nov, 2023", icon: ShoppingBag, color: "bg-orange-100 text-orange-600" },
@@ -279,18 +280,78 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
     setIsLoading(true);
 
     try {
-      // Determinar el nombre final de la categoría
-      const finalCategory = showCustomCategory
-        ? formData.custom_category.trim()
-        : formData.category_id;
+      // Buscar o crear el category_id
+      let categoryId = null;
+      let categoryName = null;
+      
+      if (showCustomCategory && formData.custom_category) {
+        // Categoría personalizada
+        categoryName = formData.custom_category.trim();
+      } else if (formData.category_id) {
+        // Categoría predefinida
+        categoryName = formData.type === 'income'
+          ? INCOME_CATEGORIES.find(cat => cat.id === formData.category_id)?.name
+          : EXPENSE_CATEGORIES.find(cat => cat.id === formData.category_id)?.name;
+      }
+      
+      // Buscar la categoría en Supabase o crearla si no existe
+      if (categoryName) {
+        // Buscar si ya existe (SIN usar 'type' porque puede no existir)
+        const { data: categoryData } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('name', categoryName)
+          .maybeSingle();
+        
+        // Si no existe, crearla
+        if (!categoryData) {
+          // Crear categoría SIN type (la columna puede no existir)
+          const insertData = {
+            user_id: user.id,
+            name: categoryName,
+            color: formData.type === 'expense' ? '#E47B45' : '#1C8FA0',
+            icon: '💰',
+          };
+          
+          // Intentar crear sin type primero
+          const { data: newCategory, error: categoryError } = await supabase
+            .from('categories')
+            .insert(insertData)
+            .select('id')
+            .single();
+          
+          if (categoryError) {
+            throw new Error(`Error al crear categoría: ${categoryError.message}`);
+          }
+          
+          categoryId = newCategory.id;
+          
+          // Intentar actualizar con type si la columna existe (no crítico si falla)
+          try {
+            await supabase
+              .from('categories')
+              .update({ type: formData.type })
+              .eq('id', categoryId);
+          } catch (err) {
+            // Ignorar si falla (la columna type no existe aún)
+            console.log('No se pudo actualizar type (columna puede no existir aún)');
+          }
+        } else {
+          categoryId = categoryData.id;
+        }
+      }
 
       const transactionData = {
         description: formData.description.trim(),
         amount: parseFloat(formData.amount),
-        category: finalCategory,
+        category_id: categoryId, // UUID de la categoría
         date: formData.date,
         type: formData.type,
-        necessity_level: formData.type === 'expense' ? formData.necessity_level : null,
+        // necessity_level no existe en el schema, guardarlo en metadata JSONB
+        metadata: formData.type === 'expense' && formData.necessity_level 
+          ? { necessity_level: formData.necessity_level }
+          : {},
         notes: formData.notes.trim() || null,
       };
 
@@ -634,73 +695,130 @@ const Transactions = () => {
 
         {/* Table Body */}
         <div className="overflow-y-auto flex-1">
-          {transactionsData.map((tx, index) => (
-            <motion.div
-              key={tx.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-              onClick={() => setSelectedRow(tx.id === selectedRow ? null : tx.id)}
-              className={cn(
-                "grid grid-cols-12 gap-4 px-6 py-4 items-center border-b border-gray-50 last:border-0 transition-all duration-200 cursor-pointer group relative",
-                selectedRow === tx.id ? "bg-[#1C8FA0]/5" : "hover:bg-white hover:shadow-sm"
-              )}
-            >
-              {/* Hover Indicator Line */}
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#1C8FA0] opacity-0 group-hover:opacity-100 transition-opacity" />
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
+            </div>
+          ) : transactions && transactions.length > 0 ? (
+            transactions.map((tx, index) => {
+              // Mapear datos de Supabase a formato de UI
+              const categoryName = tx.categories?.name || 'Sin categoría';
+              const categoryColor = tx.categories?.color || '#3B82F6';
+              const categoryIcon = tx.categories?.icon || '💰';
+              
+              // Determinar icono y color según tipo
+              const isIncome = tx.type === 'income';
+              
+              // Mapear icono desde string a componente
+              const iconMap = {
+                'Home': Home,
+                'ShoppingBag': ShoppingBag,
+                'Car': Car,
+                'Coffee': Coffee,
+                'Plane': Plane,
+                'Zap': DollarSign,
+                'Heart': DollarSign,
+                'Smartphone': DollarSign,
+              };
+              
+              const displayIcon = isIncome 
+                ? ArrowUpRight 
+                : (tx.categories?.icon && iconMap[tx.categories.icon]) 
+                  ? iconMap[tx.categories.icon] 
+                  : DollarSign;
+              
+              const iconColor = isIncome 
+                ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400" 
+                : "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400";
+              
+              // Formatear fecha
+              const formattedDate = tx.date ? new Date(tx.date).toLocaleDateString('es-ES', { 
+                day: 'numeric', 
+                month: 'short', 
+                year: 'numeric' 
+              }) : 'Sin fecha';
+              
+              // Formatear monto
+              const amount = parseFloat(tx.amount) || 0;
+              const displayAmount = isIncome ? amount : -Math.abs(amount);
+              
+              return (
+                <motion.div
+                  key={tx.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  onClick={() => setSelectedRow(tx.id === selectedRow ? null : tx.id)}
+                  className={cn(
+                    "grid grid-cols-12 gap-4 px-6 py-4 items-center border-b border-gray-50 dark:border-white/5 last:border-0 transition-all duration-200 cursor-pointer group relative",
+                    selectedRow === tx.id ? "bg-[#1C8FA0]/5 dark:bg-[#1C8FA0]/10" : "hover:bg-white dark:hover:bg-white/5 hover:shadow-sm"
+                  )}
+                >
+                  {/* Hover Indicator Line */}
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#1C8FA0] opacity-0 group-hover:opacity-100 transition-opacity" />
 
-              {/* Description */}
-              <div className="col-span-5 sm:col-span-4 flex items-center gap-4">
-                <div className={cn("w-10 h-10 rounded-full flex items-center justify-center shrink-0", tx.color)}>
-                  <tx.icon className="w-5 h-5" />
-                </div>
-                <div className="truncate">
-                  <p className="font-bold text-[#1a1a1a] text-sm truncate">{tx.name}</p>
-                  <p className="text-xs text-[#6E6E73] sm:hidden">{tx.date}</p>
-                </div>
-              </div>
+                  {/* Description */}
+                  <div className="col-span-5 sm:col-span-4 flex items-center gap-4">
+                    <div className={cn("w-10 h-10 rounded-full flex items-center justify-center shrink-0", iconColor)}>
+                      {React.createElement(displayIcon, { className: "w-5 h-5" })}
+                    </div>
+                    <div className="truncate">
+                      <p className="font-bold text-[#1a1a1a] dark:text-white text-sm truncate">{tx.description || 'Sin descripción'}</p>
+                      <p className="text-xs text-[#6E6E73] dark:text-gray-400 sm:hidden">{formattedDate}</p>
+                    </div>
+                  </div>
 
-              {/* Category */}
-              <div className="col-span-3 hidden sm:flex items-center">
-                <span className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 text-xs font-medium border border-gray-200">
-                  {tx.category}
-                </span>
-              </div>
+                  {/* Category */}
+                  <div className="col-span-3 hidden sm:flex items-center">
+                    <span className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-400 text-xs font-medium border border-gray-200 dark:border-white/10">
+                      {categoryName}
+                    </span>
+                  </div>
 
-              {/* Type */}
-              <div className="col-span-2 hidden lg:flex items-center">
-                <span className="text-sm text-[#6E6E73]">{tx.type}</span>
-              </div>
+                  {/* Type */}
+                  <div className="col-span-2 hidden lg:flex items-center">
+                    <span className="text-sm text-[#6E6E73] dark:text-gray-400">
+                      {isIncome ? 'Ingreso' : 'Gasto'}
+                    </span>
+                  </div>
 
-              {/* Amount */}
-              <div className="col-span-4 sm:col-span-3 lg:col-span-2 text-right">
-                <span className={cn(
-                  "font-bold font-mono text-sm",
-                  tx.amount > 0 ? "text-[#1C8FA0]" : "text-[#1a1a1a]"
-                )}>
-                  {tx.amount > 0 ? '+' : ''}{tx.amount.toFixed(2)}
-                </span>
-              </div>
+                  {/* Amount */}
+                  <div className="col-span-4 sm:col-span-3 lg:col-span-2 text-right">
+                    <span className={cn(
+                      "font-bold font-mono text-sm",
+                      displayAmount > 0 ? "text-green-600 dark:text-green-400" : "text-[#1a1a1a] dark:text-white"
+                    )}>
+                      {displayAmount > 0 ? '+' : ''}${Math.abs(displayAmount).toFixed(2)}
+                    </span>
+                  </div>
 
-              {/* Date */}
-              <div className="col-span-3 sm:col-span-2 lg:col-span-1 text-right hidden sm:block">
-                <span className="text-sm text-[#6E6E73]">{tx.date.split(',')[0]}</span>
-              </div>
+                  {/* Date */}
+                  <div className="col-span-3 sm:col-span-2 lg:col-span-1 text-right hidden sm:block">
+                    <span className="text-sm text-[#6E6E73] dark:text-gray-400">{formattedDate}</span>
+                  </div>
 
-              {/* Hover Actions */}
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 backdrop-blur-sm p-1 rounded-lg shadow-sm">
-                <button className="p-1.5 hover:bg-gray-100 rounded-md text-[#6E6E73] hover:text-[#1C8FA0] transition-colors" title="Editar">
-                  <Edit2 className="w-4 h-4" />
-                </button>
-                <button className="p-1.5 hover:bg-gray-100 rounded-md text-[#6E6E73] hover:text-[#1a1a1a] transition-colors" title="Duplicar">
-                  <Copy className="w-4 h-4" />
-                </button>
-                <button className="p-1.5 hover:bg-red-50 rounded-md text-[#6E6E73] hover:text-red-600 transition-colors" title="Eliminar">
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </motion.div>
-          ))}
+                  {/* Hover Actions */}
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 dark:bg-[#1a1a1a]/80 backdrop-blur-sm p-1 rounded-lg shadow-sm">
+                    <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-md text-[#6E6E73] dark:text-gray-400 hover:text-[#1C8FA0] transition-colors" title="Editar">
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-md text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white transition-colors" title="Duplicar">
+                      <Copy className="w-4 h-4" />
+                    </button>
+                    <button className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md text-[#6E6E73] dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors" title="Eliminar">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <DollarSign className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-4" />
+              <p className="text-[#6E6E73] dark:text-gray-400 font-medium">No hay transacciones aún</p>
+              <p className="text-sm text-[#6E6E73] dark:text-gray-500 mt-1">Crea tu primera transacción para comenzar</p>
+            </div>
+          )}
         </div>
 
         {/* Pagination */}

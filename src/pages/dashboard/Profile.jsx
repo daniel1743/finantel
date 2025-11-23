@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,10 @@ import {
   CreditCard,
   ChevronRight
 } from 'lucide-react';
+import NotificationsModal from '@/components/modals/NotificationsModal';
+import CurrencyModal from '@/components/modals/CurrencyModal';
+import TwoFactorAuthModal from '@/components/modals/TwoFactorAuthModal';
+import { supabase } from '@/lib/customSupabaseClient';
 
 const ProfileSection = ({ title, children }) => (
   <div className="bg-white rounded-[22px] border border-gray-100 shadow-sm overflow-hidden mb-6">
@@ -46,6 +50,44 @@ const ProfileRow = ({ icon: Icon, label, value, action }) => (
 
 const Profile = () => {
   const { user, signOut } = useAuth();
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [currencyOpen, setCurrencyOpen] = useState(false);
+  const [twoFactorOpen, setTwoFactorOpen] = useState(false);
+  const [currency, setCurrency] = useState('USD');
+  const [currencyName, setCurrencyName] = useState('Dólar Estadounidense');
+
+  useEffect(() => {
+    if (user?.id) {
+      loadCurrency();
+    }
+  }, [user?.id]);
+
+  const loadCurrency = async () => {
+    try {
+      const { data } = await supabase
+        .from('profile_preferences')
+        .select('currency')
+        .eq('user_id', user.id)
+        .single();
+
+      if (data?.currency) {
+        setCurrency(data.currency);
+        const currencyNames = {
+          'USD': 'Dólar Estadounidense',
+          'EUR': 'Euro',
+          'GBP': 'Libra Esterlina',
+          'MXN': 'Peso Mexicano',
+          'ARS': 'Peso Argentino',
+          'CLP': 'Peso Chileno',
+          'COP': 'Peso Colombiano',
+          'PEN': 'Sol Peruano',
+        };
+        setCurrencyName(currencyNames[data.currency] || data.currency);
+      }
+    } catch (error) {
+      console.error('Error loading currency:', error);
+    }
+  };
 
   return (
     <div className="max-w-3xl mx-auto pb-12">
@@ -107,26 +149,74 @@ const Profile = () => {
 
         <ProfileSection title="Preferencias">
           <div className="space-y-1">
-            {[
-              { icon: Bell, label: "Notificaciones", desc: "Alertas de gastos y resumen semanal" },
-              { icon: CreditCard, label: "Moneda Principal", desc: "USD - Dólar Estadounidense" },
-              { icon: Shield, label: "Autenticación en 2 Pasos", desc: "Mayor seguridad para tu cuenta" }
-            ].map((item, i) => (
-              <button key={i} className="w-full flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors group">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-white flex items-center justify-center text-[#6E6E73] transition-colors">
-                    <item.icon className="w-5 h-5" />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-bold text-[#1a1a1a] text-sm">{item.label}</p>
-                    <p className="text-xs text-[#6E6E73]">{item.desc}</p>
-                  </div>
+            <button 
+              onClick={() => setNotificationsOpen(true)}
+              className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-white/5 group-hover:bg-white dark:group-hover:bg-white/10 flex items-center justify-center text-[#6E6E73] dark:text-gray-400 transition-colors">
+                  <Bell className="w-5 h-5" />
                 </div>
-                <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-[#1C8FA0] transition-colors" />
-              </button>
-            ))}
+                <div className="text-left">
+                  <p className="font-bold text-[#1a1a1a] dark:text-white text-sm">Notificaciones</p>
+                  <p className="text-xs text-[#6E6E73] dark:text-gray-400">Alertas de gastos y resumen semanal</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-[#1C8FA0] transition-colors" />
+            </button>
+
+            <button 
+              onClick={() => setCurrencyOpen(true)}
+              className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-white/5 group-hover:bg-white dark:group-hover:bg-white/10 flex items-center justify-center text-[#6E6E73] dark:text-gray-400 transition-colors">
+                  <CreditCard className="w-5 h-5" />
+                </div>
+                <div className="text-left">
+                  <p className="font-bold text-[#1a1a1a] dark:text-white text-sm">Moneda Principal</p>
+                  <p className="text-xs text-[#6E6E73] dark:text-gray-400">{currency} - {currencyName}</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-[#1C8FA0] transition-colors" />
+            </button>
+
+            <button 
+              onClick={() => setTwoFactorOpen(true)}
+              className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-white/5 group-hover:bg-white dark:group-hover:bg-white/10 flex items-center justify-center text-[#6E6E73] dark:text-gray-400 transition-colors">
+                  <Shield className="w-5 h-5" />
+                </div>
+                <div className="text-left">
+                  <p className="font-bold text-[#1a1a1a] dark:text-white text-sm">Autenticación en 2 Pasos</p>
+                  <p className="text-xs text-[#6E6E73] dark:text-gray-400">Mayor seguridad para tu cuenta</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-[#1C8FA0] transition-colors" />
+            </button>
           </div>
         </ProfileSection>
+
+        <NotificationsModal 
+          isOpen={notificationsOpen} 
+          onClose={() => {
+            setNotificationsOpen(false);
+            loadCurrency(); // Recargar en caso de cambios
+          }} 
+        />
+        <CurrencyModal 
+          isOpen={currencyOpen} 
+          onClose={() => {
+            setCurrencyOpen(false);
+            loadCurrency(); // Recargar moneda actualizada
+          }} 
+        />
+        <TwoFactorAuthModal 
+          isOpen={twoFactorOpen} 
+          onClose={() => setTwoFactorOpen(false)} 
+        />
       </motion.div>
     </div>
   );

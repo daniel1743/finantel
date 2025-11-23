@@ -9,11 +9,11 @@
 DO $$
 DECLARE
     missing_tables TEXT[];
-    table_name TEXT;
+    table_name_var TEXT; -- Renombrado para evitar ambigüedad
 BEGIN
     missing_tables := ARRAY[]::TEXT[];
     
-    FOR table_name IN 
+    FOR table_name_var IN 
         SELECT unnest(ARRAY[
             'family_groups',
             'family_group_members',
@@ -27,9 +27,9 @@ BEGIN
             SELECT 1 
             FROM information_schema.tables t
             WHERE t.table_schema = 'public' 
-            AND t.table_name = table_name
+            AND t.table_name = table_name_var -- Usar variable renombrada
         ) THEN
-            missing_tables := array_append(missing_tables, table_name);
+            missing_tables := array_append(missing_tables, table_name_var);
         END IF;
     END LOOP;
     
@@ -108,12 +108,12 @@ END $$;
 DO $$
 DECLARE
     missing_indexes TEXT[];
-    idx_name TEXT;
+    idx_name_var TEXT; -- Renombrado para evitar ambigüedad
 BEGIN
     missing_indexes := ARRAY[]::TEXT[];
     
     -- Verificar algunos índices críticos
-    FOR idx_name IN 
+    FOR idx_name_var IN 
         SELECT unnest(ARRAY[
             'idx_family_groups_created_by',
             'idx_family_group_members_group',
@@ -127,9 +127,9 @@ BEGIN
             SELECT 1 
             FROM pg_indexes 
             WHERE schemaname = 'public' 
-            AND indexname = idx_name
+            AND indexname = idx_name_var -- Usar variable renombrada
         ) THEN
-            missing_indexes := array_append(missing_indexes, idx_name);
+            missing_indexes := array_append(missing_indexes, idx_name_var);
         END IF;
     END LOOP;
     

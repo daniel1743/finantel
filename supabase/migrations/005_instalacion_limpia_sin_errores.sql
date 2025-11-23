@@ -35,15 +35,35 @@ BEGIN
     END LOOP;
 END $$;
 
--- Eliminar triggers
-DROP TRIGGER IF EXISTS validate_expense_splits_trigger ON public.shared_expense_splits;
-DROP TRIGGER IF EXISTS trigger_auto_add_creator_as_admin ON public.family_groups;
-DROP TRIGGER IF EXISTS update_family_groups_updated_at ON public.family_groups;
-DROP TRIGGER IF EXISTS update_shared_expenses_updated_at ON public.shared_expenses;
-DROP TRIGGER IF EXISTS update_profile_preferences_updated_at ON public.profile_preferences;
-DROP TRIGGER IF EXISTS trigger_check_budget_threshold ON public.transactions;
-DROP TRIGGER IF EXISTS trigger_check_unusual_expense ON public.transactions;
-DROP TRIGGER IF EXISTS trigger_check_goal_progress ON public.goals;
+-- Eliminar triggers (solo si las tablas existen)
+DO $$ 
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'shared_expense_splits') THEN
+        DROP TRIGGER IF EXISTS validate_expense_splits_trigger ON public.shared_expense_splits;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'family_groups') THEN
+        DROP TRIGGER IF EXISTS trigger_auto_add_creator_as_admin ON public.family_groups;
+        DROP TRIGGER IF EXISTS update_family_groups_updated_at ON public.family_groups;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'shared_expenses') THEN
+        DROP TRIGGER IF EXISTS update_shared_expenses_updated_at ON public.shared_expenses;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'profile_preferences') THEN
+        DROP TRIGGER IF EXISTS update_profile_preferences_updated_at ON public.profile_preferences;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'transactions') THEN
+        DROP TRIGGER IF EXISTS trigger_check_budget_threshold ON public.transactions;
+        DROP TRIGGER IF EXISTS trigger_check_unusual_expense ON public.transactions;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'goals') THEN
+        DROP TRIGGER IF EXISTS trigger_check_goal_progress ON public.goals;
+    END IF;
+END $$;
 
 -- Eliminar funciones
 DROP FUNCTION IF EXISTS create_alert CASCADE;

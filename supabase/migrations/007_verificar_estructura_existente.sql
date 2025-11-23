@@ -17,6 +17,7 @@ ORDER BY table_name;
 DO $$
 DECLARE
     tbl TEXT;
+    rec RECORD; -- Declarar la variable rec como RECORD
 BEGIN
     FOR tbl IN
         SELECT table_name
