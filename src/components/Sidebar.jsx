@@ -1,8 +1,10 @@
 
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { useBilling } from '@/hooks/useBilling';
+import { Lock } from 'lucide-react';
 import { 
   LayoutDashboard, 
   Compass, 
@@ -23,7 +25,7 @@ import {
   Download
 } from 'lucide-react';
 
-const MenuSection = ({ title, items, isCollapsed, currentPath }) => (
+const MenuSection = ({ title, items, isCollapsed, currentPath, setIsMobileOpen, hasFamilyPlan, handleBlockedClick }) => (
   <div className="mb-6">
     {title && (
       <h3 className={cn(
@@ -37,18 +39,33 @@ const MenuSection = ({ title, items, isCollapsed, currentPath }) => (
       {items.map((item) => {
         const isActive = currentPath === item.path;
         const Icon = item.icon;
+        const isFamilyFeature = item.requiresFamilyPlan;
+        const isBlocked = isFamilyFeature && !hasFamilyPlan;
         
         return (
-          <Link
-            key={item.name}
-            to={item.path}
-            className={cn(
-              "group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 relative overflow-hidden",
-              isActive 
-                ? "bg-[#1C8FA0]/10 text-[#1C8FA0]" 
-                : "text-[#6E6E73] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-[#1a1a1a] dark:hover:text-white"
+          <div key={item.name} className="relative">
+            {isBlocked && (
+              <div className="absolute -top-1 -right-1 z-10">
+                <Lock className="w-4 h-4 text-amber-500" />
+              </div>
             )}
-          >
+            <Link
+              to={item.path}
+              onClick={(e) => {
+                if (isBlocked) {
+                  handleBlockedClick(e);
+                } else {
+                  setIsMobileOpen(false);
+                }
+              }}
+              className={cn(
+                "group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 relative overflow-hidden",
+                isActive 
+                  ? "bg-[#1C8FA0]/10 text-[#1C8FA0]" 
+                  : "text-[#6E6E73] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-[#1a1a1a] dark:hover:text-white",
+                isBlocked && "opacity-60 cursor-not-allowed"
+              )}
+            >
             {isActive && (
               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#1C8FA0] rounded-r-full" />
             )}
@@ -66,6 +83,7 @@ const MenuSection = ({ title, items, isCollapsed, currentPath }) => (
               {item.name}
             </span>
           </Link>
+          </div>
         );
       })}
     </div>
@@ -75,7 +93,24 @@ const MenuSection = ({ title, items, isCollapsed, currentPath }) => (
 const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
   const location = useLocation();
   const currentPath = location.pathname;
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
+  const { subscription } = useBilling(user?.id);
+  const navigate = useNavigate();
+
+  // Verificar si tiene plan familiar
+  const hasFamilyPlan = subscription?.plan === 'familiar' || subscription?.plan === 'family' || subscription?.plan === 'Familiar';
+
+  // Cerrar el menú móvil automáticamente cuando cambia la ruta
+  useEffect(() => {
+    setIsMobileOpen(false);
+  }, [currentPath, setIsMobileOpen]);
+
+  // Manejar clic en enlaces bloqueados - permite navegar pero mostrará UpgradeRequired
+  const handleBlockedClick = (e) => {
+    // No prevenir el comportamiento por defecto, dejar que navegue
+    // El componente ProtectedFamilyRoute mostrará UpgradeRequired
+    setIsMobileOpen(false);
+  };
 
   const menuStructure = [
     {
@@ -101,9 +136,9 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
     {
       title: "Familia",
       items: [
-        { name: "Mi Familia", icon: Users, path: "/dashboard/family" },
-        { name: "Gastos Compartidos", icon: Share2, path: "/dashboard/shared" },
-        { name: "Deudas", icon: ArrowLeftRight, path: "/dashboard/debts" },
+        { name: "Mi Familia", icon: Users, path: "/dashboard/family", requiresFamilyPlan: true },
+        { name: "Gastos Compartidos", icon: Share2, path: "/dashboard/shared", requiresFamilyPlan: true },
+        { name: "Deudas", icon: ArrowLeftRight, path: "/dashboard/debts", requiresFamilyPlan: true },
       ]
     },
     {
@@ -151,14 +186,21 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
               title={section.title} 
               items={section.items} 
               currentPath={currentPath}
-              isCollapsed={false} 
+              isCollapsed={false}
+              setIsMobileOpen={setIsMobileOpen}
+              hasFamilyPlan={hasFamilyPlan}
+              handleBlockedClick={handleBlockedClick}
             />
           ))}
         </div>
 
         {/* Bottom Actions */}
         <div className="p-4 border-t border-gray-50 dark:border-white/5 space-y-1">
-          <Link to="/dashboard/profile" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[#6E6E73] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-[#1a1a1a] dark:hover:text-white transition-all group">
+          <Link 
+            to="/dashboard/profile" 
+            onClick={() => setIsMobileOpen(false)}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[#6E6E73] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-[#1a1a1a] dark:hover:text-white transition-all group"
+          >
             <User className="w-5 h-5 group-hover:scale-110 transition-transform" />
             <span className="font-medium text-sm">Mi Perfil</span>
           </Link>

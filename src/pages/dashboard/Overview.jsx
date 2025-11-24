@@ -339,11 +339,20 @@ const Overview = () => {
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
                   </Pie>
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip 
+                    content={<CustomTooltip />}
+                    contentStyle={{
+                      backgroundColor: 'var(--background)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '8px',
+                      color: 'var(--foreground)'
+                    }}
+                  />
                   <Legend 
                     verticalAlign="bottom" 
                     height={36}
-                    formatter={(value) => <span className="text-xs text-[#6E6E73] dark:text-gray-400">{value}</span>}
+                    wrapperStyle={{ fontSize: '12px' }}
+                    formatter={(value) => <span style={{ color: '#6E6E73' }}>{value}</span>}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -387,9 +396,10 @@ const Overview = () => {
                   />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: '#fff', 
+                      backgroundColor: 'white',
                       border: '1px solid #e5e7eb',
-                      borderRadius: '8px'
+                      borderRadius: '8px',
+                      color: '#1a1a1a'
                     }}
                   />
                 </RadarChart>
@@ -414,21 +424,24 @@ const Overview = () => {
                 <XAxis 
                   dataKey="month" 
                   tick={{ fill: '#6E6E73', fontSize: 12 }}
+                  stroke="#e5e7eb"
                 />
                 <YAxis 
                   tick={{ fill: '#6E6E73', fontSize: 12 }}
                   tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                  stroke="#e5e7eb"
                 />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: '#fff', 
+                    backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
-                    borderRadius: '8px'
+                    borderRadius: '8px',
+                    color: '#1a1a1a'
                   }}
                   formatter={(value) => `$${value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 />
                 <Legend 
-                  formatter={(value) => <span className="text-xs text-[#6E6E73] dark:text-gray-400">{value}</span>}
+                  wrapperStyle={{ fontSize: '12px', color: '#6E6E73' }}
                 />
                 <Bar dataKey="Ingresos" fill="#10B981" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="Gastos" fill="#EF4444" radius={[4, 4, 0, 0]} />
@@ -465,18 +478,21 @@ const Overview = () => {
                   type="number"
                   tick={{ fill: '#6E6E73', fontSize: 12 }}
                   tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                  stroke="#e5e7eb"
                 />
                 <YAxis 
                   type="category" 
                   dataKey="name"
                   tick={{ fill: '#6E6E73', fontSize: 11 }}
                   width={70}
+                  stroke="#e5e7eb"
                 />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: '#fff', 
+                    backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
-                    borderRadius: '8px'
+                    borderRadius: '8px',
+                    color: '#1a1a1a'
                   }}
                   formatter={(value) => `$${value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 />

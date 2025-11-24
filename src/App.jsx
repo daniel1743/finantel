@@ -5,6 +5,7 @@ import { AuthProvider } from '@/contexts/SupabaseAuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ABTestProvider } from '@/contexts/ABTestContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedFamilyRoute from '@/components/ProtectedFamilyRoute';
 import SeoHead from '@/components/SeoHead';
 import { Toaster } from '@/components/ui/toaster';
 import { Loader2 } from 'lucide-react';
@@ -73,9 +74,22 @@ function App() {
                     <Route path="ai-assistant" element={<AIAssistant />} />
                     <Route path="budgets" element={<Budgets />} />
                     <Route path="alerts" element={<Alerts />} />
-                    <Route path="family" element={<Family />} />
+                    <Route path="family" element={
+                      <ProtectedFamilyRoute featureName="Mi Familia">
+                        <Family />
+                      </ProtectedFamilyRoute>
+                    } />
                     <Route path="analysis" element={<Analysis />} />
-                    <Route path="shared" element={<SharedExpenses />} />
+                    <Route path="shared" element={
+                      <ProtectedFamilyRoute featureName="Gastos Compartidos">
+                        <SharedExpenses />
+                      </ProtectedFamilyRoute>
+                    } />
+                    <Route path="debts" element={
+                      <ProtectedFamilyRoute featureName="Gestión de Deudas">
+                        <div>Deudas - Próximamente</div>
+                      </ProtectedFamilyRoute>
+                    } />
                     <Route path="notifications" element={<Notifications />} />
                     <Route path="export" element={<Export />} />
                     <Route path="email-preferences" element={<EmailPreferences />} />
