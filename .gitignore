@@ -2,3 +2,9 @@ node_modules
 nul
 
 .vercel
+
+# Variables de entorno sensibles
+.env
+.env.local
+.env.production
+VERCEL-ENV-VARIABLES.md

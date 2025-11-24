@@ -155,6 +155,7 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
       title: "Configuración",
       items: [
         { name: "Exportar Datos", icon: Download, path: "/dashboard/export" },
+            { name: "Centro de Ayuda", icon: Bell, path: "/dashboard/support" },
       ]
     }
   ];
@@ -179,9 +180,11 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
         {/* Logo Section */}
         <div className="h-24 flex items-center justify-center border-b border-gray-50/50 dark:border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#1C8FA0] rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-[#1C8FA0]/20">
-              F
-            </div>
+            <img
+              src="/finantel-logo.png"
+              alt="Finantel Logo"
+              className="w-10 h-10 rounded-xl shadow-lg shadow-[#1C8FA0]/20 object-contain"
+            />
             <span className="text-xl font-bold tracking-tight text-[#1a1a1a] dark:text-white font-['Inter_Tight']">
               FINANTEL
             </span>

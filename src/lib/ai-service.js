@@ -1,6 +1,6 @@
 
-const DEEPSEEK_API_KEY = 'sk-4d4cc3ac92254985b045a1881b85b12a';
-const QWEN_API_KEY = 'sk-e6343f5b0abc42d294d2ad7f977e48a8';
+const DEEPSEEK_API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY || 'sk-4d4cc3ac92254985b045a1881b85b12a';
+const QWEN_API_KEY = import.meta.env.VITE_QWEN_API_KEY || 'sk-e6343f5b0abc42d294d2ad7f977e48a8';
 
 const SYSTEM_PROMPT = `Eres Finantel AI, un asistente financiero experto, empático y sofisticado. 
 Tu tono es profesional pero cercano, similar a un asesor de banca privada moderna.

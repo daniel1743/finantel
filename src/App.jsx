@@ -30,6 +30,7 @@ const Budgets = lazy(() => import('@/pages/dashboard/Budgets'));
 const Alerts = lazy(() => import('@/pages/dashboard/Alerts'));
 const Family = lazy(() => import('@/pages/dashboard/Family'));
 const Analysis = lazy(() => import('@/pages/dashboard/Analysis'));
+const Support = lazy(() => import('@/pages/dashboard/Support'));
 const SharedExpenses = lazy(() => import('@/pages/dashboard/SharedExpenses'));
 const Notifications = lazy(() => import('@/pages/dashboard/Notifications'));
 const Export = lazy(() => import('@/pages/dashboard/Export'));
@@ -96,6 +97,7 @@ function App() {
                     <Route path="export" element={<Export />} />
                     <Route path="email-preferences" element={<EmailPreferences />} />
                     <Route path="ab-testing" element={<ABTesting />} />
+                    <Route path="support" element={<Support />} />
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                   </Route>
                 </Routes>
