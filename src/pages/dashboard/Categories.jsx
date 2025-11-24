@@ -74,7 +74,9 @@ const CategoryCard = ({ category, delay }) => {
           )}
           style={iconBgStyle}
         >
-          <category.icon className="w-6 h-6" />
+          {React.isValidElement(category.icon) 
+            ? category.icon 
+            : React.createElement(category.icon, { className: "w-6 h-6" })}
         </div>
         <button className="p-2 text-gray-300 dark:text-gray-600 hover:text-[#1a1a1a] dark:hover:text-white transition-colors opacity-0 group-hover:opacity-100">
           <MoreVertical className="w-5 h-5" />
@@ -97,9 +99,9 @@ const CategoryCard = ({ category, delay }) => {
       <div 
         className={cn(
           "absolute inset-0 rounded-[22px] opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none",
-          iconBgClass
+          !iconBgStyle && iconBgClass
         )}
-        style={iconBgStyle ? { backgroundColor: category.colorHex, opacity: iconBgStyle ? undefined : 0 } : undefined}
+        style={iconBgStyle ? { backgroundColor: category.colorHex } : undefined}
       />
     </motion.div>
   );
@@ -365,9 +367,10 @@ const Categories = () => {
 
   return (
     <div className="space-y-8 pb-12">
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {isModalOpen && (
           <AddCategoryModal 
+            key="add-category-modal"
             isOpen={isModalOpen} 
             onClose={() => setIsModalOpen(false)}
             onSuccess={handleCategoryAdded}

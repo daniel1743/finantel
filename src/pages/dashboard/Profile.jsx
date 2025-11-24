@@ -21,9 +21,9 @@ import { supabase } from '@/lib/customSupabaseClient';
 import { useBilling } from '@/hooks/useBilling';
 
 const ProfileSection = ({ title, children }) => (
-  <div className="bg-white rounded-[22px] border border-gray-100 shadow-sm overflow-hidden mb-6">
-    <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30">
-      <h3 className="font-bold text-[#1a1a1a]">{title}</h3>
+  <div className="bg-white dark:bg-[#1a1a1a] rounded-[22px] border border-gray-100 dark:border-white/5 shadow-sm overflow-hidden mb-6">
+    <div className="px-6 py-4 border-b border-gray-50 dark:border-white/5 bg-gray-50/30 dark:bg-white/5">
+      <h3 className="font-bold text-[#1a1a1a] dark:text-white">{title}</h3>
     </div>
     <div className="p-6">
       {children}
@@ -149,8 +149,8 @@ const Profile = () => {
   return (
     <div className="max-w-3xl mx-auto pb-12">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[#1a1a1a] font-['Inter_Tight']">Mi Perfil</h1>
-        <p className="text-[#6E6E73] mt-1">Gestiona tu cuenta y preferencias</p>
+        <h1 className="text-3xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">Mi Perfil</h1>
+        <p className="text-[#6E6E73] dark:text-gray-400 mt-1">Gestiona tu cuenta y preferencias</p>
       </div>
 
       <motion.div
@@ -202,15 +202,15 @@ const Profile = () => {
           </div>
           
           <div className="text-center md:text-left flex-1">
-            <h2 className="text-2xl font-bold text-[#1a1a1a] mb-1">
+            <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white mb-1">
               {user?.user_metadata?.full_name || 'Usuario Finantel'}
             </h2>
-            <p className="text-[#6E6E73] mb-4">{user?.email}</p>
+            <p className="text-[#6E6E73] dark:text-gray-400 mb-4">{user?.email}</p>
             <div className="flex flex-wrap justify-center md:justify-start gap-2">
-              <span className="px-3 py-1 rounded-full bg-[#1C8FA0]/10 text-[#1C8FA0] text-xs font-bold border border-[#1C8FA0]/20">
+              <span className="px-3 py-1 rounded-full bg-[#1C8FA0]/10 dark:bg-[#1C8FA0]/20 text-[#1C8FA0] dark:text-[#1C8FA0] text-xs font-bold border border-[#1C8FA0]/20 dark:border-[#1C8FA0]/30">
                 Plan Pro
               </span>
-              <span className="px-3 py-1 rounded-full bg-green-50 text-green-600 text-xs font-bold border border-green-100">
+              <span className="px-3 py-1 rounded-full bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-xs font-bold border border-green-100 dark:border-green-800/30">
                 Verificado
               </span>
             </div>

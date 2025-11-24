@@ -70,54 +70,69 @@ const PricingPage = () => {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-6">
+        <div className="flex flex-col gap-6 max-w-2xl mx-auto">
           {plans.map((plan) => (
             <div 
               key={plan.name} 
-              className={`relative p-8 rounded-[26px] bg-white border transition-all hover:-translate-y-1 duration-300 ${plan.popular ? 'border-[#1C8FA0] shadow-xl shadow-[#1C8FA0]/10 ring-1 ring-[#1C8FA0]' : 'border-gray-100 shadow-sm'}`}
+              className={`relative p-8 rounded-[26px] bg-white dark:bg-[#1a1a1a] border-2 transition-all duration-300 cursor-pointer group overflow-hidden ${
+                plan.popular 
+                  ? 'border-[#1C8FA0] shadow-xl shadow-[#1C8FA0]/10 ring-1 ring-[#1C8FA0]' 
+                  : 'border-gray-100 dark:border-white/10 shadow-sm'
+              } hover:border-[#00D9FF] hover:-translate-y-1`}
             >
-              {plan.popular && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1C8FA0] text-white text-xs font-bold px-3 py-1 rounded-full">
-                  MÁS POPULAR
-                </div>
-              )}
+              {/* Efecto de brillo neón en hover alrededor del borde */}
+              <div 
+                className="absolute inset-0 rounded-[26px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-0"
+                style={{
+                  boxShadow: '0 0 20px rgba(0, 217, 255, 0.3), 0 0 40px rgba(0, 217, 255, 0.2), 0 0 60px rgba(0, 217, 255, 0.1), inset 0 0 20px rgba(0, 217, 255, 0.05)'
+                }}
+              />
               
-              <h3 className="text-xl font-bold text-[#1a1a1a] mb-2">{plan.name}</h3>
-              <div className="flex items-baseline gap-1 mb-6">
-                {typeof plan.price === 'number' ? (
-                   <>
-                    <span className="text-4xl font-bold text-[#1a1a1a]">${annual && plan.annual ? Math.round(plan.annual / 12) : (plan.monthly || 0)}</span>
-                    <span className="text-gray-400 text-sm">/mes</span>
-                   </>
-                ) : (
-                  <span className="text-3xl font-bold text-[#1a1a1a]">{plan.price}</span>
+              {/* Contenido con z-index para estar por encima del efecto */}
+              <div className="relative z-10">
+                {plan.popular && (
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1C8FA0] text-white text-xs font-bold px-3 py-1 rounded-full z-20">
+                    MÁS POPULAR
+                  </div>
                 )}
-              </div>
-              
-              {annual && plan.annual && (
-                <p className="text-xs text-[#1C8FA0] mb-6 font-medium">Facturado ${plan.annual} al año</p>
-              )}
+                
+                <h3 className="text-xl font-bold text-[#1a1a1a] dark:text-white mb-2">{plan.name}</h3>
+                <div className="flex items-baseline gap-1 mb-6">
+                  {typeof plan.price === 'number' ? (
+                     <>
+                      <span className="text-4xl font-bold text-[#1a1a1a] dark:text-white">${annual && plan.annual ? Math.round(plan.annual / 12) : (plan.monthly || 0)}</span>
+                      <span className="text-gray-400 text-sm">/mes</span>
+                     </>
+                  ) : (
+                    <span className="text-3xl font-bold text-[#1a1a1a] dark:text-white">{plan.price}</span>
+                  )}
+                </div>
+                
+                {annual && plan.annual && (
+                  <p className="text-xs text-[#1C8FA0] mb-6 font-medium">Facturado ${plan.annual} al año</p>
+                )}
 
-              <Button 
-                onClick={() => handleSelect(plan)}
-                className={`w-full rounded-xl py-6 mb-8 ${plan.popular ? 'bg-[#1C8FA0] hover:bg-[#167a8a]' : 'bg-[#1a1a1a] hover:bg-black'} text-white`}
-              >
-                {plan.cta}
-              </Button>
+                <Button 
+                  onClick={() => handleSelect(plan)}
+                  className={`w-full rounded-xl py-6 mb-8 ${plan.popular ? 'bg-[#1C8FA0] hover:bg-[#167a8a]' : 'bg-[#1a1a1a] hover:bg-black'} text-white`}
+                >
+                  {plan.cta}
+                </Button>
 
-              <div className="space-y-4">
-                {plan.features.map(feat => (
-                  <div key={feat} className="flex items-start gap-3">
-                    <div className="mt-0.5 bg-green-100 rounded-full p-0.5"><Check className="w-3 h-3 text-green-600" /></div>
-                    <span className="text-sm text-gray-600">{feat}</span>
-                  </div>
-                ))}
-                {plan.notIncluded.map(feat => (
-                  <div key={feat} className="flex items-start gap-3 opacity-50">
-                    <div className="mt-0.5 bg-gray-100 rounded-full p-0.5"><X className="w-3 h-3 text-gray-500" /></div>
-                    <span className="text-sm text-gray-500">{feat}</span>
-                  </div>
-                ))}
+                <div className="space-y-4">
+                  {plan.features.map(feat => (
+                    <div key={feat} className="flex items-start gap-3">
+                      <div className="mt-0.5 bg-green-100 rounded-full p-0.5"><Check className="w-3 h-3 text-green-600" /></div>
+                      <span className="text-sm text-gray-600 dark:text-gray-300">{feat}</span>
+                    </div>
+                  ))}
+                  {plan.notIncluded.map(feat => (
+                    <div key={feat} className="flex items-start gap-3 opacity-50">
+                      <div className="mt-0.5 bg-gray-100 rounded-full p-0.5"><X className="w-3 h-3 text-gray-500" /></div>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">{feat}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           ))}

@@ -81,6 +81,25 @@ export const useFinance = (userId) => {
     fetchData();
   };
 
+  const addGoal = async (data) => {
+    const goalData = {
+      ...data,
+      user_id: userId,
+      current_amount: data.current_amount || 0.00,
+      currency: data.currency || 'USD',
+      priority: data.priority || 'medium',
+      status: data.status || 'active',
+    };
+    
+    const { error } = await supabase.from('goals').insert([goalData]);
+    if (error) {
+      console.error('Error creating goal:', error);
+      throw error;
+    }
+    toast({ title: "Éxito", description: "Meta creada correctamente." });
+    fetchData();
+  };
+
   const updateGoalProgress = async (id, amount) => {
     // Optimistic update could go here
     const { error } = await supabase.from('goals').update({ current_amount: amount }).eq('id', id);
@@ -96,6 +115,7 @@ export const useFinance = (userId) => {
     loading,
     addTransaction,
     addCategory,
+    addGoal,
     updateGoalProgress,
     refresh: fetchData
   };

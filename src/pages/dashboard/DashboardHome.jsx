@@ -27,13 +27,17 @@ import {
   Clock,
   Calendar,
   X,
-  Loader2
+  Loader2,
+  Zap,
+  Heart,
+  Smartphone
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useFinance } from '@/hooks/useFinance';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/customSupabaseClient';
 
 // =====================================================
 // KPIs Cards - Tarjetas de Métricas Principales
@@ -140,10 +144,37 @@ const GaugeChart = ({ value, max, label, color, size = 200, delay = 0 }) => {
 };
 
 // =====================================================
+// Paleta de colores para categorías
+// =====================================================
+// Paleta de colores vibrantes y diferenciados para categorías
+const CATEGORY_COLORS = [
+  '#1C8FA0', // Teal - Azul verdoso
+  '#E47B45', // Orange - Naranja
+  '#8B5CF6', // Purple - Morado
+  '#10B981', // Green - Verde
+  '#F59E0B', // Amber - Ámbar
+  '#EF4444', // Red - Rojo
+  '#3B82F6', // Blue - Azul
+  '#EC4899', // Pink - Rosa
+  '#14B8A6', // Cyan - Cian
+  '#6366F1', // Indigo - Índigo
+  '#F97316', // Orange-600 - Naranja oscuro
+  '#84CC16', // Lime - Lima
+];
+
+// Función para obtener un color único para cada categoría
+// SIEMPRE asigna colores únicos basados en el índice, ignorando colores de BD
+const getCategoryColor = (categoryName, index, existingColor = null) => {
+  // SIEMPRE usar la paleta de colores basada en el índice para garantizar diferencias visuales
+  // Esto asegura que cada categoría tenga un color único y diferenciado
+  return CATEGORY_COLORS[index % CATEGORY_COLORS.length];
+};
+
+// =====================================================
 // Bar Chart Component
 // =====================================================
 const BarChart = ({ data, title, height = 200, delay = 0 }) => {
-  const maxValue = Math.max(...data.map(d => d.value));
+  const maxValue = Math.max(...data.map(d => d.value), 1); // Evitar división por 0
   
   return (
     <motion.div
@@ -154,22 +185,28 @@ const BarChart = ({ data, title, height = 200, delay = 0 }) => {
     >
       {title && <h4 className="text-sm font-bold text-[#1a1a1a] dark:text-white">{title}</h4>}
       <div className="space-y-3">
-        {data.map((item, i) => (
-          <div key={i} className="space-y-1">
-            <div className="flex justify-between text-xs">
-              <span className="font-medium text-[#1a1a1a] dark:text-white">{item.label}</span>
-              <span className="text-[#6E6E73] dark:text-gray-400">{item.value}%</span>
+        {data.map((item, i) => {
+          const barColor = item.color || getCategoryColor(item.label, i);
+          return (
+            <div key={i} className="space-y-1">
+              <div className="flex justify-between text-xs">
+                <span className="font-medium text-[#1a1a1a] dark:text-white">{item.label}</span>
+                <span className="text-[#6E6E73] dark:text-gray-400">
+                  {typeof item.value === 'number' ? `$${item.value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${item.value}%`}
+                </span>
+              </div>
+              <div className="h-2 w-full bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(item.value / maxValue) * 100}%` }}
+                  transition={{ duration: 1, delay: delay + (i * 0.1) }}
+                  className="h-full rounded-full"
+                  style={{ backgroundColor: barColor }}
+                />
+              </div>
             </div>
-            <div className="h-2 w-full bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${(item.value / maxValue) * 100}%` }}
-                transition={{ duration: 1, delay: delay + (i * 0.1) }}
-                className={`h-full rounded-full ${item.color || 'bg-[#1C8FA0]'}`}
-              />
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </motion.div>
   );
@@ -311,6 +348,9 @@ const DonutChart = ({ data, size = 180, delay = 0 }) => {
           const dashArray = 2 * Math.PI * radius;
           const finalDashOffset = dashArray - (dashArray * percentage) / 100;
           
+          // Asegurar que siempre haya un color único
+          const segmentColor = item.color || getCategoryColor(item.label || `Category ${i}`, i);
+          
           return (
             <circle
               key={i}
@@ -318,7 +358,7 @@ const DonutChart = ({ data, size = 180, delay = 0 }) => {
               cy={size / 2}
               r={radius}
               fill="transparent"
-              stroke={item.color}
+              stroke={segmentColor}
               strokeWidth="16"
               strokeDasharray={dashArray}
               strokeDashoffset={isVisible ? finalDashOffset : dashArray}
@@ -333,7 +373,7 @@ const DonutChart = ({ data, size = 180, delay = 0 }) => {
         })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-2xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">{total}%</span>
+        <span className="text-2xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">100%</span>
         <span className="text-xs text-[#6E6E73] dark:text-gray-400">Total</span>
       </div>
     </motion.div>
@@ -463,18 +503,86 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
     setIsLoading(true);
 
     try {
-      // Determinar el nombre final de la categoría
-      const finalCategory = showCustomCategory
-        ? formData.custom_category.trim()
-        : formData.category_id;
+      // Buscar o crear el category_id
+      let categoryId = null;
+      let categoryName = null;
+
+      if (showCustomCategory && formData.custom_category) {
+        // Categoría personalizada
+        categoryName = formData.custom_category.trim();
+      } else if (formData.category_id) {
+        // Categoría predefinida
+        const INCOME_CATEGORIES = [
+          { id: 'sueldo', name: 'Sueldo' },
+          { id: 'bono', name: 'Bono' },
+          { id: 'vacaciones', name: 'Vacaciones' },
+          { id: 'sumer-extra', name: 'Sumer Extra' },
+          { id: 'personalizar-ingreso', name: '+ Personalizar' }
+        ];
+
+        const EXPENSE_CATEGORIES = [
+          { id: 'hogar', name: 'Hogar' },
+          { id: 'alimentacion', name: 'Alimentación' },
+          { id: 'medicinas', name: 'Medicinas' },
+          { id: 'salud', name: 'Salud' },
+          { id: 'deudas', name: 'Deudas' },
+          { id: 'gasolina', name: 'Gasolina' },
+          { id: 'compras-extras', name: 'Compras Extras' },
+          { id: 'personalizar-gasto', name: '+ Personalizar' }
+        ];
+
+        categoryName = formData.type === 'income'
+          ? INCOME_CATEGORIES.find(cat => cat.id === formData.category_id)?.name
+          : EXPENSE_CATEGORIES.find(cat => cat.id === formData.category_id)?.name;
+      }
+
+      // Buscar la categoría en Supabase o crearla si no existe
+      if (categoryName) {
+        const { data: categoryData } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('name', categoryName)
+          .maybeSingle();
+
+        // Si no existe, crearla
+        if (!categoryData) {
+          const insertData = {
+            user_id: user.id,
+            name: categoryName,
+            color: formData.type === 'expense' ? '#E47B45' : '#1C8FA0',
+            icon: '💰',
+          };
+
+          const { data: newCategory, error: categoryError } = await supabase
+            .from('categories')
+            .insert(insertData)
+            .select('id')
+            .single();
+
+          if (categoryError) {
+            throw new Error(`Error al crear categoría: ${categoryError.message}`);
+          }
+
+          categoryId = newCategory?.id;
+        } else {
+          categoryId = categoryData.id;
+        }
+      }
+
+      if (!categoryId) {
+        throw new Error('No se pudo determinar la categoría');
+      }
 
       const transactionData = {
         description: formData.description.trim(),
         amount: parseFloat(formData.amount),
-        category: finalCategory,
+        category_id: categoryId,
         date: formData.date,
         type: formData.type,
-        necessity_level: formData.type === 'expense' ? formData.necessity_level : null,
+        metadata: formData.type === 'expense' && formData.necessity_level
+          ? { necessity_level: formData.necessity_level }
+          : {},
         notes: formData.notes.trim() || null,
       };
 
@@ -766,7 +874,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
 // =====================================================
 const DashboardHome = () => {
   const { user } = useAuth();
-  const { refresh } = useFinance(user?.id);
+  const { transactions, categories, loading, refresh } = useFinance(user?.id);
   const { toast } = useToast();
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -779,33 +887,147 @@ const DashboardHome = () => {
     });
   };
 
-  // Mock data - En producción esto vendría de Supabase
-  const monthlyData = [
-    { label: 'Ene', value: 3.92 },
-    { label: 'Feb', value: 3.97 },
-    { label: 'Mar', value: 3.98 },
-    { label: 'Abr', value: 3.94 },
-    { label: 'May', value: 3.95 },
-    { label: 'Jun', value: 3.86 },
-    { label: 'Jul', value: 3.99 },
-    { label: 'Ago', value: 3.86 },
-    { label: 'Sep', value: 3.86 },
-    { label: 'Oct', value: 3.98 },
+  // Calcular datos reales desde transacciones
+  const calculateRealData = () => {
+    if (!transactions || transactions.length === 0) {
+      return {
+        hasData: false,
+        totalExpenses: 0,
+        totalIncome: 0,
+        savingsRate: 0,
+        transactionsCount: 0,
+        categoryData: [],
+        departmentData: [],
+        monthlyData: []
+      };
+    }
+
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    // Filtrar transacciones del mes actual
+    const currentMonthTransactions = transactions.filter(tx => {
+      const txDate = new Date(tx.date);
+      return txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear;
+    });
+
+    // Calcular totales
+    const totalExpenses = currentMonthTransactions
+      .filter(tx => tx.type === 'expense')
+      .reduce((sum, tx) => sum + parseFloat(tx.amount || 0), 0);
+
+    const totalIncome = currentMonthTransactions
+      .filter(tx => tx.type === 'income')
+      .reduce((sum, tx) => sum + parseFloat(tx.amount || 0), 0);
+
+    const savingsRate = totalIncome > 0 
+      ? ((totalIncome - totalExpenses) / totalIncome) * 100 
+      : 0;
+
+    // Calcular gastos por categoría
+    const categoryExpenses = {};
+    currentMonthTransactions
+      .filter(tx => tx.type === 'expense' && tx.categories)
+      .forEach(tx => {
+        const catName = tx.categories.name || 'Sin categoría';
+        const catColor = tx.categories.color || '#9CA3AF';
+        if (!categoryExpenses[catName]) {
+          categoryExpenses[catName] = { amount: 0, color: catColor };
+        }
+        categoryExpenses[catName].amount += parseFloat(tx.amount || 0);
+      });
+
+    const totalCategoryExpenses = Object.values(categoryExpenses)
+      .reduce((sum, cat) => sum + cat.amount, 0);
+
+    // Primero ordenar por cantidad para tener un orden consistente
+    const sortedCategories = Object.entries(categoryExpenses)
+      .sort((a, b) => b[1].amount - a[1].amount)
+      .slice(0, 4); // Top 4 categorías
+
+    // Asignar colores únicos basados en la posición en el array ordenado
+    const categoryData = sortedCategories.map(([name, data], index) => {
+      const categoryColor = getCategoryColor(name, index);
+      return {
+        label: name,
+        value: totalCategoryExpenses > 0 ? (data.amount / totalCategoryExpenses) * 100 : 0,
+        color: categoryColor
+      };
+    });
+
+    // Datos para gráfico de barras (gastos por categoría) - CON COLORES ÚNICOS
+    // Usar el mismo orden y colores que categoryData para consistencia
+    const departmentData = sortedCategories.map(([name, data], index) => ({
+      label: name,
+      value: data.amount,
+      color: getCategoryColor(name, index) // Mismo índice = mismo color
+    }));
+
+    // Calcular datos mensuales (últimos 6 meses)
+    const monthlyData = [];
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(currentYear, currentMonth - i, 1);
+      const monthTransactions = transactions.filter(tx => {
+        const txDate = new Date(tx.date);
+        return txDate.getMonth() === date.getMonth() && txDate.getFullYear() === date.getFullYear();
+      });
+
+      const monthIncome = monthTransactions
+        .filter(tx => tx.type === 'income')
+        .reduce((sum, tx) => sum + parseFloat(tx.amount || 0), 0);
+      
+      const monthExpenses = monthTransactions
+        .filter(tx => tx.type === 'expense')
+        .reduce((sum, tx) => sum + parseFloat(tx.amount || 0), 0);
+
+      const monthSavingsRate = monthIncome > 0 
+        ? ((monthIncome - monthExpenses) / monthIncome) * 100 
+        : 0;
+
+      monthlyData.push({
+        label: date.toLocaleDateString('es-ES', { month: 'short' }),
+        value: monthSavingsRate / 100 // Normalizar para el gráfico
+      });
+    }
+
+    return {
+      hasData: true,
+      totalExpenses,
+      totalIncome,
+      savingsRate,
+      transactionsCount: currentMonthTransactions.length,
+      categoryData,
+      departmentData,
+      monthlyData
+    };
+  };
+
+  const realData = calculateRealData();
+
+  // Datos por defecto si no hay datos reales - CON COLORES DIFERENTES
+  const defaultCategoryData = [
+    { label: 'Hogar', value: 0, color: CATEGORY_COLORS[0] },
+    { label: 'Alimentación', value: 0, color: CATEGORY_COLORS[1] },
+    { label: 'Transporte', value: 0, color: CATEGORY_COLORS[2] },
+    { label: 'Otros', value: 0, color: CATEGORY_COLORS[3] },
   ];
 
-  const categoryData = [
-    { label: 'Hogar', value: 45, color: '#1C8FA0' },
-    { label: 'Comida', value: 25, color: '#E47B45' },
-    { label: 'Ocio', value: 15, color: '#1a1a1a' },
-    { label: 'Otros', value: 15, color: '#9CA3AF' },
+  const defaultDepartmentData = [
+    { label: 'Hogar & Servicios', value: 0, color: CATEGORY_COLORS[0] },
+    { label: 'Alimentación', value: 0, color: CATEGORY_COLORS[1] },
+    { label: 'Transporte', value: 0, color: CATEGORY_COLORS[2] },
+    { label: 'Ocio', value: 0, color: CATEGORY_COLORS[3] },
   ];
 
-  const departmentData = [
-    { label: 'Hogar & Servicios', value: 75 },
-    { label: 'Alimentación', value: 45 },
-    { label: 'Transporte', value: 30 },
-    { label: 'Ocio', value: 20 },
-  ];
+  const defaultMonthlyData = Array.from({ length: 6 }, (_, i) => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - (5 - i));
+    return {
+      label: date.toLocaleDateString('es-ES', { month: 'short' }),
+      value: 0
+    };
+  });
 
   return (
     <div className="space-y-6 pb-12">
@@ -842,69 +1064,118 @@ const DashboardHome = () => {
         </div>
       </div>
 
-      {/* KPIs Row - 5 Tarjetas Principales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <KPICard
-          title="Gastos Totales"
-          value="$2,450.00"
-          subtitle="Este mes"
-          trendValue="+4.5%"
-          trendUp={false}
-          icon={DollarSign}
-          color="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-          gradient="bg-blue-500"
-          trend={[40, 45, 50, 55, 60, 65, 70, 75, 80, 85]}
-          delay={0.1}
-        />
-        <KPICard
-          title="Ingresos Totales"
-          value="$4,200.00"
-          subtitle="Este mes"
-          trendValue="+12.3%"
-          trendUp={true}
-          icon={TrendingUp}
-          color="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"
-          gradient="bg-green-500"
-          trend={[50, 55, 60, 65, 70, 75, 80, 85, 90, 95]}
-          delay={0.2}
-        />
-        <KPICard
-          title="Tasa de Ahorro"
-          value="41.7%"
-          subtitle="vs 35% objetivo"
-          trendValue="+6.7%"
-          trendUp={true}
-          icon={Target}
-          color="bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400"
-          gradient="bg-purple-500"
-          trend={[30, 32, 35, 38, 40, 42, 45, 48, 50, 52]}
-          delay={0.3}
-        />
-        <KPICard
-          title="Presupuesto Usado"
-          value="76.6%"
-          subtitle="$750 disponible"
-          trendValue="-2.1%"
-          trendUp={true}
-          icon={Activity}
-          color="bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400"
-          gradient="bg-orange-500"
-          trend={[70, 72, 74, 76, 78, 80, 82, 84, 86, 88]}
-          delay={0.4}
-        />
-        <KPICard
-          title="Transacciones"
-          value="124"
-          subtitle="Este mes"
-          trendValue="+8.2%"
-          trendUp={true}
-          icon={CreditCard}
-          color="bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400"
-          gradient="bg-teal-500"
-          trend={[60, 65, 70, 75, 80, 85, 90, 95, 100, 100]}
-          delay={0.5}
-        />
-      </div>
+      {/* Estado de carga o sin datos */}
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
+        </div>
+      ) : !realData.hasData ? (
+        <div className="bg-white dark:bg-[#1a1a1a] rounded-[26px] p-12 border border-gray-100 dark:border-white/5 shadow-sm text-center">
+          <DollarSign className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-[#1a1a1a] dark:text-white mb-2">No hay datos aún</h3>
+          <p className="text-[#6E6E73] dark:text-gray-400 mb-6">
+            Comienza agregando tus primeras transacciones para ver tu dashboard completo
+          </p>
+          <Button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-[#1C8FA0] hover:bg-[#167a8a] text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Agregar Primera Transacción
+          </Button>
+        </div>
+      ) : (
+        <>
+          {/* KPIs Row - 6 Tarjetas Principales */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            {/* 1. Ingresos Totales - PRIMERA */}
+            <KPICard
+              title="Ingresos Totales"
+              value={`$${realData.totalIncome.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              subtitle="Este mes"
+              trendValue={realData.totalIncome > 0 ? "Actual" : "Sin datos"}
+              trendUp={true}
+              icon={TrendingUp}
+              color="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"
+              gradient="bg-green-500"
+              trend={[50, 55, 60, 65, 70, 75, 80, 85, 90, 95]}
+              delay={0.1}
+            />
+            
+            {/* 2. Saldo Disponible - NUEVA TARJETA */}
+            <KPICard
+              title="Saldo Disponible"
+              value={`$${(realData.totalIncome - realData.totalExpenses).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              subtitle="Cuánto te va quedando"
+              trendValue={(realData.totalIncome - realData.totalExpenses) >= 0 ? "Positivo" : "Negativo"}
+              trendUp={(realData.totalIncome - realData.totalExpenses) >= 0}
+              icon={Wallet}
+              color={(realData.totalIncome - realData.totalExpenses) >= 0 
+                ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400"
+                : "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400"}
+              gradient={(realData.totalIncome - realData.totalExpenses) >= 0 ? "bg-emerald-500" : "bg-red-500"}
+              trend={(realData.totalIncome - realData.totalExpenses) >= 0 
+                ? [60, 65, 70, 75, 80, 85, 90, 95, 100, 100]
+                : [100, 95, 90, 85, 80, 75, 70, 65, 60, 55]}
+              delay={0.2}
+            />
+            
+            {/* 3. Gastos Totales */}
+            <KPICard
+              title="Gastos Totales"
+              value={`$${realData.totalExpenses.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              subtitle="Este mes"
+              trendValue={realData.totalExpenses > 0 ? "Actual" : "Sin datos"}
+              trendUp={false}
+              icon={DollarSign}
+              color="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+              gradient="bg-blue-500"
+              trend={[40, 45, 50, 55, 60, 65, 70, 75, 80, 85]}
+              delay={0.3}
+            />
+            
+            {/* 4. Tasa de Ahorro */}
+            <KPICard
+              title="Tasa de Ahorro"
+              value={`${realData.savingsRate.toFixed(1)}%`}
+              subtitle={realData.savingsRate >= 0 ? "vs objetivo" : "Gastos superan ingresos"}
+              trendValue={realData.savingsRate >= 0 ? "Positivo" : "Negativo"}
+              trendUp={realData.savingsRate >= 0}
+              icon={Target}
+              color="bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400"
+              gradient="bg-purple-500"
+              trend={[30, 32, 35, 38, 40, 42, 45, 48, 50, 52]}
+              delay={0.4}
+            />
+            
+            {/* 5. Presupuesto Usado */}
+            <KPICard
+              title="Presupuesto Usado"
+              value="N/A"
+              subtitle="Configura presupuestos"
+              trendValue="—"
+              trendUp={true}
+              icon={Activity}
+              color="bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400"
+              gradient="bg-orange-500"
+              trend={[70, 72, 74, 76, 78, 80, 82, 84, 86, 88]}
+              delay={0.5}
+            />
+            
+            {/* 6. Transacciones */}
+            <KPICard
+              title="Transacciones"
+              value={realData.transactionsCount.toString()}
+              subtitle="Este mes"
+              trendValue="Actual"
+              trendUp={true}
+              icon={CreditCard}
+              color="bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400"
+              gradient="bg-teal-500"
+              trend={[60, 65, 70, 75, 80, 85, 90, 95, 100, 100]}
+              delay={0.6}
+            />
+          </div>
 
       {/* Charts Row 1 - Gauge, Bar, Donut */}
       <div className="grid lg:grid-cols-3 gap-6">
@@ -919,7 +1190,14 @@ const DashboardHome = () => {
             <h3 className="font-bold text-[#1a1a1a] dark:text-white">Tasa de Ahorro</h3>
             <CheckCircle2 className="w-5 h-5 text-green-500" />
           </div>
-          <GaugeChart value={41.7} max={100} label="Ahorro" color="#10b981" size={200} delay={0.7} />
+          <GaugeChart 
+            value={Math.max(0, Math.min(100, realData.savingsRate))} 
+            max={100} 
+            label="Ahorro" 
+            color={realData.savingsRate >= 0 ? "#10b981" : "#ef4444"} 
+            size={200} 
+            delay={0.7} 
+          />
           <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/5">
             <div className="flex justify-between text-sm">
               <span className="text-[#6E6E73] dark:text-gray-400">Objetivo</span>
@@ -927,7 +1205,9 @@ const DashboardHome = () => {
             </div>
             <div className="flex justify-between text-sm mt-2">
               <span className="text-[#6E6E73] dark:text-gray-400">Actual</span>
-              <span className="font-bold text-green-600 dark:text-green-400">41.7%</span>
+              <span className={`font-bold ${realData.savingsRate >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                {realData.savingsRate.toFixed(1)}%
+              </span>
             </div>
           </div>
         </motion.div>
@@ -943,7 +1223,11 @@ const DashboardHome = () => {
             <h3 className="font-bold text-[#1a1a1a] dark:text-white">Gastos por Categoría</h3>
             <PieChart className="w-5 h-5 text-[#1C8FA0]" />
           </div>
-          <BarChart data={departmentData} height={200} delay={0.8} />
+          <BarChart 
+            data={realData.departmentData.length > 0 ? realData.departmentData : defaultDepartmentData} 
+            height={200} 
+            delay={0.8} 
+          />
         </motion.div>
 
         {/* Donut Chart - Distribución */}
@@ -957,17 +1241,27 @@ const DashboardHome = () => {
             <h3 className="font-bold text-[#1a1a1a] dark:text-white">Distribución</h3>
             <BarChart3 className="w-5 h-5 text-[#E47B45]" />
           </div>
-          <DonutChart data={categoryData} size={180} delay={0.9} />
+          <DonutChart 
+            data={realData.categoryData.length > 0 ? realData.categoryData : defaultCategoryData} 
+            size={180} 
+            delay={0.9} 
+          />
           <div className="mt-6 w-full space-y-2">
-            {categoryData.map((item, i) => (
-              <div key={i} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="text-[#6E6E73] dark:text-gray-400">{item.label}</span>
+            {(realData.categoryData.length > 0 ? realData.categoryData : defaultCategoryData).map((item, i) => {
+              const displayValue = typeof item.value === 'number' ? item.value.toFixed(2) : item.value;
+              return (
+                <div key={i} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: item.color || getCategoryColor(item.label, i) }} 
+                    />
+                    <span className="text-[#6E6E73] dark:text-gray-400">{item.label}</span>
+                  </div>
+                  <span className="font-bold text-[#1a1a1a] dark:text-white">{displayValue}%</span>
                 </div>
-                <span className="font-bold text-[#1a1a1a] dark:text-white">{item.value}%</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </motion.div>
       </div>
@@ -986,7 +1280,10 @@ const DashboardHome = () => {
             <LineChart className="w-5 h-5 text-[#1C8FA0]" />
           </div>
           <LineChartComponent 
-            data={monthlyData.map(d => ({ label: d.label, value: d.value * 100 }))} 
+            data={realData.monthlyData.length > 0 
+              ? realData.monthlyData.map(d => ({ label: d.label, value: d.value * 100 }))
+              : defaultMonthlyData.map(d => ({ label: d.label, value: d.value * 100 }))
+            } 
             height={200} 
             delay={1.1}
           />
@@ -1004,12 +1301,17 @@ const DashboardHome = () => {
             <Activity className="w-5 h-5 text-[#E47B45]" />
           </div>
           <div className="space-y-4">
-            {[
-              { name: 'Hogar', budget: 1200, spent: 980, color: '#1C8FA0' },
-              { name: 'Alimentación', budget: 500, spent: 450, color: '#E47B45' },
-              { name: 'Transporte', budget: 300, spent: 320, color: '#1a1a1a' },
-              { name: 'Ocio', budget: 200, spent: 210, color: '#9CA3AF' },
-            ].map((item, i) => {
+            {realData.departmentData.length > 0 ? (
+              realData.departmentData.map((item, i) => {
+                // Calcular presupuesto estimado (esto debería venir de la tabla budgets)
+                const estimatedBudget = item.value * 1.2; // Estimación del 20% más
+                return {
+                  name: item.label,
+                  budget: estimatedBudget,
+                  spent: item.value,
+                  color: realData.categoryData[i]?.color || '#9CA3AF'
+                };
+              }).map((item, i) => {
               const percentage = (item.spent / item.budget) * 100;
               return (
                 <div key={i} className="space-y-2">
@@ -1037,10 +1339,18 @@ const DashboardHome = () => {
                   </div>
                 </div>
               );
-            })}
+            })
+            ) : (
+              <div className="text-center py-8 text-[#6E6E73] dark:text-gray-400">
+                <p>No hay datos de presupuesto aún</p>
+                <p className="text-sm mt-2">Configura presupuestos para ver comparativas</p>
+              </div>
+            )}
           </div>
         </motion.div>
       </div>
+        </>
+      )}
 
       {/* Transacciones Recientes */}
       <motion.div
@@ -1061,32 +1371,76 @@ const DashboardHome = () => {
           </div>
         </div>
         <div className="p-2">
-          {[
-            { icon: ShoppingBag, name: "Supermercado Metro", category: "Alimentación", date: "Hoy, 10:23 AM", amount: "-$124.50" },
-            { icon: Car, name: "Uber Trip", category: "Transporte", date: "Ayer, 8:45 PM", amount: "-$15.20" },
-            { icon: Home, name: "Internet Fibra", category: "Servicios", date: "Ayer, 9:00 AM", amount: "-$45.00" },
-            { icon: Coffee, name: "Starbucks", category: "Ocio", date: "20 Nov, 4:30 PM", amount: "-$8.50" },
-            { icon: Plane, name: "Vuelo a Madrid", category: "Viajes", date: "18 Nov, 2:15 PM", amount: "-$450.00" },
-          ].map((tx, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: 1.3 + (i * 0.05) }}
-              className="flex items-center justify-between p-4 hover:bg-gray-50/80 dark:hover:bg-white/5 rounded-xl transition-colors group cursor-pointer border-b border-gray-50 dark:border-white/5 last:border-0"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                  <tx.icon className="w-4 h-4 text-[#6E6E73] dark:text-gray-400" />
+          {realData.hasData && transactions && transactions.length > 0 ? (
+            transactions.slice(0, 5).map((tx, i) => {
+              const categoryName = tx.categories?.name || 'Sin categoría';
+              const categoryIcon = tx.categories?.icon || 'DollarSign';
+              const isIncome = tx.type === 'income';
+              const txDate = new Date(tx.date);
+              const now = new Date();
+              const isToday = txDate.toDateString() === now.toDateString();
+              const isYesterday = txDate.toDateString() === new Date(now.getTime() - 86400000).toDateString();
+              
+              let dateStr = '';
+              if (isToday) {
+                dateStr = `Hoy, ${txDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
+              } else if (isYesterday) {
+                dateStr = `Ayer, ${txDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
+              } else {
+                dateStr = txDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+              }
+
+              // Mapeo de iconos disponibles
+              const iconMap = {
+                'Home': Home,
+                'ShoppingBag': ShoppingBag,
+                'Car': Car,
+                'Coffee': Coffee,
+                'Plane': Plane,
+                'Zap': Zap,
+                'DollarSign': DollarSign
+              };
+              const IconComponent = iconMap[categoryIcon] || DollarSign;
+
+              return {
+                icon: IconComponent,
+                name: tx.description || 'Sin descripción',
+                category: categoryName,
+                date: dateStr,
+                amount: `${isIncome ? '+' : '-'}$${parseFloat(tx.amount || 0).toFixed(2)}`,
+                isIncome
+              };
+            }).map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: 1.3 + (i * 0.05) }}
+                className="flex items-center justify-between p-4 hover:bg-gray-50/80 dark:hover:bg-white/5 rounded-xl transition-colors group cursor-pointer border-b border-gray-50 dark:border-white/5 last:border-0"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                    {React.isValidElement(item.icon) 
+                      ? item.icon 
+                      : React.createElement(item.icon, { className: "w-4 h-4 text-[#6E6E73] dark:text-gray-400" })}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-[#1a1a1a] dark:text-white">{item.name}</p>
+                    <p className="text-xs text-[#6E6E73] dark:text-gray-400">{item.category} • {item.date}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-bold text-[#1a1a1a] dark:text-white">{tx.name}</p>
-                  <p className="text-xs text-[#6E6E73] dark:text-gray-400">{tx.category} • {tx.date}</p>
-                </div>
-              </div>
-              <span className="text-sm font-bold text-[#1a1a1a] dark:text-white font-mono">{tx.amount}</span>
-            </motion.div>
-          ))}
+                <span className={`text-sm font-bold font-mono ${item.isIncome ? 'text-green-600 dark:text-green-400' : 'text-[#1a1a1a] dark:text-white'}`}>
+                  {item.amount}
+                </span>
+              </motion.div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-[#6E6E73] dark:text-gray-400">
+              <DollarSign className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>No hay transacciones recientes</p>
+              <p className="text-sm mt-2">Agrega tu primera transacción para comenzar</p>
+            </div>
+          )}
         </div>
       </motion.div>
 

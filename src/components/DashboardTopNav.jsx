@@ -1,7 +1,18 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, Menu, Moon, Sun } from 'lucide-react';
+import { 
+  Bell, 
+  Menu, 
+  Moon, 
+  Sun, 
+  User, 
+  CreditCard, 
+  Shield, 
+  HelpCircle, 
+  MessageSquare, 
+  LogOut 
+} from 'lucide-react';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Link, useNavigate } from 'react-router-dom';
@@ -20,6 +31,7 @@ const DashboardTopNav = ({ onMenuClick }) => {
   // Cerrar menú al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Verificar si el clic está fuera del contenedor del menú (que incluye el botón)
       if (
         isMenuOpen &&
         menuContainerRef.current &&
@@ -31,15 +43,18 @@ const DashboardTopNav = ({ onMenuClick }) => {
 
     // Agregar listener cuando el menú está abierto
     if (isMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
-    }
+      // Usar un pequeño delay para evitar que el evento de apertura cierre el menú inmediatamente
+      const timeoutId = setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('touchstart', handleClickOutside);
+      }, 10);
 
-    // Limpiar listener
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
-    };
+      return () => {
+        clearTimeout(timeoutId);
+        document.removeEventListener('mousedown', handleClickOutside);
+        document.removeEventListener('touchstart', handleClickOutside);
+      };
+    }
   }, [isMenuOpen]);
 
   return (
@@ -80,7 +95,10 @@ const DashboardTopNav = ({ onMenuClick }) => {
           <div className="relative" ref={menuContainerRef}>
             <button 
               ref={buttonRef}
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMenuOpen(!isMenuOpen);
+              }}
               className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1C8FA0] to-[#167a8a] p-[2px] shadow-lg shadow-[#1C8FA0]/20 hover:shadow-[#1C8FA0]/30 transition-all hover:-translate-y-0.5"
             >
               <div className="w-full h-full rounded-full bg-white dark:bg-[#1a1a1a] flex items-center justify-center overflow-hidden">
@@ -96,33 +114,82 @@ const DashboardTopNav = ({ onMenuClick }) => {
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  onClick={(e) => e.stopPropagation()}
                   className="absolute right-0 top-14 w-56 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-[0_20px_40px_-12px_rgba(0,0,0,0.15)] border border-gray-100 dark:border-white/10 p-2 z-50"
                 >
                   <div className="px-4 py-3 border-b border-gray-50 dark:border-white/5 mb-2">
                     <p className="text-sm font-bold text-[#1a1a1a] dark:text-white truncate">{userName}</p>
                     <p className="text-xs text-[#6E6E73] dark:text-gray-500 truncate">{userEmail}</p>
                   </div>
+                  
+                  {/* Sección: Perfil y Configuración */}
                   <Link 
                     to="/dashboard/profile" 
                     onClick={() => setIsMenuOpen(false)}
-                    className="block w-full text-left px-4 py-2.5 text-sm text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                    className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
                   >
+                    <User className="w-4 h-4" />
                     Mi Perfil
                   </Link>
-                  <button 
+                  
+                  <Link 
+                    to="/dashboard/billing" 
                     onClick={() => setIsMenuOpen(false)}
-                    className="w-full text-left px-4 py-2.5 text-sm text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                    className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
                   >
-                    Configuración
-                  </button>
+                    <CreditCard className="w-4 h-4" />
+                    Mi Suscripción
+                  </Link>
+                  
+                  <Link 
+                    to="/dashboard/profile" 
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                  >
+                    <Shield className="w-4 h-4" />
+                    Seguridad
+                  </Link>
+                  
                   <div className="h-px bg-gray-50 dark:bg-white/5 my-2" />
+                  
+                  {/* Sección: Ayuda y Soporte */}
+                  <button 
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      // Abrir FAQ o página de ayuda
+                      window.open('https://help.finantel.app', '_blank');
+                    }}
+                    className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                  >
+                    <HelpCircle className="w-4 h-4" />
+                    Ayuda y Soporte
+                  </button>
+                  
+                  <button 
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      // Abrir modal de feedback o redirigir
+                      const subject = encodeURIComponent('Feedback - Finantel');
+                      const body = encodeURIComponent('Hola,\n\nMe gustaría compartir mi opinión sobre Finantel:\n\n');
+                      window.location.href = `mailto:support@finantel.app?subject=${subject}&body=${body}`;
+                    }}
+                    className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    Enviar Comentarios
+                  </button>
+                  
+                  <div className="h-px bg-gray-50 dark:bg-white/5 my-2" />
+                  
+                  {/* Cerrar Sesión */}
                   <button 
                     onClick={() => {
                       setIsMenuOpen(false);
                       signOut();
                     }}
-                    className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-colors font-medium"
+                    className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-colors font-medium"
                   >
+                    <LogOut className="w-4 h-4" />
                     Cerrar Sesión
                   </button>
                 </motion.div>

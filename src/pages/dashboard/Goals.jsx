@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, 
@@ -9,10 +9,14 @@ import {
   DollarSign, 
   X, 
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { useFinance } from '@/hooks/useFinance';
+import { useToast } from '@/components/ui/use-toast';
 
 const goalsData = [
   { 
@@ -54,10 +58,14 @@ const goalsData = [
 ];
 
 const GoalCard = ({ goal, index }) => {
-  const percentage = Math.min(100, Math.round((goal.saved / goal.target) * 100));
-  const remaining = goal.target - goal.saved;
-  const monthsLeft = 8; // Mock calculation
-  const monthlyNeeded = Math.ceil(remaining / monthsLeft);
+  const percentage = goal.target > 0 
+    ? Math.min(100, Math.round((goal.saved / goal.target) * 100))
+    : 0;
+  const remaining = Math.max(0, goal.target - goal.saved);
+  const monthsLeft = goal.monthsLeft !== null && goal.monthsLeft !== undefined ? goal.monthsLeft : 8;
+  const monthlyNeeded = goal.monthlyNeeded !== null && goal.monthlyNeeded !== undefined 
+    ? goal.monthlyNeeded 
+    : (monthsLeft > 0 ? Math.ceil(remaining / monthsLeft) : null);
 
   return (
     <motion.div
@@ -105,20 +113,164 @@ const GoalCard = ({ goal, index }) => {
         </div>
 
         {/* Hover Overlay Info */}
-        <div className="absolute inset-x-0 bottom-0 p-6 bg-white/95 backdrop-blur-md border-t border-gray-100 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
-          <div className="flex items-start gap-3">
-            <Sparkles className="w-5 h-5 text-[#E47B45] shrink-0 mt-0.5" />
-            <p className="text-sm text-[#6E6E73] leading-relaxed">
-              Si aportas <span className="font-bold text-[#1a1a1a]">${monthlyNeeded}</span> cada mes, llegarás a tu meta en <span className="font-bold text-[#1a1a1a]">{monthsLeft} meses</span>.
-            </p>
+        {monthlyNeeded && monthsLeft > 0 && (
+          <div className="absolute inset-x-0 bottom-0 p-6 bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-md border-t border-gray-100 dark:border-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
+            <div className="flex items-start gap-3">
+              <Sparkles className="w-5 h-5 text-[#E47B45] shrink-0 mt-0.5" />
+              <p className="text-sm text-[#6E6E73] dark:text-gray-400 leading-relaxed">
+                Si aportas <span className="font-bold text-[#1a1a1a] dark:text-white">${monthlyNeeded.toLocaleString()}</span> cada mes, llegarás a tu meta en <span className="font-bold text-[#1a1a1a] dark:text-white">{monthsLeft} {monthsLeft === 1 ? 'mes' : 'meses'}</span>.
+              </p>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </motion.div>
   );
 };
 
-const CreateGoalModal = ({ isOpen, onClose }) => {
+const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
+  const { user } = useAuth();
+  const { addGoal, transactions } = useFinance(user?.id);
+  const { toast } = useToast();
+  
+  const [formData, setFormData] = useState({
+    name: '',
+    target_amount: '',
+    deadline: '',
+    description: ''
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [suggestedMonthly, setSuggestedMonthly] = useState(null);
+
+  // Calcular sugerencia inteligente basada en ingresos
+  useEffect(() => {
+    if (isOpen && formData.target_amount && formData.deadline) {
+      const target = parseFloat(formData.target_amount);
+      const deadline = new Date(formData.deadline);
+      const today = new Date();
+      const monthsDiff = Math.max(1, Math.ceil((deadline - today) / (1000 * 60 * 60 * 24 * 30)));
+      
+      // Calcular ingresos mensuales promedio
+      const incomeTransactions = transactions?.filter(tx => tx.type === 'income') || [];
+      const totalIncome = incomeTransactions.reduce((sum, tx) => sum + parseFloat(tx.amount || 0), 0);
+      const avgMonthlyIncome = totalIncome > 0 ? totalIncome / Math.max(1, incomeTransactions.length) : 0;
+      
+      // Sugerir 20-30% del ingreso mensual o el monto necesario
+      const monthlyNeeded = target / monthsDiff;
+      const suggested = avgMonthlyIncome > 0 
+        ? Math.min(monthlyNeeded, avgMonthlyIncome * 0.3) 
+        : monthlyNeeded;
+      
+      setSuggestedMonthly(Math.ceil(suggested));
+    } else {
+      setSuggestedMonthly(null);
+    }
+  }, [isOpen, formData.target_amount, formData.deadline, transactions]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!formData.name.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Por favor ingresa un nombre para la meta",
+      });
+      return;
+    }
+
+    // Limpiar el monto (remover espacios, comas, etc.)
+    const cleanedAmount = formData.target_amount.toString().replace(/[,\s]/g, '');
+    const parsedAmount = parseFloat(cleanedAmount);
+
+    if (!cleanedAmount || isNaN(parsedAmount) || parsedAmount <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Por favor ingresa un monto objetivo válido (mayor a 0)",
+      });
+      return;
+    }
+
+    if (!user?.id) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo identificar el usuario",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      // Validar y formatear fecha
+      let deadlineDate = null;
+      if (formData.deadline) {
+        const date = new Date(formData.deadline);
+        if (isNaN(date.getTime())) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "La fecha ingresada no es válida",
+          });
+          setIsLoading(false);
+          return;
+        }
+        // Asegurar que la fecha sea válida y esté en formato ISO
+        deadlineDate = date.toISOString().split('T')[0];
+      }
+
+      const goalData = {
+        name: formData.name.trim(),
+        target_amount: parsedAmount,
+        deadline: deadlineDate,
+        description: formData.description.trim() || null,
+      };
+
+      await addGoal(goalData);
+      
+      // Reset form
+      setFormData({
+        name: '',
+        target_amount: '',
+        deadline: '',
+        description: ''
+      });
+      setSuggestedMonthly(null);
+      
+      onClose();
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      console.error('Error creating goal:', error);
+      
+      // Mensajes de error más específicos
+      let errorMessage = "No se pudo crear la meta. Intenta de nuevo.";
+      
+      if (error.message) {
+        if (error.message.includes('target_amount')) {
+          errorMessage = "El monto objetivo debe ser mayor a 0";
+        } else if (error.message.includes('name')) {
+          errorMessage = "El nombre de la meta es requerido y debe tener entre 1 y 100 caracteres";
+        } else if (error.message.includes('deadline')) {
+          errorMessage = "La fecha objetivo no es válida";
+        } else if (error.message.includes('RLS') || error.message.includes('permission')) {
+          errorMessage = "No tienes permisos para crear esta meta. Verifica tu sesión.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      toast({
+        variant: "destructive",
+        title: "Error al crear meta",
+        description: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -134,83 +286,172 @@ const CreateGoalModal = ({ isOpen, onClose }) => {
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative bg-white rounded-[26px] p-8 w-full max-w-lg shadow-2xl border border-gray-100 z-10"
+        onClick={(e) => e.stopPropagation()}
+        className="relative bg-white dark:bg-[#1a1a1a] rounded-[26px] p-8 w-full max-w-lg shadow-2xl border border-gray-100 dark:border-white/10 z-10 max-h-[90vh] overflow-y-auto"
       >
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-[#1a1a1a] font-['Inter_Tight']">Nueva Meta</h2>
-            <p className="text-sm text-[#6E6E73]">Define tu próximo objetivo financiero</p>
+            <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">Nueva Meta</h2>
+            <p className="text-sm text-[#6E6E73] dark:text-gray-400">Define tu próximo objetivo financiero</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-            <X className="w-5 h-5 text-[#6E6E73]" />
+          <button 
+            onClick={onClose} 
+            disabled={isLoading}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors disabled:opacity-50"
+          >
+            <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
           </button>
         </div>
 
-        <div className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-[#6E6E73] mb-2">Nombre de la meta</label>
+            <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">Nombre de la meta</label>
             <input 
               type="text" 
               placeholder="Ej. Viaje a Europa" 
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all"
+              required
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              disabled={isLoading}
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[#6E6E73] mb-2">Monto objetivo</label>
+              <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">Monto objetivo</label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">$</span>
                 <input 
                   type="number" 
+                  inputMode="numeric"
                   placeholder="5000" 
-                  className="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all"
+                  required
+                  min="0.01"
+                  step="0.01"
+                  value={formData.target_amount}
+                  onChange={(e) => {
+                    // Permitir solo números y punto decimal
+                    const value = e.target.value.replace(/[^\d.]/g, '');
+                    // Solo permitir un punto decimal
+                    const parts = value.split('.');
+                    const cleanedValue = parts.length > 2 
+                      ? parts[0] + '.' + parts.slice(1).join('')
+                      : value;
+                    setFormData({ ...formData, target_amount: cleanedValue });
+                  }}
+                  disabled={isLoading}
+                  className="w-full pl-8 pr-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#6E6E73] mb-2">Fecha objetivo</label>
+              <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">Fecha objetivo</label>
               <input 
                 type="date" 
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all text-[#6E6E73]"
+                value={formData.deadline}
+                onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                disabled={isLoading}
+                min={new Date().toISOString().split('T')[0]}
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all text-[#6E6E73] dark:text-gray-400 disabled:opacity-50"
               />
             </div>
           </div>
 
-          {/* AI Suggestion */}
-          <div className="bg-[#1C8FA0]/5 rounded-xl p-4 border border-[#1C8FA0]/10 flex gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center shrink-0">
-              <Sparkles className="w-4 h-4 text-[#1C8FA0]" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-[#1a1a1a] mb-1">Sugerencia Inteligente</p>
-              <p className="text-xs text-[#6E6E73] leading-relaxed">
-                Basado en tus ingresos, te sugiero aportar <span className="font-bold text-[#1C8FA0]">$450/mes</span> para alcanzar esta meta cómodamente sin afectar tus gastos fijos.
-              </p>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">Descripción (opcional)</label>
+            <textarea 
+              placeholder="Agrega una descripción para tu meta..."
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              disabled={isLoading}
+              rows={3}
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all resize-none disabled:opacity-50"
+            />
           </div>
 
+          {/* AI Suggestion */}
+          {suggestedMonthly && (
+            <div className="bg-[#1C8FA0]/5 dark:bg-[#1C8FA0]/10 rounded-xl p-4 border border-[#1C8FA0]/10 flex gap-3">
+              <div className="w-8 h-8 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center shrink-0">
+                <Sparkles className="w-4 h-4 text-[#1C8FA0]" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-[#1a1a1a] dark:text-white mb-1">Sugerencia Inteligente</p>
+                <p className="text-xs text-[#6E6E73] dark:text-gray-400 leading-relaxed">
+                  Basado en tus ingresos, te sugiero aportar <span className="font-bold text-[#1C8FA0]">${suggestedMonthly.toLocaleString()}/mes</span> para alcanzar esta meta cómodamente sin afectar tus gastos fijos.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="pt-4 flex gap-3">
-            <Button variant="outline" onClick={onClose} className="flex-1 h-12 rounded-xl border-gray-200 text-[#6E6E73]">
+            <Button 
+              type="button"
+              variant="outline" 
+              onClick={onClose} 
+              disabled={isLoading}
+              className="flex-1 h-12 rounded-xl border-gray-200 dark:border-white/10 text-[#6E6E73] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5"
+            >
               Cancelar
             </Button>
-            <Button className="flex-1 h-12 rounded-xl bg-[#1a1a1a] hover:bg-black text-white shadow-lg">
-              Crear Meta
+            <Button 
+              type="submit"
+              disabled={isLoading || !formData.name.trim() || !formData.target_amount}
+              className="flex-1 h-12 rounded-xl bg-[#1a1a1a] dark:bg-white hover:bg-black dark:hover:bg-gray-100 text-white dark:text-black shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Creando...
+                </>
+              ) : (
+                'Crear Meta'
+              )}
             </Button>
           </div>
-        </div>
+        </form>
       </motion.div>
     </div>
   );
 };
 
 const Goals = () => {
+  const { user } = useAuth();
+  const { goals, loading, refresh } = useFinance(user?.id);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleGoalAdded = () => {
+    refresh(); // Refrescar la lista de metas
+  };
+
+  // Formatear fecha para mostrar
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Sin fecha';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+  };
+
+  // Calcular meses restantes
+  const calculateMonthsLeft = (deadline) => {
+    if (!deadline) return null;
+    const today = new Date();
+    const deadlineDate = new Date(deadline);
+    const monthsDiff = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24 * 30));
+    return Math.max(0, monthsDiff);
+  };
 
   return (
     <div className="space-y-8 pb-12">
-      <AnimatePresence>
-        {isModalOpen && <CreateGoalModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />}
+      <AnimatePresence mode="wait">
+        {isModalOpen && (
+          <CreateGoalModal 
+            key="create-goal-modal"
+            isOpen={isModalOpen} 
+            onClose={() => setIsModalOpen(false)}
+            onSuccess={handleGoalAdded}
+          />
+        )}
       </AnimatePresence>
 
       {/* Header */}
@@ -275,9 +516,41 @@ const Goals = () => {
 
       {/* Goals Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        {goalsData.map((goal, index) => (
-          <GoalCard key={goal.id} goal={goal} index={index} />
-        ))}
+        {loading ? (
+          <div className="col-span-full flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
+          </div>
+        ) : goals && goals.length > 0 ? (
+          goals.map((goal, index) => {
+            const percentage = Math.min(100, Math.round((parseFloat(goal.current_amount || 0) / parseFloat(goal.target_amount || 1)) * 100));
+            const monthsLeft = calculateMonthsLeft(goal.deadline);
+            const remaining = parseFloat(goal.target_amount || 0) - parseFloat(goal.current_amount || 0);
+            const monthlyNeeded = monthsLeft && monthsLeft > 0 ? Math.ceil(remaining / monthsLeft) : null;
+            
+            const goalCardData = {
+              id: goal.id,
+              name: goal.name,
+              target: parseFloat(goal.target_amount || 0),
+              saved: parseFloat(goal.current_amount || 0),
+              date: formatDate(goal.deadline),
+              imageAlt: goal.description || goal.name,
+              color: goal.status === 'completed' ? 'bg-green-500' : 'bg-[#1C8FA0]',
+              monthsLeft,
+              monthlyNeeded
+            };
+            
+            return <GoalCard key={goal.id} goal={goalCardData} index={index} />;
+          })
+        ) : null}
+        
+        {/* Mostrar datos mock si no hay metas de Supabase */}
+        {(!goals || goals.length === 0) && !loading && (
+          <>
+            {goalsData.map((goal, index) => (
+              <GoalCard key={goal.id} goal={goal} index={index} />
+            ))}
+          </>
+        )}
         
         {/* Add New Placeholder */}
         <motion.button
@@ -285,9 +558,9 @@ const Goals = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
           onClick={() => setIsModalOpen(true)}
-          className="border-2 border-dashed border-gray-200 rounded-[22px] flex flex-col items-center justify-center gap-4 text-[#6E6E73] hover:border-[#1C8FA0] hover:text-[#1C8FA0] hover:bg-[#1C8FA0]/5 transition-all group min-h-[320px]"
+          className="border-2 border-dashed border-gray-200 dark:border-white/10 rounded-[22px] flex flex-col items-center justify-center gap-4 text-[#6E6E73] dark:text-gray-400 hover:border-[#1C8FA0] hover:text-[#1C8FA0] hover:bg-[#1C8FA0]/5 transition-all group min-h-[320px]"
         >
-          <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-white group-hover:shadow-lg transition-all duration-300">
+          <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center group-hover:bg-white dark:group-hover:bg-white/10 group-hover:shadow-lg transition-all duration-300">
             <Plus className="w-8 h-8" />
           </div>
           <span className="font-medium text-lg">Crear Nueva Meta</span>

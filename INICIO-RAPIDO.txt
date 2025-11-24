@@ -1,0 +1,56 @@
+═══════════════════════════════════════════════════════════
+🚀 INICIO RÁPIDO - 3 PASOS PARA SOLUCIONAR
+═══════════════════════════════════════════════════════════
+
+El código ya está corregido ✅
+Solo necesitas actualizar la base de datos y refrescar el navegador.
+
+═══════════════════════════════════════════════════════════
+PASO 1: SUPABASE SQL
+═══════════════════════════════════════════════════════════
+
+1. Abre: https://supabase.com/dashboard
+2. Click en tu proyecto
+3. Click en "SQL Editor" (icono <> en menú lateral)
+4. Click en "New Query"
+5. Abre el archivo: SOLUCION-COMPLETA.sql
+6. Copia TODO el contenido
+7. Pega en el editor
+8. Click en "RUN" (o presiona F5)
+9. Verifica que salgan resultados al final
+
+═══════════════════════════════════════════════════════════
+PASO 2: RELOAD SCHEMA
+═══════════════════════════════════════════════════════════
+
+1. En Supabase, click en "Settings" (⚙️ abajo en menú)
+2. Click en "API"
+3. Busca el botón "Reload Schema"
+4. Click en ese botón
+5. Espera confirmación
+
+═══════════════════════════════════════════════════════════
+PASO 3: REFRESCAR NAVEGADOR
+═══════════════════════════════════════════════════════════
+
+1. Ve a: http://localhost:3002
+2. Presiona: CTRL + SHIFT + R
+   (o CTRL + F5)
+
+═══════════════════════════════════════════════════════════
+✅ LISTO - PRUEBA CREAR UNA TRANSACCIÓN
+═══════════════════════════════════════════════════════════
+
+1. Click en el botón "+" (flotante) o "Nueva Transacción"
+2. Llena el formulario
+3. Click en "Crear Transacción"
+
+═══════════════════════════════════════════════════════════
+❓ ¿AÚN HAY ERRORES?
+═══════════════════════════════════════════════════════════
+
+- Lee el archivo: PASOS-PARA-SOLUCIONAR.md
+- Verifica que ejecutaste los 3 pasos en orden
+- Abre la consola del navegador (F12) y comparte el error
+
+═══════════════════════════════════════════════════════════
