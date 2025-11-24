@@ -2,15 +2,17 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { useDemoMode } from '@/contexts/DemoModeContext';
 import { Loader2 } from 'lucide-react';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
+  const { isDemoMode } = useDemoMode();
   const location = useLocation();
 
   if (loading) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-[#F5F7F9]">
+      <div className="h-screen w-full flex items-center justify-center bg-[#F5F7F9] dark:bg-[#0f0f11]">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 bg-[#1C8FA0] rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-[#1C8FA0]/20 animate-pulse">
             F
@@ -21,7 +23,8 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  if (!user) {
+  // Permitir acceso si está en modo demo O si tiene usuario autenticado
+  if (!user && !isDemoMode) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 

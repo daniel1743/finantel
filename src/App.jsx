@@ -4,9 +4,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from '@/contexts/SupabaseAuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ABTestProvider } from '@/contexts/ABTestContext';
+import { DemoModeProvider } from '@/contexts/DemoModeContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import ProtectedFamilyRoute from '@/components/ProtectedFamilyRoute';
 import SeoHead from '@/components/SeoHead';
+import DemoModeBanner from '@/components/DemoModeBanner';
+import DemoConversionModal from '@/components/modals/DemoConversionModal';
 import { Toaster } from '@/components/ui/toaster';
 import { Loader2 } from 'lucide-react';
 
@@ -31,6 +34,7 @@ const Alerts = lazy(() => import('@/pages/dashboard/Alerts'));
 const Family = lazy(() => import('@/pages/dashboard/Family'));
 const Analysis = lazy(() => import('@/pages/dashboard/Analysis'));
 const Support = lazy(() => import('@/pages/dashboard/Support'));
+const SupportTicketDetail = lazy(() => import('@/pages/dashboard/SupportTicketDetail'));
 const SharedExpenses = lazy(() => import('@/pages/dashboard/SharedExpenses'));
 const Notifications = lazy(() => import('@/pages/dashboard/Notifications'));
 const Export = lazy(() => import('@/pages/dashboard/Export'));
@@ -49,11 +53,19 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <ABTestProvider>
-          <Router>
-            <SeoHead />
-            <div className="min-h-screen bg-[#F5F7F9] dark:bg-[#0f0f11] font-sans selection:bg-[#1C8FA0]/20 selection:text-[#1C8FA0] transition-colors duration-300">
-              <Suspense fallback={<PageLoader />}>
-                <Routes>
+          <DemoModeProvider>
+            <Router
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true
+              }}
+            >
+              <SeoHead />
+              <DemoModeBanner />
+              <DemoConversionModal />
+              <div className="min-h-screen bg-[#F5F7F9] dark:bg-[#0f0f11] font-sans selection:bg-[#1C8FA0]/20 selection:text-[#1C8FA0] transition-colors duration-300">
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/pricing" element={<PricingPage />} />
                           <Route path="/legal/transparencia" element={<Transparency />} />
@@ -98,13 +110,15 @@ function App() {
                     <Route path="email-preferences" element={<EmailPreferences />} />
                     <Route path="ab-testing" element={<ABTesting />} />
                     <Route path="support" element={<Support />} />
+                    <Route path="support/:ticketId" element={<SupportTicketDetail />} />
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                   </Route>
                 </Routes>
-              </Suspense>
-              <Toaster />
-            </div>
-          </Router>
+                </Suspense>
+                <Toaster />
+              </div>
+            </Router>
+          </DemoModeProvider>
         </ABTestProvider>
       </AuthProvider>
     </ThemeProvider>

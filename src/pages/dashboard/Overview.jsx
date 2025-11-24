@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { 
   ChevronRight,
   TrendingUp,
@@ -78,7 +79,8 @@ const NavCard = ({ title, description, icon: Icon, to, color, delay }) => (
 const Overview = () => {
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
   const { user } = useAuth();
-  const { transactions, categories, loading } = useFinance(user?.id);
+  const { transactions, categories, goals, loading } = useFinance(user?.id);
+  const navigate = useNavigate();
 
   // Calcular datos para gráficos
   const chartData = useMemo(() => {
@@ -198,6 +200,160 @@ const Overview = () => {
       }
     };
   }, [transactions, categories]);
+
+  // Calcular Insight Semanal (gastos hormiga y proyección de metas)
+  const weeklyInsight = useMemo(() => {
+    if (!transactions || transactions.length === 0 || !goals) {
+      return null;
+    }
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    // Calcular inicio y fin de semana actual (lunes a domingo)
+    const dayOfWeek = today.getDay();
+    const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    const startOfCurrentWeek = new Date(today);
+    startOfCurrentWeek.setDate(today.getDate() - daysFromMonday);
+    startOfCurrentWeek.setHours(0, 0, 0, 0);
+    
+    const endOfCurrentWeek = new Date(startOfCurrentWeek);
+    endOfCurrentWeek.setDate(startOfCurrentWeek.getDate() + 6);
+    endOfCurrentWeek.setHours(23, 59, 59, 999);
+
+    // Calcular inicio y fin de semana anterior
+    const startOfLastWeek = new Date(startOfCurrentWeek);
+    startOfLastWeek.setDate(startOfCurrentWeek.getDate() - 7);
+    const endOfLastWeek = new Date(startOfCurrentWeek);
+    endOfLastWeek.setDate(startOfCurrentWeek.getDate() - 1);
+    endOfLastWeek.setHours(23, 59, 59, 999);
+
+    // Filtrar transacciones de gastos
+    const expenseTransactions = transactions.filter(tx => tx.type === 'expense');
+
+    // Identificar "gastos hormiga" (pequeños gastos < $50 o categorías específicas)
+    const smallExpenseCategories = ['Café', 'Snacks', 'Transporte', 'Comida rápida', 'Entretenimiento'];
+    const isSmallExpense = (tx) => {
+      const amount = parseFloat(tx.amount || 0);
+      const categoryName = tx.categories?.name?.toLowerCase() || '';
+      return amount < 50 || smallExpenseCategories.some(cat => 
+        categoryName.includes(cat.toLowerCase())
+      );
+    };
+
+    // Gastos hormiga semana actual
+    const currentWeekSmallExpenses = expenseTransactions
+      .filter(tx => {
+        const txDate = new Date(tx.date);
+        return txDate >= startOfCurrentWeek && txDate <= endOfCurrentWeek && isSmallExpense(tx);
+      })
+      .reduce((sum, tx) => sum + parseFloat(tx.amount || 0), 0);
+
+    // Gastos hormiga semana anterior
+    const lastWeekSmallExpenses = expenseTransactions
+      .filter(tx => {
+        const txDate = new Date(tx.date);
+        return txDate >= startOfLastWeek && txDate <= endOfLastWeek && isSmallExpense(tx);
+      })
+      .reduce((sum, tx) => sum + parseFloat(tx.amount || 0), 0);
+
+    // Calcular reducción porcentual
+    let reductionPercentage = 0;
+    let hasReduction = false;
+    if (lastWeekSmallExpenses > 0) {
+      reductionPercentage = Math.round(((lastWeekSmallExpenses - currentWeekSmallExpenses) / lastWeekSmallExpenses) * 100);
+      hasReduction = reductionPercentage > 0;
+    }
+
+    // Buscar meta activa más próxima
+    const activeGoals = goals.filter(g => g.status === 'active' && g.deadline);
+    if (activeGoals.length === 0) {
+      // Si hay reducción, mostrar insight genérico
+      if (hasReduction && reductionPercentage >= 5) {
+        return {
+          show: true,
+          title: `Has reducido tus gastos hormiga un ${reductionPercentage}%`,
+          message: `¡Excelente trabajo! Mantén este ritmo para alcanzar tus objetivos financieros más rápido.`,
+          hasGoal: false
+        };
+      }
+      return null;
+    }
+
+    // Ordenar metas por deadline y tomar la más próxima
+    const nearestGoal = activeGoals
+      .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))[0];
+
+    if (!nearestGoal) return null;
+
+    // Calcular proyección de meta
+    const goalTarget = parseFloat(nearestGoal.target_amount || 0);
+    const goalCurrent = parseFloat(nearestGoal.current_amount || 0);
+    const goalRemaining = goalTarget - goalCurrent;
+    const goalDeadline = new Date(nearestGoal.deadline);
+    const daysUntilDeadline = Math.ceil((goalDeadline - today) / (1000 * 60 * 60 * 24));
+
+    if (goalRemaining <= 0 || daysUntilDeadline <= 0) return null;
+
+    // Calcular ahorro semanal promedio (últimas 4 semanas)
+    const fourWeeksAgo = new Date(startOfCurrentWeek);
+    fourWeeksAgo.setDate(startOfCurrentWeek.getDate() - 28);
+    
+    const recentTransactions = expenseTransactions.filter(tx => {
+      const txDate = new Date(tx.date);
+      return txDate >= fourWeeksAgo && txDate <= endOfCurrentWeek;
+    });
+
+    const totalExpenses = recentTransactions.reduce((sum, tx) => sum + parseFloat(tx.amount || 0), 0);
+    const totalIncome = transactions
+      .filter(tx => tx.type === 'income')
+      .filter(tx => {
+        const txDate = new Date(tx.date);
+        return txDate >= fourWeeksAgo && txDate <= endOfCurrentWeek;
+      })
+      .reduce((sum, tx) => sum + parseFloat(tx.amount || 0), 0);
+
+    const weeklySavings = totalIncome > 0 ? (totalIncome - totalExpenses) / 4 : 0;
+
+    // Calcular proyección
+    let projectionMessage = '';
+    let weeksEarly = 0;
+
+    if (weeklySavings > 0) {
+      const weeksNeeded = Math.ceil(goalRemaining / weeklySavings);
+      if (weeksNeeded < daysUntilDeadline / 7) {
+        weeksEarly = Math.floor((daysUntilDeadline / 7) - weeksNeeded);
+        if (weeksEarly > 0) {
+          projectionMessage = `alcanzarás tu meta "${nearestGoal.name}" ${weeksEarly} ${weeksEarly === 1 ? 'semana' : 'semanas'} antes de lo previsto.`;
+        } else {
+          projectionMessage = `estás en camino de alcanzar tu meta "${nearestGoal.name}" a tiempo.`;
+        }
+      } else {
+        projectionMessage = `necesitas aumentar tu ahorro semanal para alcanzar tu meta "${nearestGoal.name}" a tiempo.`;
+      }
+    }
+
+    // Solo mostrar si hay reducción significativa o proyección positiva
+    if (hasReduction && reductionPercentage >= 5) {
+      return {
+        show: true,
+        title: `Has reducido tus gastos hormiga un ${reductionPercentage}%`,
+        message: `¡Excelente trabajo! Si mantienes este ritmo, ${projectionMessage || 'alcanzarás tus objetivos más rápido.'}`,
+        hasGoal: true,
+        goalName: nearestGoal.name
+      };
+    } else if (weeksEarly > 0) {
+      return {
+        show: true,
+        title: `Vas por buen camino`,
+        message: `Si mantienes este ritmo, ${projectionMessage}`,
+        hasGoal: true,
+        goalName: nearestGoal.name
+      };
+    }
+
+    return null;
+  }, [transactions, goals]);
 
   // Custom tooltip para gráficos
   const CustomTooltip = ({ active, payload }) => {
@@ -505,30 +661,35 @@ const Overview = () => {
             </ResponsiveContainer>
           </motion.div>
 
-          {/* Quick Insights */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.9 }}
-            className="bg-gradient-to-r from-[#1C8FA0] to-[#167a8a] rounded-[26px] p-8 text-white relative overflow-hidden shadow-xl shadow-[#1C8FA0]/20"
-          >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
-            <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-white/80 text-sm font-medium uppercase tracking-wider">
-                  <Activity className="w-4 h-4" />
-                  Insight Semanal
+          {/* Quick Insights - Solo mostrar si hay insight válido */}
+          {weeklyInsight && weeklyInsight.show && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.9 }}
+              className="bg-gradient-to-r from-[#1C8FA0] to-[#167a8a] rounded-[26px] p-8 text-white relative overflow-hidden shadow-xl shadow-[#1C8FA0]/20"
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+              <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-white/80 text-sm font-medium uppercase tracking-wider">
+                    <Activity className="w-4 h-4" />
+                    Insight Semanal
+                  </div>
+                  <h3 className="text-2xl font-bold">{weeklyInsight.title}</h3>
+                  <p className="text-white/80 max-w-xl">
+                    {weeklyInsight.message}
+                  </p>
                 </div>
-                <h3 className="text-2xl font-bold">Has reducido tus gastos hormiga un 15%</h3>
-                <p className="text-white/80 max-w-xl">
-                  ¡Excelente trabajo! Si mantienes este ritmo, alcanzarás tu meta de ahorro para vacaciones 2 semanas antes de lo previsto.
-                </p>
+                <button 
+                  onClick={() => navigate(weeklyInsight.hasGoal ? '/dashboard/goals' : '/dashboard/analysis')}
+                  className="px-6 py-3 bg-white text-[#1C8FA0] rounded-xl font-bold hover:bg-gray-50 transition-colors shadow-lg"
+                >
+                  Ver Detalles
+                </button>
               </div>
-              <button className="px-6 py-3 bg-white text-[#1C8FA0] rounded-xl font-bold hover:bg-gray-50 transition-colors shadow-lg">
-                Ver Detalles
-              </button>
-            </div>
-          </motion.div>
+            </motion.div>
+          )}
 
           {/* Navigation Grid */}
           <div>

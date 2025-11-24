@@ -179,7 +179,11 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
       )}>
         {/* Logo Section */}
         <div className="h-24 flex items-center justify-center border-b border-gray-50/50 dark:border-white/5">
-          <div className="flex items-center gap-3">
+          <Link 
+            to="/dashboard" 
+            className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => setIsMobileOpen(false)}
+          >
             <img
               src="/finantel-logo.png"
               alt="Finantel Logo"
@@ -188,7 +192,7 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
             <span className="text-xl font-bold tracking-tight text-[#1a1a1a] dark:text-white font-['Inter_Tight']">
               FINANTEL
             </span>
-          </div>
+          </Link>
         </div>
 
         {/* Scrollable Menu */}

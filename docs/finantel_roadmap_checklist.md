@@ -129,17 +129,39 @@ Este documento resume los hallazgos del estudio + benchmark y los transforma en 
 
 - **Se hará:**  
   - Función `get_financial_recommendations(user_id)` que combina: vistas materializadas + reglas + proyecciones.  
-  - El asistente IA usará esta función antes de responder (“¿Puedo gastar esto hoy?”).  
+  - El asistente IA usará esta función antes de responder ("¿Puedo gastar esto hoy?").  
   - Panel con recomendaciones accionables y simulaciones.
 - **Se cambiará/agregará:**  
   - Nueva tabla `ai_recommendations_log`.  
   - Edge Function para exponer datos agregados con seguridad.  
-  - UI en Dashboard mostrando “acciones sugeridas”.
+  - UI en Dashboard mostrando "acciones sugeridas".
 - **Resultado esperado:**  
   - Finantel pasa de registrar a guiar: predice problemas, prioriza pagos, alerta de fugas.  
   - Experiencia comparable a apps premium (Fintonic, Emma, Clara).
 - **Dolor que resuelve:**  
-  - Apps reactivas sin guía, falta de “financiero personal” (Dolor #8 y #9).
+  - Apps reactivas sin guía, falta de "financiero personal" (Dolor #8 y #9).
+
+---
+
+## 🎯 Paso 9 — Sistema de Referidos (Growth Strategy) (Media)
+
+- **Se hará:**  
+  - Sistema "Invita amigo" donde ambos (invitador e invitado) reciben **30 días premium gratis**.  
+  - Generación automática de código único por usuario.  
+  - Validación de código al registrarse.  
+  - Aplicación automática de días premium a ambos usuarios.
+- **Se cambiará/agregará:**  
+  - Tabla `referrals` en Supabase (user_id, referred_user_id, referral_code, status, premium_days_granted).  
+  - Componente UI "Invita amigo" con código/enlace compartible.  
+  - Historial de referidos y contador de días premium ganados.  
+  - Función SQL para aplicar días premium automáticamente.  
+  - Integración con `billing_subscriptions` para extender premium.
+- **Resultado esperado:**  
+  - Crecimiento orgánico mediante referidos.  
+  - Usuarios premium aumentan (aunque sea temporal).  
+  - Viralidad y retención mejorada.
+- **Estrategia de crecimiento:**  
+  - Programa de referidos como estrategia principal de adquisición de usuarios.
 
 ---
 

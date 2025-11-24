@@ -6,12 +6,14 @@ import { ArrowRight, ShieldCheck, TrendingUp, PieChart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useABTest } from '@/contexts/ABTestContext';
+import { useDemoMode } from '@/contexts/DemoModeContext';
 import NewsletterSignup from '@/components/NewsletterSignup';
 
 const Hero = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { experiments, trackConversion } = useABTest();
+  const { startDemoMode } = useDemoMode();
 
   // A/B Test Logic
   const ctaText = experiments['hero_cta_text'] === 'variant_b' ? 'Prueba Ahora' : 'Comenzar Gratis';
@@ -20,7 +22,13 @@ const Hero = () => {
   const handleCTAClick = (action) => {
     trackConversion('hero_cta_text');
     if (action === 'dashboard') {
+      // Iniciar modo demo y redirigir al dashboard
+      startDemoMode();
       navigate('/dashboard');
+      toast({
+        title: "✨ Modo Demo Activado",
+        description: "Tienes 1 hora para explorar Finantel sin registrarte.",
+      });
     } else {
       toast({
         title: "🚧 Próximamente",
@@ -84,12 +92,12 @@ const Hero = () => {
                 {ctaText}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
-              <Button 
-                onClick={() => handleCTAClick('dashboard')} 
-                variant="outline" 
+              <Button
+                onClick={() => handleCTAClick('dashboard')}
+                variant="outline"
                 className="text-[#1C8FA0] border-[#1C8FA0] hover:bg-[#1C8FA0]/10 hover:text-[#167a8a] dark:hover:bg-[#1C8FA0]/20 text-lg px-8 py-7 h-auto rounded-full transition-all hover:-translate-y-1"
               >
-                Ingresar a Probar
+                Probar Demo Gratuita
               </Button>
             </motion.div>
 

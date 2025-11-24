@@ -1,6 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { 
   Plus, 
   Target, 
@@ -418,8 +419,9 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
 
 const Goals = () => {
   const { user } = useAuth();
-  const { goals, loading, refresh } = useFinance(user?.id);
+  const { goals, transactions, loading, refresh } = useFinance(user?.id);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleGoalAdded = () => {
     refresh(); // Refrescar la lista de metas
@@ -440,6 +442,122 @@ const Goals = () => {
     const monthsDiff = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24 * 30));
     return Math.max(0, monthsDiff);
   };
+
+  // Calcular análisis de metas (datos reales)
+  const goalAnalysis = useMemo(() => {
+    if (!goals || goals.length === 0 || !transactions) {
+      return null;
+    }
+
+    const activeGoals = goals.filter(g => g.status === 'active' && g.deadline);
+    if (activeGoals.length === 0) return null;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Calcular ahorro mensual promedio (últimos 3 meses)
+    const threeMonthsAgo = new Date(today);
+    threeMonthsAgo.setMonth(today.getMonth() - 3);
+
+    const recentTransactions = transactions.filter(tx => {
+      const txDate = new Date(tx.date);
+      return txDate >= threeMonthsAgo && txDate <= today;
+    });
+
+    const totalIncome = recentTransactions
+      .filter(tx => tx.type === 'income')
+      .reduce((sum, tx) => sum + parseFloat(tx.amount || 0), 0);
+
+    const totalExpenses = recentTransactions
+      .filter(tx => tx.type === 'expense')
+      .reduce((sum, tx) => sum + parseFloat(tx.amount || 0), 0);
+
+    const monthlySavings = (totalIncome - totalExpenses) / 3;
+
+    // Analizar cada meta
+    const goalsAnalysis = activeGoals.map(goal => {
+      const targetAmount = parseFloat(goal.target_amount || 0);
+      const currentAmount = parseFloat(goal.current_amount || 0);
+      const remaining = targetAmount - currentAmount;
+      const deadline = new Date(goal.deadline);
+      const daysUntilDeadline = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+      const monthsUntilDeadline = daysUntilDeadline / 30;
+
+      // Calcular si se logrará a tiempo
+      let willAchieveOnTime = false;
+      let monthsEarly = 0;
+      let monthsLate = 0;
+      let percentageAhead = 0;
+
+      if (monthlySavings > 0) {
+        const monthsNeeded = remaining / monthlySavings;
+        if (monthsNeeded <= monthsUntilDeadline) {
+          willAchieveOnTime = true;
+          monthsEarly = Math.floor(monthsUntilDeadline - monthsNeeded);
+        } else {
+          monthsLate = Math.ceil(monthsNeeded - monthsUntilDeadline);
+        }
+
+        // Calcular porcentaje adelantado/atrasado
+        if (currentAmount > 0 && targetAmount > 0) {
+          const expectedProgress = (monthsUntilDeadline > 0) 
+            ? (targetAmount * (1 - (monthsUntilDeadline / (monthsUntilDeadline + monthsNeeded))))
+            : 0;
+          if (currentAmount > expectedProgress) {
+            percentageAhead = Math.round(((currentAmount - expectedProgress) / targetAmount) * 100);
+          }
+        }
+      }
+
+      return {
+        ...goal,
+        willAchieveOnTime,
+        monthsEarly,
+        monthsLate,
+        percentageAhead,
+        monthlySavings,
+        remaining,
+        monthsUntilDeadline
+      };
+    });
+
+    const goalsOnTime = goalsAnalysis.filter(g => g.willAchieveOnTime).length;
+    const goalsAhead = goalsAnalysis.filter(g => g.percentageAhead > 0);
+    const goalsLate = goalsAnalysis.filter(g => g.monthsLate > 0);
+
+    // Mensaje dinámico
+    let message = '';
+    if (goalsAhead.length > 0 && goalsLate.length > 0) {
+      const aheadGoal = goalsAhead[0];
+      const lateGoal = goalsLate[0];
+      message = `"${aheadGoal.name}" va un ${aheadGoal.percentageAhead}% adelantado. Sin embargo, "${lateGoal.name}" podría retrasarse ${lateGoal.monthsLate} ${lateGoal.monthsLate === 1 ? 'mes' : 'meses'} si no ajustamos el aporte.`;
+    } else if (goalsAhead.length > 0) {
+      const aheadGoal = goalsAhead[0];
+      message = `"${aheadGoal.name}" va un ${aheadGoal.percentageAhead}% adelantado. ¡Sigue así!`;
+    } else if (goalsLate.length > 0) {
+      const lateGoal = goalsLate[0];
+      message = `"${lateGoal.name}" podría retrasarse ${lateGoal.monthsLate} ${lateGoal.monthsLate === 1 ? 'mes' : 'meses'} si no ajustamos el aporte.`;
+    } else {
+      message = 'Tus metas están en buen camino. Mantén el ritmo de ahorro.';
+    }
+
+    // Datos para el gráfico (proyección de 12 meses)
+    const chartData = [];
+    for (let i = 0; i < 12; i++) {
+      const monthDate = new Date(today);
+      monthDate.setMonth(today.getMonth() + i);
+      const projectedSavings = monthlySavings * (i + 1);
+      chartData.push(Math.min(100, (projectedSavings / (activeGoals.reduce((sum, g) => sum + parseFloat(g.target_amount || 0), 0) / activeGoals.length)) * 100));
+    }
+
+    return {
+      goalsOnTime,
+      totalGoals: activeGoals.length,
+      message,
+      chartData,
+      monthlySavings
+    };
+  }, [goals, transactions]);
 
   return (
     <div className="space-y-8 pb-12">
@@ -485,31 +603,57 @@ const Goals = () => {
               Análisis de Metas
             </div>
             <h2 className="text-2xl md:text-3xl font-bold leading-tight">
-              Con tus aportes actuales, lograrás <span className="text-[#E47B45] bg-white/10 px-2 rounded-lg">3 metas</span> a tiempo.
+              {goalAnalysis ? (
+                <>
+                  Con tus aportes actuales, lograrás <span className="text-[#E47B45] bg-white/10 px-2 rounded-lg">{goalAnalysis.goalsOnTime} {goalAnalysis.goalsOnTime === 1 ? 'meta' : 'metas'}</span> a tiempo.
+                </>
+              ) : (
+                <>
+                  Crea tus primeras metas para ver un análisis personalizado de tu progreso.
+                </>
+              )}
             </h2>
             <p className="text-white/80 text-lg max-w-xl">
-              El "Fondo de Emergencia" va un 12% adelantado. Sin embargo, "Renovación Cocina" podría retrasarse 2 meses si no ajustamos el aporte.
+              {goalAnalysis ? goalAnalysis.message : 'Las metas te ayudan a darle propósito a tu dinero y alcanzar tus objetivos financieros.'}
             </p>
-            <button className="flex items-center gap-2 text-sm font-bold hover:gap-3 transition-all mt-2">
-              Ver detalles del plan <ArrowRight className="w-4 h-4" />
-            </button>
+            {goalAnalysis && (
+              <button 
+                onClick={() => navigate('/dashboard/predictions')}
+                className="flex items-center gap-2 text-sm font-bold hover:gap-3 transition-all mt-2 cursor-pointer"
+              >
+                Ver detalles del plan <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
           <div className="lg:col-span-5 h-32 flex items-end gap-2 pb-2 px-4 bg-white/10 rounded-xl border border-white/10 backdrop-blur-sm">
-            {/* Simple CSS Chart */}
-            {[30, 45, 35, 60, 50, 75, 65, 85, 70, 90, 80, 100].map((h, i) => (
-              <motion.div
-                key={i}
-                initial={{ height: 0 }}
-                animate={{ height: `${h}%` }}
-                transition={{ duration: 0.8, delay: i * 0.05 }}
-                className="flex-1 bg-white/80 rounded-t-sm hover:bg-[#E47B45] transition-colors cursor-pointer relative group"
-              >
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-white text-[#1C8FA0] text-xs font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                  ${h * 100}
-                </div>
-              </motion.div>
-            ))}
+            {/* Gráfico de proyección (datos reales o placeholder) */}
+            {(goalAnalysis && goalAnalysis.chartData.length > 0) ? (
+              goalAnalysis.chartData.map((h, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ height: 0 }}
+                  animate={{ height: `${h}%` }}
+                  transition={{ duration: 0.8, delay: i * 0.05 }}
+                  className="flex-1 bg-white/80 rounded-t-sm hover:bg-[#E47B45] transition-colors cursor-pointer relative group"
+                >
+                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-white text-[#1C8FA0] text-xs font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                    Mes {i + 1}
+                  </div>
+                </motion.div>
+              ))
+            ) : (
+              // Placeholder si no hay datos
+              [30, 45, 35, 60, 50, 75, 65, 85, 70, 90, 80, 100].map((h, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ height: 0 }}
+                  animate={{ height: `${h}%` }}
+                  transition={{ duration: 0.8, delay: i * 0.05 }}
+                  className="flex-1 bg-white/40 rounded-t-sm"
+                />
+              ))
+            )}
           </div>
         </div>
       </motion.div>

@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSearchParams } from 'react-router-dom';
 import { 
   Send, 
   Sparkles, 
@@ -9,10 +10,13 @@ import {
   TrendingUp, 
   PieChart, 
   AlertCircle,
-  Loader2
+  Loader2,
+  LifeBuoy
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { sendMessageToAI } from '@/lib/ai-service';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { useSupportTickets } from '@/hooks/useSupportTickets';
 
 const QuickPill = ({ text, onClick }) => (
   <button 
@@ -74,12 +78,42 @@ const MessageBubble = ({ message }) => {
 };
 
 const AIAssistant = () => {
+  const [searchParams] = useSearchParams();
+  const topic = searchParams.get('topic');
+  const { user } = useAuth();
+  const { tickets, loading: ticketsLoading } = useSupportTickets(user?.id);
+  const isSupportMode = topic === 'support';
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Construir mensaje inicial basado en el contexto
+  const getInitialMessage = (ticketsData) => {
+    if (isSupportMode) {
+      const openTickets = ticketsData?.filter(t => t.status !== 'resuelto' && t.status !== 'archivado') || [];
+      if (openTickets.length > 0) {
+        return `Hola, soy FinanBot y estoy aquí para ayudarte con tus solicitudes de soporte. Veo que tienes ${openTickets.length} ticket(s) abierto(s). ¿En qué puedo asistirte hoy?`;
+      }
+      return "Hola, soy FinanBot, tu asistente de soporte. Puedo ayudarte con consultas sobre tu cuenta, tickets, facturación o cualquier problema técnico. ¿En qué puedo ayudarte?";
+    }
+    return "Hola, soy tu asistente financiero personal. ¿En qué puedo ayudarte hoy a optimizar tu dinero?";
+  };
+
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: "Hola, soy tu asistente financiero personal. ¿En qué puedo ayudarte hoy a optimizar tu dinero?" }
+    { role: 'assistant', content: isSupportMode ? "Cargando contexto de soporte..." : getInitialMessage([]) }
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+
+  // Actualizar mensaje inicial cuando se carga el contexto de soporte
+  useEffect(() => {
+    if (isSupportMode && !ticketsLoading && !isInitialized) {
+      const newMessage = getInitialMessage(tickets);
+      setMessages([{ role: 'assistant', content: newMessage }]);
+      setIsInitialized(true);
+    } else if (!isSupportMode && !isInitialized) {
+      setIsInitialized(true);
+    }
+  }, [tickets, ticketsLoading, isSupportMode, isInitialized]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -98,7 +132,27 @@ const AIAssistant = () => {
     setIsLoading(true);
 
     try {
-      const aiResponseText = await sendMessageToAI([...messages, userMessage]);
+      // Construir contexto adicional si estamos en modo soporte
+      let contextMessages = [...messages, userMessage];
+      
+      if (isSupportMode && tickets && tickets.length > 0) {
+        // Agregar contexto de tickets al inicio del sistema
+        const supportContext = {
+          role: 'system',
+          content: `CONTEXTO DE SOPORTE DEL USUARIO:
+- Tickets totales: ${tickets.length}
+- Tickets abiertos: ${tickets.filter(t => t.status !== 'resuelto' && t.status !== 'archivado').length}
+- Últimos tickets:
+${tickets.slice(0, 3).map(t => `  - [${t.status}] ${t.subject} (${t.category}, prioridad: ${t.priority}) - ${t.message.substring(0, 100)}...`).join('\n')}
+
+El usuario está en el Centro de Ayuda. Responde como asistente de soporte técnico, siendo empático y resolutivo. Si el usuario pregunta por un ticket específico, usa la información de arriba. Si necesita escalar a un humano, sugiere crear un nuevo ticket o contactar por WhatsApp/email.`
+        };
+        
+        // Insertar contexto al principio
+        contextMessages = [supportContext, ...contextMessages];
+      }
+
+      const aiResponseText = await sendMessageToAI(contextMessages);
       setMessages(prev => [...prev, { role: 'assistant', content: aiResponseText }]);
     } catch (error) {
       setMessages(prev => [...prev, { role: 'assistant', content: "Lo siento, hubo un error al procesar tu solicitud." }]);
@@ -120,13 +174,27 @@ const AIAssistant = () => {
       <div className="flex items-center justify-between mb-6 px-4">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-[#1a1a1a] font-['Inter_Tight']">Asistente Financiero IA</h1>
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-            </span>
+            {isSupportMode ? (
+              <>
+                <LifeBuoy className="w-6 h-6 text-[#1C8FA0]" />
+                <h1 className="text-2xl font-bold text-[#1a1a1a] font-['Inter_Tight']">FinanBot - Soporte</h1>
+              </>
+            ) : (
+              <>
+                <h1 className="text-2xl font-bold text-[#1a1a1a] font-['Inter_Tight']">Asistente Financiero IA</h1>
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </span>
+              </>
+            )}
           </div>
-          <p className="text-[#6E6E73] text-sm mt-1">Potenciado por DeepSeek & Qwen Intelligence</p>
+          <p className="text-[#6E6E73] text-sm mt-1">
+            {isSupportMode 
+              ? "Con contexto de tus tickets y alertas • Potenciado por DeepSeek & Qwen"
+              : "Potenciado por DeepSeek & Qwen Intelligence"
+            }
+          </p>
         </div>
       </div>
 
@@ -160,10 +228,21 @@ const AIAssistant = () => {
         <div className="p-4 bg-white border-t border-gray-100 relative z-10">
           {/* Quick Pills */}
           <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide mb-2">
-            <QuickPill text="¿En qué gasto más?" onClick={setInput} />
-            <QuickPill text="¿Voy bien con mi ahorro?" onClick={setInput} />
-            <QuickPill text="Explícame mi mes en sencillo" onClick={setInput} />
-            <QuickPill text="Hazme un plan para pagar deudas" onClick={setInput} />
+            {isSupportMode ? (
+              <>
+                <QuickPill text="¿Cuál es el estado de mis tickets?" onClick={setInput} />
+                <QuickPill text="Necesito ayuda con facturación" onClick={setInput} />
+                <QuickPill text="Reportar un error en la app" onClick={setInput} />
+                <QuickPill text="¿Cómo cambio mi contraseña?" onClick={setInput} />
+              </>
+            ) : (
+              <>
+                <QuickPill text="¿En qué gasto más?" onClick={setInput} />
+                <QuickPill text="¿Voy bien con mi ahorro?" onClick={setInput} />
+                <QuickPill text="Explícame mi mes en sencillo" onClick={setInput} />
+                <QuickPill text="Hazme un plan para pagar deudas" onClick={setInput} />
+              </>
+            )}
           </div>
 
           <div className="relative flex items-end gap-2 bg-gray-50 p-2 rounded-[20px] border border-gray-200 focus-within:border-[#1C8FA0] focus-within:ring-4 focus-within:ring-[#1C8FA0]/10 transition-all">
@@ -171,7 +250,7 @@ const AIAssistant = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Escribe tu consulta financiera aquí..."
+              placeholder={isSupportMode ? "Describe tu problema o consulta de soporte..." : "Escribe tu consulta financiera aquí..."}
               className="w-full bg-transparent border-none focus:ring-0 resize-none max-h-32 min-h-[44px] py-2.5 px-3 text-sm text-[#1a1a1a] placeholder:text-gray-400"
               rows={1}
             />
