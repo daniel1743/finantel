@@ -107,6 +107,34 @@ export const useFinance = (userId) => {
     fetchData();
   };
 
+  const addBudget = async (data) => {
+    const budgetData = {
+      ...data,
+      user_id: userId,
+      period: data.period || 'monthly',
+      alert_threshold: data.alert_threshold || 80.00,
+      is_active: data.is_active !== undefined ? data.is_active : true,
+    };
+    
+    const { error } = await supabase.from('budgets').insert([budgetData]);
+    if (error) {
+      console.error('Error creating budget:', error);
+      throw error;
+    }
+    toast({ title: "Éxito", description: "Presupuesto creado correctamente." });
+    fetchData();
+  };
+
+  const updateBudget = async (id, data) => {
+    const { error } = await supabase.from('budgets').update(data).eq('id', id).eq('user_id', userId);
+    if (error) {
+      console.error('Error updating budget:', error);
+      throw error;
+    }
+    toast({ title: "Éxito", description: "Presupuesto actualizado correctamente." });
+    fetchData();
+  };
+
   return {
     transactions,
     categories,
@@ -117,6 +145,8 @@ export const useFinance = (userId) => {
     addCategory,
     addGoal,
     updateGoalProgress,
+    addBudget,
+    updateBudget,
     refresh: fetchData
   };
 };

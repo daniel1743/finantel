@@ -1,29 +1,38 @@
-
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   TrendingUp, 
-  AlertCircle, 
-  CheckCircle2, 
-  MoreHorizontal, 
-  ChevronRight,
   Sparkles,
   Home,
   ShoppingBag,
   Car,
   Coffee,
-  Zap
+  Zap,
+  Loader2,
+  DollarSign
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { useFinance } from '@/hooks/useFinance';
+import { useToast } from '@/components/ui/use-toast';
+import AddBudgetModal from '@/components/modals/AddBudgetModal';
 
-// Mock Data
-const budgetData = [
-  { id: 1, name: "Hogar", spent: 980, total: 1200, icon: Home, color: "text-[#1C8FA0]" },
-  { id: 2, name: "Alimentación", spent: 450, total: 500, icon: ShoppingBag, color: "text-[#E47B45]" },
-  { id: 3, name: "Transporte", spent: 120, total: 300, icon: Car, color: "text-[#1a1a1a] dark:text-white" },
-  { id: 4, name: "Ocio", spent: 210, total: 200, icon: Coffee, color: "text-purple-500" },
-  { id: 5, name: "Servicios", spent: 145, total: 150, icon: Zap, color: "text-yellow-500" },
-];
+// Iconos por defecto para categorías
+const DEFAULT_ICONS = {
+  'Hogar': Home,
+  'Alimentación': ShoppingBag,
+  'Transporte': Car,
+  'Ocio': Coffee,
+  'Servicios': Zap,
+};
+
+const DEFAULT_COLORS = {
+  'Hogar': 'text-[#1C8FA0]',
+  'Alimentación': 'text-[#E47B45]',
+  'Transporte': 'text-[#1a1a1a] dark:text-white',
+  'Ocio': 'text-purple-500',
+  'Servicios': 'text-yellow-500',
+};
 
 const RingChart = ({ percentage, color, size = 200, strokeWidth = 16 }) => {
   const radius = (size - strokeWidth) / 2;
@@ -32,7 +41,6 @@ const RingChart = ({ percentage, color, size = 200, strokeWidth = 16 }) => {
 
   return (
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-      {/* Background Ring */}
       <svg width={size} height={size} className="transform -rotate-90">
         <circle
           cx={size / 2}
@@ -43,7 +51,6 @@ const RingChart = ({ percentage, color, size = 200, strokeWidth = 16 }) => {
           fill="transparent"
           className="text-gray-100 dark:text-gray-800"
         />
-        {/* Progress Ring */}
         <motion.circle
           initial={{ strokeDashoffset: circumference }}
           animate={{ strokeDashoffset }}
@@ -67,12 +74,15 @@ const RingChart = ({ percentage, color, size = 200, strokeWidth = 16 }) => {
   );
 };
 
-const BudgetCard = ({ category }) => {
-  const percentage = Math.min(100, Math.round((category.spent / category.total) * 100));
+const BudgetCard = ({ budget, spent, onUpdate }) => {
+  const percentage = Math.min(100, Math.round((spent / budget.amount) * 100));
   let statusColor = "bg-[#1C8FA0]";
   if (percentage > 100) statusColor = "bg-red-500";
   else if (percentage > 90) statusColor = "bg-[#E47B45]";
   else if (percentage > 70) statusColor = "bg-yellow-500";
+
+  const IconComponent = DEFAULT_ICONS[budget.name] || DollarSign;
+  const iconColor = DEFAULT_COLORS[budget.name] || 'text-[#1C8FA0]';
 
   return (
     <motion.div 
@@ -82,13 +92,13 @@ const BudgetCard = ({ category }) => {
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center">
-            <category.icon className={cn("w-5 h-5", category.color)} />
+            <IconComponent className={cn("w-5 h-5", iconColor)} />
           </div>
           <div>
-            <h3 className="font-bold text-[#1a1a1a] dark:text-white text-sm">{category.name}</h3>
+            <h3 className="font-bold text-[#1a1a1a] dark:text-white text-sm">{budget.name}</h3>
             <div className="flex items-baseline gap-1 text-xs text-[#6E6E73] dark:text-gray-400">
-              <span className="font-medium text-[#1a1a1a] dark:text-white">${category.spent}</span>
-              <span>/ ${category.total}</span>
+              <span className="font-medium text-[#1a1a1a] dark:text-white">${spent.toFixed(2)}</span>
+              <span>/ ${parseFloat(budget.amount).toFixed(2)}</span>
             </div>
           </div>
         </div>
@@ -108,21 +118,134 @@ const BudgetCard = ({ category }) => {
         <span className={percentage > 100 ? "text-red-500" : "text-[#6E6E73] dark:text-gray-400"}>
           {percentage > 100 ? `${percentage - 100}% Excedido` : `${100 - percentage}% Restante`}
         </span>
-        <span className="text-[#1a1a1a] dark:text-white">${Math.max(0, category.total - category.spent)} disp.</span>
+        <span className="text-[#1a1a1a] dark:text-white">${Math.max(0, parseFloat(budget.amount) - spent).toFixed(2)} disp.</span>
       </div>
     </motion.div>
   );
 };
 
 const Budgets = () => {
+  const { user } = useAuth();
+  const { budgets, transactions, categories, loading, addBudget, updateBudget, refresh } = useFinance(user?.id);
+  const { toast } = useToast();
   const [period, setPeriod] = useState('monthly');
-  const totalBudget = 2350;
-  const totalSpent = 1905;
-  const totalPercentage = Math.round((totalSpent / totalBudget) * 100);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [applyingRecommendation, setApplyingRecommendation] = useState(false);
+
+  // Calcular datos reales de presupuestos
+  const budgetData = useMemo(() => {
+    if (!budgets || !transactions) return [];
+
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    return budgets
+      .filter(budget => budget.is_active && budget.period === period)
+      .map(budget => {
+        // Calcular gastos del mes actual para este presupuesto
+        const monthTransactions = transactions.filter(tx => {
+          if (tx.type !== 'expense') return false;
+          const txDate = new Date(tx.date);
+          const txMonth = txDate.getMonth();
+          const txYear = txDate.getFullYear();
+          
+          // Si el presupuesto tiene category_id, filtrar por categoría
+          if (budget.category_id) {
+            return tx.category_id === budget.category_id && txMonth === currentMonth && txYear === currentYear;
+          }
+          // Si no tiene category_id, usar el nombre del presupuesto para buscar categorías
+          const matchingCategory = categories.find(cat => cat.name === budget.name);
+          if (matchingCategory) {
+            return tx.category_id === matchingCategory.id && txMonth === currentMonth && txYear === currentYear;
+          }
+          return false;
+        });
+
+        const spent = monthTransactions.reduce((sum, tx) => sum + parseFloat(tx.amount || 0), 0);
+
+        return {
+          ...budget,
+          spent,
+        };
+      });
+  }, [budgets, transactions, categories, period]);
+
+  // Calcular totales
+  const totalBudget = budgetData.reduce((sum, b) => sum + parseFloat(b.amount || 0), 0);
+  const totalSpent = budgetData.reduce((sum, b) => sum + b.spent, 0);
+  const totalPercentage = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
   
   let ringColor = "text-[#1C8FA0]";
   if (totalPercentage > 90) ringColor = "text-[#E47B45]";
   if (totalPercentage > 100) ringColor = "text-red-500";
+
+  // Calcular recomendación inteligente
+  const recommendation = useMemo(() => {
+    if (budgetData.length === 0) return null;
+
+    // Encontrar el presupuesto más excedido o cercano al límite
+    const sortedBudgets = [...budgetData].sort((a, b) => {
+      const aPercent = (a.spent / parseFloat(a.amount)) * 100;
+      const bPercent = (b.spent / parseFloat(b.amount)) * 100;
+      return bPercent - aPercent;
+    });
+
+    const topBudget = sortedBudgets[0];
+    if (!topBudget) return null;
+
+    const budgetPercent = (topBudget.spent / parseFloat(topBudget.amount)) * 100;
+    
+    // Solo recomendar si está por encima del 80%
+    if (budgetPercent < 80) return null;
+
+    // Calcular reducción del 10%
+    const reduction = parseFloat(topBudget.amount) * 0.1;
+    const newAmount = parseFloat(topBudget.amount) - reduction;
+    const savings = reduction;
+
+    return {
+      budget: topBudget,
+      reduction: reduction.toFixed(2),
+      newAmount: newAmount.toFixed(2),
+      savings: savings.toFixed(2),
+      message: `Si reduces tu presupuesto de ${topBudget.name} un 10%, podrías destinar $${savings.toFixed(2)} extra a tus metas cada mes.`
+    };
+  }, [budgetData]);
+
+  // Aplicar recomendación
+  const handleApplyRecommendation = async () => {
+    if (!recommendation) return;
+
+    setApplyingRecommendation(true);
+    try {
+      await updateBudget(recommendation.budget.id, {
+        amount: parseFloat(recommendation.newAmount)
+      });
+      
+      toast({
+        title: "¡Recomendación aplicada!",
+        description: `El presupuesto de ${recommendation.budget.name} se ha reducido en $${recommendation.reduction}.`
+      });
+    } catch (error) {
+      console.error('Error applying recommendation:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo aplicar la recomendación."
+      });
+    } finally {
+      setApplyingRecommendation(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-10 h-10 text-[#1C8FA0] animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 pb-12">
@@ -134,20 +257,23 @@ const Budgets = () => {
         </div>
         
         <div className="bg-white dark:bg-[#1a1a1a] p-1 rounded-xl border border-gray-200 dark:border-white/10 flex shadow-sm">
-          {['Mensual', 'Trimestral', 'Anual'].map((p) => (
-            <button
-              key={p}
-              onClick={() => setPeriod(p.toLowerCase())}
-              className={cn(
-                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                period === p.toLowerCase()
-                  ? "bg-[#1a1a1a] dark:bg-white text-white dark:text-black shadow-md" 
-                  : "text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5"
-              )}
-            >
-              {p}
-            </button>
-          ))}
+          {['Mensual', 'Trimestral', 'Anual'].map((p) => {
+            const periodMap = { 'Mensual': 'monthly', 'Trimestral': 'quarterly', 'Anual': 'yearly' };
+            return (
+              <button
+                key={p}
+                onClick={() => setPeriod(periodMap[p])}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                  period === periodMap[p]
+                    ? "bg-[#1a1a1a] dark:bg-white text-white dark:text-black shadow-md" 
+                    : "text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5"
+                )}
+              >
+                {p}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -166,46 +292,69 @@ const Budgets = () => {
           <div className="grid grid-cols-2 gap-8 w-full mt-8 pt-8 border-t border-gray-50 dark:border-white/5">
             <div className="text-center">
               <p className="text-xs text-[#6E6E73] dark:text-gray-400 uppercase tracking-wider font-bold mb-1">Gastado</p>
-              <p className="text-2xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">${totalSpent}</p>
+              <p className="text-2xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">${totalSpent.toFixed(2)}</p>
             </div>
             <div className="text-center">
               <p className="text-xs text-[#6E6E73] dark:text-gray-400 uppercase tracking-wider font-bold mb-1">Disponible</p>
-              <p className="text-2xl font-bold text-[#1C8FA0] font-['Inter_Tight']">${totalBudget - totalSpent}</p>
+              <p className="text-2xl font-bold text-[#1C8FA0] font-['Inter_Tight']">${(totalBudget - totalSpent).toFixed(2)}</p>
             </div>
           </div>
         </motion.div>
 
         {/* Categories Grid */}
         <div className="lg:col-span-8 space-y-6">
-           {/* AI Recommendation */}
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-white/60 dark:bg-white/5 backdrop-blur-md border border-white/50 dark:border-white/10 rounded-[22px] p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center shrink-0">
-                <Sparkles className="w-6 h-6 text-[#1C8FA0]" />
+          {/* AI Recommendation */}
+          {recommendation && (
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-white/60 dark:bg-white/5 backdrop-blur-md border border-white/50 dark:border-white/10 rounded-[22px] p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-6 h-6 text-[#1C8FA0]" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-[#1a1a1a] dark:text-white">Oportunidad de Ahorro</h3>
+                  <p className="text-sm text-[#6E6E73] dark:text-gray-400 max-w-md mt-1">
+                    Si reduces tu presupuesto de <span className="font-bold text-[#1a1a1a] dark:text-white">{recommendation.budget.name}</span> un 10%, podrías destinar <span className="font-bold text-[#1C8FA0]">${recommendation.savings} extra</span> a tus metas cada mes.
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-bold text-[#1a1a1a] dark:text-white">Oportunidad de Ahorro</h3>
-                <p className="text-sm text-[#6E6E73] dark:text-gray-400 max-w-md mt-1">
-                  Si reduces tu presupuesto de <span className="font-bold text-[#1a1a1a] dark:text-white">Ocio</span> un 10%, podrías destinar <span className="font-bold text-[#1C8FA0]">$20 extra</span> a tu fondo de viaje cada mes.
-                </p>
-              </div>
-            </div>
-            <button className="px-6 py-3 bg-[#1a1a1a] dark:bg-white text-white dark:text-black rounded-xl text-sm font-bold hover:opacity-90 transition-opacity shadow-lg whitespace-nowrap">
-              Aplicar recomendación
-            </button>
-          </motion.div>
+              <button 
+                onClick={handleApplyRecommendation}
+                disabled={applyingRecommendation}
+                className="px-6 py-3 bg-[#1a1a1a] dark:bg-white text-white dark:text-black rounded-xl text-sm font-bold hover:opacity-90 transition-opacity shadow-lg whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {applyingRecommendation ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Aplicando...
+                  </>
+                ) : (
+                  'Aplicar recomendación'
+                )}
+              </button>
+            </motion.div>
+          )}
 
           <div className="grid sm:grid-cols-2 gap-6">
-            {budgetData.map((budget) => (
-              <BudgetCard key={budget.id} category={budget} />
-            ))}
+            {budgetData.length > 0 ? (
+              budgetData.map((budget) => (
+                <BudgetCard key={budget.id} budget={budget} spent={budget.spent} />
+              ))
+            ) : (
+              <div className="col-span-2 text-center py-12 text-[#6E6E73] dark:text-gray-400">
+                <p className="text-lg mb-2">No tienes presupuestos creados aún</p>
+                <p className="text-sm">Crea tu primer presupuesto para comenzar a controlar tus gastos</p>
+              </div>
+            )}
             
             {/* Add New Budget */}
-            <button className="border-2 border-dashed border-gray-200 dark:border-white/10 rounded-[22px] p-6 flex flex-col items-center justify-center gap-3 text-[#6E6E73] dark:text-gray-400 hover:border-[#1C8FA0] hover:text-[#1C8FA0] dark:hover:text-[#1C8FA0] hover:bg-[#1C8FA0]/5 transition-all group min-h-[180px]">
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="border-2 border-dashed border-gray-200 dark:border-white/10 rounded-[22px] p-6 flex flex-col items-center justify-center gap-3 text-[#6E6E73] dark:text-gray-400 hover:border-[#1C8FA0] hover:text-[#1C8FA0] dark:hover:text-[#1C8FA0] hover:bg-[#1C8FA0]/5 transition-all group min-h-[180px]"
+            >
               <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center group-hover:bg-white dark:group-hover:bg-white/10 transition-colors">
                 <TrendingUp className="w-5 h-5" />
               </div>
@@ -214,6 +363,16 @@ const Budgets = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal */}
+      <AddBudgetModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={() => {
+          refresh();
+          setIsModalOpen(false);
+        }}
+      />
     </div>
   );
 };

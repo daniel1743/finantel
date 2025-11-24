@@ -43,11 +43,17 @@ const MenuSection = ({ title, items, isCollapsed, currentPath, setIsMobileOpen, 
         const isBlocked = isFamilyFeature && !hasFamilyPlan;
         
         return (
-          <div key={item.name} className="relative">
+          <div key={item.name} className="relative group/item">
             {isBlocked && (
-              <div className="absolute -top-1 -right-1 z-10">
-                <Lock className="w-4 h-4 text-amber-500" />
-              </div>
+              <>
+                <div className="absolute -top-1 -right-1 z-10">
+                  <Lock className="w-4 h-4 text-amber-500" />
+                </div>
+                <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-[#1a1a1a] dark:bg-white text-white dark:text-[#1a1a1a] text-xs px-3 py-2 rounded-lg opacity-0 group-hover/item:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity shadow-lg">
+                  Requiere Plan Familiar
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 w-2 h-2 bg-[#1a1a1a] dark:bg-white rotate-45"></div>
+                </div>
+              </>
             )}
             <Link
               to={item.path}
@@ -63,7 +69,7 @@ const MenuSection = ({ title, items, isCollapsed, currentPath, setIsMobileOpen, 
                 isActive 
                   ? "bg-[#1C8FA0]/10 text-[#1C8FA0]" 
                   : "text-[#6E6E73] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-[#1a1a1a] dark:hover:text-white",
-                isBlocked && "opacity-60 cursor-not-allowed"
+                isBlocked && "opacity-60"
               )}
             >
             {isActive && (
@@ -94,11 +100,15 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
   const location = useLocation();
   const currentPath = location.pathname;
   const { signOut, user } = useAuth();
-  const { subscription } = useBilling(user?.id);
+  const { subscription, loading: billingLoading } = useBilling(user?.id);
   const navigate = useNavigate();
 
-  // Verificar si tiene plan familiar
-  const hasFamilyPlan = subscription?.plan === 'familiar' || subscription?.plan === 'family' || subscription?.plan === 'Familiar';
+  // Verificar si tiene plan familiar (solo si subscription existe y no está cargando)
+  const hasFamilyPlan = !billingLoading && subscription && (
+    subscription.plan === 'familiar' || 
+    subscription.plan === 'family' || 
+    subscription.plan === 'Familiar'
+  );
 
   // Cerrar el menú móvil automáticamente cuando cambia la ruta
   useEffect(() => {

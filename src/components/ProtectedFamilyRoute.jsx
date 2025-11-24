@@ -17,7 +17,12 @@ const ProtectedFamilyRoute = ({ children, featureName }) => {
   }
 
   // Verificar si tiene plan familiar
-  const hasFamilyPlan = subscription?.plan === 'familiar' || subscription?.plan === 'family' || subscription?.plan === 'Familiar';
+  // Si no hay subscription o la tabla no existe, se considera que no tiene plan familiar
+  const hasFamilyPlan = subscription && (
+    subscription.plan === 'familiar' || 
+    subscription.plan === 'family' || 
+    subscription.plan === 'Familiar'
+  );
 
   if (!hasFamilyPlan) {
     return <UpgradeRequired featureName={featureName} planName="Plan Familiar" />;

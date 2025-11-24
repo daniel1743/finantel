@@ -18,16 +18,26 @@ export const useBilling = (userId) => {
           .from('billing_subscriptions')
           .select('*')
           .eq('user_id', userId)
-          .single();
+          .maybeSingle(); // Usar maybeSingle en lugar de single para evitar errores si no existe
         
         // It's okay if no subscription exists yet
-        if (!subError && subData) setSubscription(subData);
+        if (!subError && subData) {
+          setSubscription(subData);
+        } else if (subError && subError.code !== 'PGRST116') {
+          // Solo loguear errores que no sean "no encontrado"
+          console.error('Error fetching subscription:', subError);
+        }
 
         // Mock fetching history if table existed, or just use empty
         setHistory([]); 
 
       } catch (error) {
-        console.error(error);
+        // Si la tabla no existe, simplemente no establecer suscripción
+        if (error.message && error.message.includes('billing_subscriptions')) {
+          console.warn('Tabla billing_subscriptions no existe aún. Ejecuta la migración 020_create_billing_subscriptions.sql');
+        } else {
+          console.error('Error in fetchBilling:', error);
+        }
       } finally {
         setLoading(false);
       }
