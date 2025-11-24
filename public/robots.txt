@@ -1,5 +1,5 @@
 # robots.txt for Finantel
-# https://finantel.vercel.app
+# https://finantel.net
 
 User-agent: *
 Allow: /
@@ -8,7 +8,7 @@ Disallow: /api/
 Disallow: /admin/
 
 # Sitemap
-Sitemap: https://finantel.vercel.app/sitemap.xml
+Sitemap: https://finantel.net/sitemap.xml
 
 # Crawl-delay (opcional, para evitar sobrecarga)
 Crawl-delay: 1

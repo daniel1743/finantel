@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Check, Plus, Wallet, ShoppingBag, Coffee, Home, Car, Plane, Sparkles, Loader2 } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { ArrowRight, Check, Plus, Wallet, ShoppingBag, Coffee, Home, Car, Plane, Sparkles, Loader2, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { supabase } from '@/lib/customSupabaseClient';
@@ -131,6 +131,24 @@ const Onboarding = () => {
                     <p className="text-lg text-[#6E6E73] mt-4 max-w-md">
                       Para que nuestra IA pueda ayudarte, necesitamos entender tu punto de partida. Todo es privado.
                     </p>
+                  <div className="bg-white/80 dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-2xl p-4 flex gap-3 items-start shadow-sm mt-6">
+                    <div className="w-10 h-10 rounded-xl bg-[#1C8FA0]/10 flex items-center justify-center shrink-0">
+                      <ShieldCheck className="w-5 h-5 text-[#1C8FA0]" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-[#1a1a1a] dark:text-white">Transparencia total</p>
+                      <p className="text-sm text-[#6E6E73] dark:text-gray-400 mb-2">
+                        Finantel solo registra tus movimientos. Nunca tocamos tu dinero ni cobramos comisiones ocultas.
+                      </p>
+                      <Link 
+                        to="/legal/transparencia"
+                        target="_blank"
+                        className="text-sm font-semibold text-[#1C8FA0] hover:text-[#167a8a]"
+                      >
+                        Conoce nuestro compromiso →
+                      </Link>
+                    </div>
+                  </div>
                   </div>
 
                   <div className="space-y-6 max-w-md">

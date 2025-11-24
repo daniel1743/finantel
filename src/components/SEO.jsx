@@ -22,7 +22,7 @@ const SEO = ({
   author = 'Finantel Team',
   twitterHandle = '@finantel'
 }) => {
-  const siteUrl = 'https://finantel.vercel.app';
+  const siteUrl = 'https://finantel.net';
   const fullUrl = url ? `${siteUrl}${url}` : siteUrl;
   const fullImage = image.startsWith('http') ? image : `${siteUrl}${image}`;
 

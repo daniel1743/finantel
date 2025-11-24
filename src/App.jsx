@@ -15,6 +15,7 @@ const LandingPage = lazy(() => import('@/pages/LandingPage'));
 const Auth = lazy(() => import('@/pages/Auth'));
 const Onboarding = lazy(() => import('@/pages/Onboarding'));
 const PricingPage = lazy(() => import('@/pages/PricingPage'));
+const Transparency = lazy(() => import('@/pages/legal/Transparency'));
 
 const DashboardLayout = lazy(() => import('@/pages/Dashboard'));
 const DashboardHome = lazy(() => import('@/pages/dashboard/DashboardHome'));
@@ -54,6 +55,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/pricing" element={<PricingPage />} />
+                          <Route path="/legal/transparencia" element={<Transparency />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/onboarding" element={<Onboarding />} />
                   

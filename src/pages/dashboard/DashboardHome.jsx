@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import {
   Plus,
   TrendingUp,
@@ -30,7 +31,8 @@ import {
   Loader2,
   Zap,
   Heart,
-  Smartphone
+  Smartphone,
+  ShieldCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
@@ -1062,6 +1064,28 @@ const DashboardHome = () => {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Banner de Transparencia */}
+      <div className="bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/5 rounded-[22px] p-4 md:p-5 flex flex-col md:flex-row items-start md:items-center gap-4 shadow-sm">
+        <div className="flex items-start gap-3">
+          <div className="w-11 h-11 rounded-2xl bg-[#1C8FA0]/10 flex items-center justify-center">
+            <ShieldCheck className="w-5 h-5 text-[#1C8FA0]" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-[#1a1a1a] dark:text-white uppercase tracking-wide">Compromiso de Transparencia</p>
+            <p className="text-sm text-[#6E6E73] dark:text-gray-400">
+              Finantel nunca retiene tu dinero ni aplica comisiones ocultas. Solo registramos y protegemos tus finanzas.
+            </p>
+          </div>
+        </div>
+        <Link
+          to="/legal/transparencia"
+          className="ml-auto inline-flex items-center gap-2 text-sm font-semibold text-[#1C8FA0] hover:text-[#167a8a]"
+        >
+          Conoce más
+          <ArrowUpRight className="w-4 h-4" />
+        </Link>
       </div>
 
       {/* Estado de carga o sin datos */}
