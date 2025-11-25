@@ -8,3 +8,15 @@ nul
 .env.local
 .env.production
 VERCEL-ENV-VARIABLES.md
+
+# Archivos con secretos (NO subir a GitHub)
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!vercel.json
+DEPLOYMENT-*.md
+VARIABLES-*.md
+*API*.md
+*CLAVE*.json
+*SERVICE*.json
