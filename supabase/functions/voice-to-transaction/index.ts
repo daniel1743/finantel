@@ -39,43 +39,108 @@ function parseTranscript(text: string) {
   const kMatch = lowerText.match(/(\d+)\s*k\b/);
   if (kMatch) {
     amount = parseInt(kMatch[1]) * 1000;
+    console.log('✅ Formato "k" detectado:', kMatch[0], '→', amount);
   }
 
-  // Detectar números grandes con separadores (formato chileno: 950.000 o 2.300)
-  // En Chile: punto = separador de miles, coma = decimal (pero raro en montos grandes)
-  // Patrón: número con punto(s) como separador de miles
-  const chileanFormatMatch = lowerText.match(/\$?\s*(\d{1,3}(?:\.\d{3})+)\s*(?:pesos|clp|usd)?/);
+  // PRIORIDAD 1: Detectar números con punto como separador de miles (formato chileno: 1.300, 950.000, 2.300)
+  // En Chile: punto = separador de miles cuando hay 3 dígitos después del punto
+  // Buscar específicamente patrones como "$1.300", "1.300 pesos", etc.
+  // Mejorar regex para capturar mejor incluso con texto alrededor
+  const chileanFormatMatch = lowerText.match(/(?:^|\s|\$)\s*(\d{1,3}(?:\.\d{3})+)\s*(?:pesos|clp|usd)?/);
   if (!amount && chileanFormatMatch) {
     // Formato chileno: remover puntos (son separadores de miles)
     let numStr = chileanFormatMatch[1].replace(/\./g, '');
     amount = parseFloat(numStr);
-    console.log('Formato chileno detectado:', chileanFormatMatch[1], '→', amount);
+    console.log('✅ Formato chileno (punto como miles) detectado:', chileanFormatMatch[1], '→', amount);
   }
 
-  // Detectar números con comas como separador de miles (formato internacional: 950,000)
+  // PRIORIDAD 2: Detectar números con punto que tienen exactamente 3 dígitos después
+  // Esto captura casos como "1.300" que el regex anterior podría perder
+  if (!amount) {
+    // Buscar cualquier número con punto seguido de exactamente 3 dígitos
+    const pointThreeDigitsMatch = lowerText.match(/(?:^|\s|\$)\s*(\d+)\.(\d{3})\b/);
+    if (pointThreeDigitsMatch) {
+      const parteEntera = pointThreeDigitsMatch[1];
+      const parteDecimal = pointThreeDigitsMatch[2];
+      // Si tiene exactamente 3 dígitos después del punto → separador de miles (1.300 = 1300)
+      amount = parseFloat(parteEntera + parteDecimal);
+      console.log('✅ Punto como separador de miles (3 dígitos exactos):', pointThreeDigitsMatch[0], '→', amount);
+    }
+  }
+
+  // PRIORIDAD 3: Detectar números con punto que podrían ser separador de miles
+  // Si el número tiene 1-2 dígitos después del punto y es >= 10, probablemente es separador de miles
+  if (!amount) {
+    const pointMatch = lowerText.match(/(?:^|\s|\$)\s*(\d+)\.(\d{1,2})\s*(?:pesos|clp|usd)?/);
+    if (pointMatch) {
+      const parteEntera = parseInt(pointMatch[1]);
+      const parteDecimal = pointMatch[2];
+      
+      // Si la parte entera es >= 10 y tiene 1-2 dígitos después → separador de miles
+      // Ejemplo: "10.50 pesos" = 1050, "20.30 pesos" = 2030
+      if (parteEntera >= 10 && parteDecimal.length <= 2) {
+        amount = parseFloat(parteEntera + parteDecimal.padEnd(3, '0'));
+        console.log('✅ Punto como separador de miles (número >= 10):', pointMatch[0], '→', amount);
+      }
+      // Si es pequeño (< 10) con 1-2 dígitos → decimal real (1.20 = 1.20)
+      else if (parteEntera < 10 && parteDecimal.length <= 2) {
+        amount = parseFloat(parteEntera + '.' + parteDecimal);
+        console.log('✅ Punto como decimal (número < 10):', pointMatch[0], '→', amount);
+      }
+    }
+  }
+
+  // PRIORIDAD 3: Detectar números con comas como separador de miles (formato internacional: 950,000)
   const internationalFormatMatch = lowerText.match(/\$?\s*(\d{1,3}(?:,\d{3})+)\s*(?:pesos|clp|usd)?/);
   if (!amount && internationalFormatMatch) {
     // Formato internacional: remover comas (son separadores de miles)
     let numStr = internationalFormatMatch[1].replace(/,/g, '');
     amount = parseFloat(numStr);
-    console.log('Formato internacional detectado:', internationalFormatMatch[1], '→', amount);
+    console.log('✅ Formato internacional (coma como miles) detectado:', internationalFormatMatch[1], '→', amount);
   }
 
-  // Detectar números con coma como decimal (formato: 2,30 o 28,50)
+  // PRIORIDAD 4: Detectar patrones de texto como "950 mil", "2 mil 300", etc.
+  if (!amount) {
+    const milPattern = lowerText.match(/(\d+)\s*(?:mil|k)\s*(?:y\s*(\d+))?/);
+    if (milPattern) {
+      const miles = parseInt(milPattern[1]) * 1000;
+      const unidades = milPattern[2] ? parseInt(milPattern[2]) : 0;
+      amount = miles + unidades;
+      console.log('✅ Patrón "mil" detectado:', milPattern[0], '→', amount);
+    }
+  }
+
+  // PRIORIDAD 5: Detectar números con coma como decimal (formato: 2,30 o 28,50)
+  // Solo si no se detectó como separador de miles
   const decimalCommaMatch = lowerText.match(/\$?\s*(\d+),(\d{1,2})\s*(?:pesos|clp|usd)?/);
   if (!amount && decimalCommaMatch) {
     // Coma como decimal: reemplazar coma por punto
     let numStr = decimalCommaMatch[1] + '.' + decimalCommaMatch[2];
     amount = parseFloat(numStr);
-    console.log('Formato decimal con coma detectado:', decimalCommaMatch[0], '→', amount);
+    console.log('✅ Formato decimal con coma detectado:', decimalCommaMatch[0], '→', amount);
   }
 
-  // Detectar formato simple "$1200", "1200 pesos", etc (sin separadores)
+  // PRIORIDAD 6: Detectar formato simple "$1200", "1200 pesos", etc (sin separadores)
+  // ESTE DEBE IR AL FINAL para no capturar números que son parte de formatos más complejos
   if (!amount) {
-    const simpleMatch = lowerText.match(/\$?\s*(\d+)\s*(?:pesos|clp|usd)?/);
-    if (simpleMatch) {
-      amount = parseFloat(simpleMatch[1]);
-      console.log('Formato simple detectado:', simpleMatch[1], '→', amount);
+    // Buscar el número más grande en el texto (evitar capturar números pequeños que son parte de otros patrones)
+    const allNumbers = lowerText.match(/\$?\s*(\d+)\s*(?:pesos|clp|usd)?/g);
+    if (allNumbers && allNumbers.length > 0) {
+      // Tomar el número más grande encontrado
+      let maxAmount = 0;
+      for (const numStr of allNumbers) {
+        const numMatch = numStr.match(/(\d+)/);
+        if (numMatch) {
+          const num = parseFloat(numMatch[1]);
+          if (num > maxAmount) {
+            maxAmount = num;
+          }
+        }
+      }
+      if (maxAmount > 0) {
+        amount = maxAmount;
+        console.log('✅ Formato simple detectado (número más grande):', maxAmount);
+      }
     }
   }
 
@@ -359,7 +424,10 @@ serve(async (req) => {
     // Default CLP para Chile (ya que la app está orientada a Chile)
     const userCurrency = preferences?.currency || 'CLP'
     
-    console.log('Moneda del usuario:', userCurrency, 'Preferencias:', preferences)
+    console.log('=== PREFERENCIAS DE USUARIO ===');
+    console.log('Moneda encontrada en BD:', preferences?.currency);
+    console.log('Moneda que se usará:', userCurrency);
+    console.log('Preferencias completas:', preferences);
 
     // 4. OBTENER O CREAR CATEGORÍA
     let categoryId = null
@@ -399,29 +467,46 @@ serve(async (req) => {
     }
 
     // 5. CREAR TRANSACCIÓN
+    const transactionData = {
+      user_id: userId,
+      amount: parsed.amount,
+      description: parsed.description,
+      category_id: categoryId,
+      type: parsed.type,
+      currency: userCurrency, // Usar la moneda del usuario
+      date: new Date().toISOString().split('T')[0], // Solo la fecha, sin hora
+      payment_method: 'cash', // Por defecto
+      metadata: {
+        created_via: 'voice',
+        raw_transcript: parsed.rawTranscript,
+      },
+    };
+
+    console.log('=== DATOS DE TRANSACCIÓN A GUARDAR ===');
+    console.log('Monto:', transactionData.amount);
+    console.log('Moneda:', transactionData.currency);
+    console.log('Tipo:', transactionData.type);
+    console.log('Descripción:', transactionData.description);
+    console.log('Categoría ID:', transactionData.category_id);
+    console.log('Datos completos:', JSON.stringify(transactionData, null, 2));
+
     const { data: transaction, error: txError } = await supabase
       .from('transactions')
-      .insert({
-        user_id: userId,
-        amount: parsed.amount,
-        description: parsed.description,
-        category_id: categoryId,
-        type: parsed.type,
-        currency: userCurrency, // Usar la moneda del usuario
-        date: new Date().toISOString().split('T')[0], // Solo la fecha, sin hora
-        payment_method: 'cash', // Por defecto
-        metadata: {
-          created_via: 'voice',
-          raw_transcript: parsed.rawTranscript,
-        },
-      })
+      .insert(transactionData)
       .select()
       .single()
 
     if (txError) {
-      console.error('Error al crear transacción:', txError)
-      throw new Error('Error al guardar la transacción')
+      console.error('=== ERROR AL CREAR TRANSACCIÓN ===');
+      console.error('Error completo:', txError);
+      console.error('Datos que se intentaron guardar:', transactionData);
+      throw new Error('Error al guardar la transacción: ' + txError.message)
     }
+
+    console.log('=== TRANSACCIÓN CREADA EXITOSAMENTE ===');
+    console.log('ID:', transaction.id);
+    console.log('Monto guardado:', transaction.amount);
+    console.log('Moneda guardada:', transaction.currency);
 
     // 5. RETORNAR ÉXITO
     return new Response(
