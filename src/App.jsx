@@ -42,6 +42,7 @@ const Export = lazy(() => import('@/pages/dashboard/Export'));
 const EmailPreferences = lazy(() => import('@/pages/dashboard/EmailPreferences'));
 const ABTesting = lazy(() => import('@/pages/dashboard/ABTesting'));
 const Billing = lazy(() => import('@/pages/dashboard/Billing'));
+const AIPlanner = lazy(() => import('@/pages/dashboard/AIPlanner'));
 
 const PageLoader = () => (
   <div className="h-screen w-full flex items-center justify-center bg-[#F5F7F9] dark:bg-[#0f0f11]">
@@ -88,6 +89,7 @@ function App() {
                     <Route path="profile" element={<Profile />} />
                     <Route path="billing" element={<Billing />} />
                     <Route path="ai-assistant" element={<AIAssistant />} />
+                    <Route path="ai-planner" element={<AIPlanner />} />
                     <Route path="budgets" element={<Budgets />} />
                     <Route path="alerts" element={<Alerts />} />
                     <Route path="family" element={

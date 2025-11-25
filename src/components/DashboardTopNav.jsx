@@ -13,14 +13,17 @@ import {
   MessageSquare, 
   LogOut 
 } from 'lucide-react';
+import ReactCountryFlag from 'react-country-flag';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useUserCurrency } from '@/hooks/useUserCurrency';
 import { Link, useNavigate } from 'react-router-dom';
 
 const DashboardTopNav = ({ onMenuClick }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { countryCode, currency } = useUserCurrency();
   const navigate = useNavigate();
   const menuContainerRef = useRef(null);
   const buttonRef = useRef(null);
@@ -99,13 +102,28 @@ const DashboardTopNav = ({ onMenuClick }) => {
                 e.stopPropagation();
                 setIsMenuOpen(!isMenuOpen);
               }}
-              className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1C8FA0] to-[#167a8a] p-[2px] shadow-lg shadow-[#1C8FA0]/20 hover:shadow-[#1C8FA0]/30 transition-all hover:-translate-y-0.5"
+              className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1C8FA0] to-[#167a8a] p-[2px] shadow-lg shadow-[#1C8FA0]/20 hover:shadow-[#1C8FA0]/30 transition-all hover:-translate-y-0.5 relative"
             >
               <div className="w-full h-full rounded-full bg-white dark:bg-[#1a1a1a] flex items-center justify-center overflow-hidden">
                 <span className="text-sm font-bold text-[#1C8FA0]">
                   {userName.charAt(0).toUpperCase()}
                 </span>
               </div>
+              {/* Bandera en la esquina inferior derecha */}
+              {countryCode && (
+                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-white dark:bg-[#1a1a1a] border-2 border-[#1C8FA0] flex items-center justify-center overflow-hidden shadow-sm z-10">
+                  <ReactCountryFlag
+                    countryCode={countryCode}
+                    svg
+                    style={{
+                      width: '12px',
+                      height: '12px',
+                      objectFit: 'cover',
+                    }}
+                    title={`${currency || 'USD'}`}
+                  />
+                </div>
+              )}
             </button>
             
             <AnimatePresence>

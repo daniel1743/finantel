@@ -119,6 +119,11 @@ const CurrencyModal = ({ isOpen, onClose }) => {
         description: `Moneda actualizada a ${CURRENCIES.find(c => c.code === selectedCurrency)?.name}`,
       });
 
+      // Forzar recarga de la página para actualizar la bandera
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+      
       onClose();
     } catch (error) {
       console.error('Error saving currency:', error);

@@ -24,7 +24,8 @@ import {
   Settings,
   User,
   Download,
-  Shield
+  Shield,
+  Zap
 } from 'lucide-react';
 
 const MenuSection = ({ title, items, isCollapsed, currentPath, setIsMobileOpen, hasFamilyPlan, handleBlockedClick }) => (
@@ -141,6 +142,7 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
       title: "Inteligencia",
       items: [
         { name: "Asistente IA", icon: Bot, path: "/dashboard/ai-assistant" },
+        { name: "Planificador IA", icon: Zap, path: "/dashboard/ai-planner" },
         { name: "Predicciones", icon: Sparkles, path: "/dashboard/predictions" },
         { name: "Análisis Profundo", icon: BarChart3, path: "/dashboard/analysis" },
         { name: "Alertas", icon: Bell, path: "/dashboard/alerts" },

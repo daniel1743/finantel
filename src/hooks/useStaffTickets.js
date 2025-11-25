@@ -43,13 +43,7 @@ export const useStaffTickets = (userId) => {
     try {
       let query = supabase
         .from('support_tickets')
-        .select(`
-          *,
-          user:user_id (
-            email,
-            raw_user_meta_data
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       // Aplicar filtros
@@ -225,14 +219,7 @@ export const useStaffTickets = (userId) => {
     try {
       const { data, error } = await supabase
         .from('profile_preferences')
-        .select(`
-          user_id,
-          is_staff,
-          user:user_id (
-            email,
-            raw_user_meta_data
-          )
-        `)
+        .select('user_id, is_staff')
         .eq('is_staff', true);
 
       if (error) throw error;
