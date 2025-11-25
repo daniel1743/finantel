@@ -191,25 +191,61 @@ const CustomDropdown = ({
 };
 
 // =====================================================
-// Modal de Nueva Transacción
+// Modal de Transacción (Crear/Editar)
 // =====================================================
-const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
-  const { user } = useAuth();
-  const { addTransaction, categories } = useFinance(user?.id);
-  const { toast } = useToast();
+const getInitialFormData = () => ({
+  description: '',
+  amount: '',
+  category_id: '',
+  custom_category: '',
+  date: new Date().toISOString().split('T')[0],
+  type: 'expense',
+  necessity_level: '',
+  notes: ''
+});
 
-  const [formData, setFormData] = useState({
-    description: '',
-    amount: '',
-    category_id: '',
-    custom_category: '',
-    date: new Date().toISOString().split('T')[0],
-    type: 'expense',
-    necessity_level: '',
-    notes: ''
-  });
+const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transaction = null }) => {
+  const { user } = useAuth();
+  const { addTransaction, updateTransaction } = useFinance(user?.id);
+  const { toast } = useToast();
+  const isEditMode = mode === 'edit' && Boolean(transaction);
+
+  const [formData, setFormData] = useState(getInitialFormData());
   const [isLoading, setIsLoading] = useState(false);
   const [showCustomCategory, setShowCustomCategory] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    if (isEditMode && transaction) {
+      const categoryName = transaction.categories?.name || '';
+      const normalizedCategory = categoryName?.toLowerCase();
+      const availableCategories = transaction.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+      const matchedCategory = availableCategories.find(cat => cat.name.toLowerCase() === normalizedCategory);
+      const isCustom = !!categoryName && !matchedCategory;
+
+      setFormData({
+        description: transaction.description || '',
+        amount: transaction.amount ? parseFloat(transaction.amount).toString() : '',
+        category_id: matchedCategory
+          ? matchedCategory.id
+          : transaction.type === 'income'
+            ? 'personalizar-ingreso'
+            : 'personalizar-gasto',
+        custom_category: isCustom ? categoryName : '',
+        date: transaction.date ? transaction.date.substring(0, 10) : new Date().toISOString().substring(0, 10),
+        type: transaction.type || 'expense',
+        necessity_level: transaction.type === 'expense'
+          ? transaction.metadata?.necessity_level || transaction.metadata?.necessityLevel || ''
+          : '',
+        notes: transaction.notes || ''
+      });
+      setShowCustomCategory(isCustom);
+    } else {
+      setFormData(getInitialFormData());
+      setShowCustomCategory(false);
+    }
+  }, [isOpen, isEditMode, transaction]);
 
   const handleCategoryChange = (value) => {
     if (value === 'personalizar-ingreso' || value === 'personalizar-gasto') {
@@ -356,24 +392,18 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
         notes: formData.notes.trim() || null,
       };
 
-      await addTransaction(transactionData);
+      if (isEditMode) {
+        await updateTransaction(transaction.id, transactionData);
+      } else {
+        await addTransaction(transactionData);
+      }
 
       toast({
         title: "¡Éxito!",
-        description: "Transacción creada correctamente",
+        description: isEditMode ? "Transacción actualizada correctamente" : "Transacción creada correctamente",
       });
 
-      // Reset form
-      setFormData({
-        description: '',
-        amount: '',
-        category_id: '',
-        custom_category: '',
-        date: new Date().toISOString().split('T')[0],
-        type: 'expense',
-        necessity_level: '',
-        notes: ''
-      });
+      setFormData(getInitialFormData());
       setShowCustomCategory(false);
 
       onClose();
@@ -409,7 +439,9 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
         className="relative bg-white dark:bg-[#1a1a1a] rounded-[26px] p-6 sm:p-8 w-full max-w-md shadow-2xl border border-gray-100 dark:border-white/10 z-10 max-h-[90vh] overflow-y-auto"
       >
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-[#1a1a1a] dark:text-white">Nueva Transacción</h2>
+          <h2 className="text-xl font-bold text-[#1a1a1a] dark:text-white">
+            {isEditMode ? 'Editar Transacción' : 'Nueva Transacción'}
+          </h2>
           <button
             onClick={onClose}
             disabled={isLoading}
@@ -611,7 +643,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
                   Guardando...
                 </>
               ) : (
-                'Guardar Transacción'
+                isEditMode ? 'Guardar cambios' : 'Guardar transacción'
               )}
             </button>
           </div>
@@ -623,13 +655,68 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
 
 const Transactions = () => {
   const { user } = useAuth();
-  const { transactions, loading, refresh } = useFinance(user?.id);
+  const { toast } = useToast();
+  const {
+    transactions,
+    loading,
+    refresh,
+    duplicateTransaction,
+    deleteTransaction
+  } = useFinance(user?.id);
   const [selectedRow, setSelectedRow] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [transactionModalMode, setTransactionModalMode] = useState('add');
+  const [transactionToEdit, setTransactionToEdit] = useState(null);
 
   const handleTransactionAdded = () => {
     refresh();
+  };
+
+  const openNewTransactionModal = () => {
+    setTransactionModalMode('add');
+    setTransactionToEdit(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditTransaction = (transaction) => {
+    setTransactionModalMode('edit');
+    setTransactionToEdit(transaction);
+    setIsModalOpen(true);
+  };
+
+  const handleDuplicateTransaction = async (transaction) => {
+    try {
+      await duplicateTransaction(transaction);
+    } catch (error) {
+      console.error('Error duplicating transaction:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.message || 'No se pudo duplicar la transacción.'
+      });
+    }
+  };
+
+  const handleDeleteTransaction = async (transaction) => {
+    const confirmed = window.confirm('¿Seguro que deseas eliminar esta transacción?');
+    if (!confirmed) return;
+    try {
+      await deleteTransaction(transaction.id);
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.message || 'No se pudo eliminar la transacción.'
+      });
+    }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setTransactionToEdit(null);
+    setTransactionModalMode('add');
   };
 
   return (
@@ -638,8 +725,10 @@ const Transactions = () => {
         {isModalOpen && (
           <AddTransactionModal
             isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
+            onClose={closeModal}
             onSuccess={handleTransactionAdded}
+            mode={transactionModalMode}
+            transaction={transactionToEdit}
           />
         )}
       </AnimatePresence>
@@ -654,11 +743,15 @@ const Transactions = () => {
         {/* Voice Input + Actions */}
         <div className="flex flex-col sm:flex-row items-center gap-6">
           {/* Componente de Voz */}
-          <div className="bg-gradient-to-br from-[#1C8FA0]/10 to-purple-500/10 rounded-2xl p-4 border border-[#1C8FA0]/15 shadow-sm w-full sm:w-auto">
+          <div className="bg-gradient-to-br from-[#1C8FA0]/5 to-purple-500/5 rounded-2xl px-4 py-3 border border-[#1C8FA0]/15 shadow-sm w-full sm:w-auto flex items-center gap-3">
             <VoiceInput
               onTransactionCreated={handleTransactionAdded}
               userId={user?.id}
             />
+            <div className="hidden sm:flex flex-col text-left">
+              <span className="text-sm font-semibold text-[#1a1a1a] dark:text-white">Registrar por voz</span>
+              <span className="text-xs text-[#6E6E73] dark:text-gray-400">Captura gastos con tu micrófono</span>
+            </div>
           </div>
 
           {/* Botones tradicionales */}
@@ -667,7 +760,7 @@ const Transactions = () => {
               <Download className="w-5 h-5" />
             </button>
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={openNewTransactionModal}
               className="px-4 py-2.5 bg-[#1a1a1a] dark:bg-white text-white dark:text-[#1a1a1a] rounded-xl text-sm font-medium hover:bg-black dark:hover:bg-gray-100 transition-colors shadow-lg shadow-black/10 flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
@@ -697,7 +790,7 @@ const Transactions = () => {
       </div>
 
       {/* Table Container */}
-      <div className="bg-white rounded-[20px] border border-gray-100 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)] overflow-hidden flex-1 flex flex-col">
+      <div className="bg-white rounded-[20px] border border-gray-100 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)] overflow-hidden flex-1 flex flex-col min-h-[700px]">
         {/* Table Header */}
         <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 bg-gray-50/50 text-xs font-bold text-[#6E6E73] uppercase tracking-wider sticky top-0 z-10">
           <div className="col-span-5 sm:col-span-4">Descripción</div>
@@ -708,7 +801,7 @@ const Transactions = () => {
         </div>
 
         {/* Table Body */}
-        <div className="overflow-y-auto flex-1 min-h-[520px]">
+        <div className="overflow-y-auto flex-1">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
@@ -813,13 +906,34 @@ const Transactions = () => {
 
                   {/* Hover Actions */}
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 dark:bg-[#1a1a1a]/80 backdrop-blur-sm p-1 rounded-lg shadow-sm">
-                    <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-md text-[#6E6E73] dark:text-gray-400 hover:text-[#1C8FA0] transition-colors" title="Editar">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditTransaction(tx);
+                      }}
+                      className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-md text-[#6E6E73] dark:text-gray-400 hover:text-[#1C8FA0] transition-colors"
+                      title="Editar"
+                    >
                       <Edit2 className="w-4 h-4" />
                     </button>
-                    <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-md text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white transition-colors" title="Duplicar">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDuplicateTransaction(tx);
+                      }}
+                      className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-md text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white transition-colors"
+                      title="Duplicar"
+                    >
                       <Copy className="w-4 h-4" />
                     </button>
-                    <button className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md text-[#6E6E73] dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors" title="Eliminar">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteTransaction(tx);
+                      }}
+                      className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md text-[#6E6E73] dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                      title="Eliminar"
+                    >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>

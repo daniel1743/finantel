@@ -60,7 +60,49 @@ export const useFinance = (userId) => {
   const addTransaction = async (data) => {
     const { error } = await supabase.from('transactions').insert([{ ...data, user_id: userId }]);
     if (error) throw error;
-    toast({ title: "Success", description: "Transaction added." });
+    toast({ title: "Éxito", description: "Transacción creada." });
+    fetchData();
+  };
+
+  const updateTransaction = async (id, data) => {
+    const { error } = await supabase
+      .from('transactions')
+      .update(data)
+      .eq('id', id)
+      .eq('user_id', userId);
+    if (error) throw error;
+    toast({ title: "Actualizado", description: "Transacción modificada correctamente." });
+    fetchData();
+  };
+
+  const deleteTransaction = async (id) => {
+    const { error } = await supabase
+      .from('transactions')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+    if (error) throw error;
+    toast({ title: "Eliminado", description: "Transacción eliminada." });
+    fetchData();
+  };
+
+  const duplicateTransaction = async (transaction) => {
+    if (!transaction) return;
+    const copy = {
+      user_id: userId,
+      description: transaction.description || 'Sin descripción',
+      amount: transaction.amount,
+      category_id: transaction.category_id,
+      date: transaction.date || new Date().toISOString(),
+      type: transaction.type || 'expense',
+      metadata: transaction.metadata || {},
+      notes: transaction.notes || null,
+      created_via: transaction.created_via || 'manual',
+    };
+
+    const { error } = await supabase.from('transactions').insert([copy]);
+    if (error) throw error;
+    toast({ title: "Duplicado", description: "Transacción duplicada." });
     fetchData();
   };
 
@@ -142,6 +184,9 @@ export const useFinance = (userId) => {
     goals,
     loading,
     addTransaction,
+    updateTransaction,
+    deleteTransaction,
+    duplicateTransaction,
     addCategory,
     addGoal,
     updateGoalProgress,

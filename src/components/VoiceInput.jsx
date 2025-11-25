@@ -142,14 +142,13 @@ const VoiceInput = ({ onTransactionCreated, userId }) => {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      {/* Botón principal */}
+    <div className="flex flex-col items-center gap-2">
       <motion.div whileTap={{ scale: 0.95 }} className="relative">
         <Button
           onClick={isRecording ? stopRecording : startRecording}
           disabled={isProcessing}
           className={`
-            w-16 h-16 rounded-2xl relative overflow-hidden
+            w-14 h-14 rounded-2xl relative overflow-hidden
             ${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-[#1C8FA0] hover:bg-[#167a8a]'}
             ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
           `}
@@ -167,15 +166,17 @@ const VoiceInput = ({ onTransactionCreated, userId }) => {
 
           <div className="relative z-10">
             {isProcessing ? (
-              <Loader2 className="w-6 h-6 text-white animate-spin" />
+              <Loader2 className="w-5 h-5 text-white animate-spin" />
             ) : isRecording ? (
-              <Square className="w-6 h-6 text-white" />
+              <Square className="w-5 h-5 text-white" />
             ) : (
-              <Mic className="w-6 h-6 text-white" />
+              <Mic className="w-5 h-5 text-white" />
             )}
           </div>
         </Button>
       </motion.div>
+
+      <p className="text-[11px] font-semibold text-[#1a1a1a] dark:text-gray-200">Gasto por voz</p>
 
       {/* Mensajes visuales */}
       <AnimatePresence mode="wait">
