@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import customSupabaseClient from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
+import { useStaffTickets } from '@/hooks/useStaffTickets';
 
 const statusConfig = {
   abierto: {
@@ -55,12 +56,14 @@ const SupportTicketDetail = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const messagesEndRef = useRef(null);
+  const { isStaff, respondAsStaff } = useStaffTickets(user?.id);
 
   const [ticket, setTicket] = useState(null);
   const [responses, setResponses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [staffName, setStaffName] = useState('');
 
   // Cargar ticket y respuestas
   useEffect(() => {
@@ -68,16 +71,26 @@ const SupportTicketDetail = () => {
 
     const loadTicketData = async () => {
       try {
-        // Cargar ticket
-        const { data: ticketData, error: ticketError } = await customSupabaseClient
+        // Cargar ticket - si es staff, puede ver cualquier ticket
+        let query = customSupabaseClient
           .from('support_tickets')
           .select('*')
-          .eq('id', ticketId)
-          .eq('user_id', user.id)
-          .single();
+          .eq('id', ticketId);
+
+        // Si no es staff, solo puede ver sus propios tickets
+        if (!isStaff) {
+          query = query.eq('user_id', user.id);
+        }
+
+        const { data: ticketData, error: ticketError } = await query.single();
 
         if (ticketError) throw ticketError;
         setTicket(ticketData);
+
+        // Si es staff, obtener nombre del staff
+        if (isStaff && user?.email) {
+          setStaffName(user.email.split('@')[0] || 'Staff');
+        }
 
         // Cargar respuestas
         const { data: responsesData, error: responsesError } = await customSupabaseClient
@@ -102,7 +115,7 @@ const SupportTicketDetail = () => {
     };
 
     loadTicketData();
-  }, [ticketId, user]);
+  }, [ticketId, user, isStaff]);
 
   // Scroll to bottom cuando hay nuevas respuestas
   useEffect(() => {
@@ -116,36 +129,47 @@ const SupportTicketDetail = () => {
 
     setSending(true);
     try {
-      const { data, error } = await customSupabaseClient.rpc('add_ticket_response', {
-        p_ticket_id: ticketId,
-        p_message: newMessage.trim(),
-        p_is_staff: false,
-      });
+      let responseId;
 
-      if (error) throw error;
+      // Si es staff, usar la función de staff
+      if (isStaff) {
+        responseId = await respondAsStaff(ticketId, newMessage.trim(), staffName);
+      } else {
+        // Usuario normal
+        const { data, error } = await customSupabaseClient.rpc('add_ticket_response', {
+          p_ticket_id: ticketId,
+          p_message: newMessage.trim(),
+          p_is_staff: false,
+        });
 
-      // Agregar respuesta localmente
-      const newResponse = {
-        id: data,
-        ticket_id: ticketId,
-        user_id: user.id,
-        message: newMessage.trim(),
-        is_staff_response: false,
-        created_at: new Date().toISOString(),
-      };
+        if (error) throw error;
+        responseId = data;
+      }
 
-      setResponses([...responses, newResponse]);
+      if (!responseId) {
+        throw new Error('No se recibió ID de respuesta');
+      }
+
+      // Recargar respuestas
+      const { data: responsesData, error: responsesError } = await customSupabaseClient
+        .from('support_ticket_responses')
+        .select('*')
+        .eq('ticket_id', ticketId)
+        .order('created_at', { ascending: true });
+
+      if (responsesError) throw responsesError;
+      setResponses(responsesData || []);
       setNewMessage('');
 
       toast({
         title: 'Respuesta enviada',
-        description: 'Tu mensaje ha sido agregado al ticket',
+        description: isStaff ? 'Tu respuesta como staff ha sido agregada' : 'Tu mensaje ha sido agregado al ticket',
       });
     } catch (error) {
       console.error('Error sending response:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo enviar la respuesta',
+        description: error.message || 'No se pudo enviar la respuesta',
         variant: 'destructive',
       });
     } finally {
@@ -302,12 +326,26 @@ const SupportTicketDetail = () => {
         {/* Input */}
         {ticket.status !== 'resuelto' && ticket.status !== 'archivado' && (
           <form onSubmit={handleSendMessage} className="border-t border-gray-200 dark:border-white/10 p-4">
+            {isStaff && (
+              <div className="mb-3">
+                <label className="block text-xs font-semibold text-[#1a1a1a] dark:text-white mb-1">
+                  Nombre del staff (opcional)
+                </label>
+                <input
+                  type="text"
+                  value={staffName}
+                  onChange={(e) => setStaffName(e.target.value)}
+                  placeholder="Tu nombre o email"
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/30"
+                />
+              </div>
+            )}
             <div className="flex gap-2">
               <input
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Escribe tu respuesta..."
+                placeholder={isStaff ? "Escribe tu respuesta como staff..." : "Escribe tu respuesta..."}
                 className="flex-1 px-4 py-2 rounded-xl border border-gray-300 dark:border-white/20 bg-white dark:bg-white/5 text-[#1a1a1a] dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]"
                 disabled={sending}
               />
@@ -321,7 +359,7 @@ const SupportTicketDetail = () => {
                 ) : (
                   <>
                     <Send className="w-4 h-4 mr-2" />
-                    Enviar
+                    {isStaff ? 'Responder como Staff' : 'Enviar'}
                   </>
                 )}
               </Button>

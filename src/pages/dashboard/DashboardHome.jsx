@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import {
-  Plus,
+import { 
+  Plus, 
   Mic,
-  TrendingUp,
-  TrendingDown,
-  CreditCard,
-  Wallet,
-  Sparkles,
-  Search,
+  TrendingUp, 
+  TrendingDown, 
+  CreditCard, 
+  Wallet, 
+  Sparkles, 
+  Search, 
   MoreHorizontal,
   ShoppingBag,
   Car,
@@ -42,15 +42,16 @@ import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useFinance } from '@/hooks/useFinance';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/customSupabaseClient';
-import VoiceRecordingModal from '@/components/VoiceRecordingModal';
+import VoiceRecordingScreen from '@/components/VoiceRecordingScreen';
+import { playStartRecordingSound } from '@/utils/audioEffects';
 
 // =====================================================
 // KPIs Cards - Tarjetas de Métricas Principales
 // =====================================================
 const KPICard = ({ title, value, subtitle, trend, trendValue, trendUp, icon: Icon, color, delay, gradient }) => (
-  <motion.div 
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay }}
     className={`bg-white dark:bg-[#1a1a1a] rounded-[22px] p-6 border border-gray-100 dark:border-white/5 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-all duration-300 cursor-pointer group relative overflow-hidden`}
   >
@@ -61,12 +62,12 @@ const KPICard = ({ title, value, subtitle, trend, trendValue, trendUp, icon: Ico
       <div className="flex justify-between items-start mb-4">
         <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg`}>
           <Icon className="w-6 h-6" />
-        </div>
+            </div>
         <div className={`flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${trendUp ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'}`}>
           {trendUp ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
           {trendValue}
-        </div>
-      </div>
+          </div>
+            </div>
       <h3 className="text-[#6E6E73] dark:text-gray-400 text-sm font-medium mb-1">{title}</h3>
       <p className="text-3xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight'] tracking-tight mb-1">{value}</p>
       {subtitle && <p className="text-xs text-[#6E6E73] dark:text-gray-400">{subtitle}</p>}
@@ -74,7 +75,7 @@ const KPICard = ({ title, value, subtitle, trend, trendValue, trendUp, icon: Ico
       {/* Mini Sparkline Chart */}
       <div className="h-10 mt-4 flex items-end gap-1">
         {trend.map((h, i) => (
-          <motion.div
+              <motion.div 
             key={i}
             initial={{ height: 0 }}
             animate={{ height: `${h}%` }}
@@ -82,8 +83,8 @@ const KPICard = ({ title, value, subtitle, trend, trendValue, trendUp, icon: Ico
             className={`flex-1 rounded-t-sm ${trendUp ? 'bg-[#1C8FA0]/20 dark:bg-[#1C8FA0]/30' : 'bg-[#E47B45]/20 dark:bg-[#E47B45]/30'} group-hover:opacity-80 transition-opacity`}
           />
         ))}
-      </div>
-    </div>
+            </div>
+          </div>
   </motion.div>
 );
 
@@ -117,7 +118,7 @@ const GaugeChart = ({ value, max, label, color, size = 200, delay = 0 }) => {
             fill="none"
             stroke="#f3f4f6"
             strokeWidth="16"
-            strokeLinecap="round"
+                    strokeLinecap="round"
           />
           {/* Progress arc */}
           <motion.path
@@ -131,18 +132,18 @@ const GaugeChart = ({ value, max, label, color, size = 200, delay = 0 }) => {
             animate={{ strokeDashoffset }}
             transition={{ duration: 1.5, ease: "easeOut" }}
           />
-        </svg>
+            </svg>
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 text-center">
           <motion.p
             initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+                animate={{ opacity: 1, y: 0 }}
             transition={{ delay: delay + 0.5 }}
             className="text-3xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']"
-          >
+              >
             {value}%
           </motion.p>
           <p className="text-xs text-[#6E6E73] dark:text-gray-400 font-medium mt-1">{label}</p>
-        </div>
+            </div>
       </div>
     </motion.div>
   );
@@ -182,7 +183,7 @@ const BarChart = ({ data, title, height = 200, delay = 0 }) => {
   const maxValue = Math.max(...data.map(d => d.value), 1); // Evitar división por 0
   
   return (
-    <motion.div
+                <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
@@ -199,7 +200,7 @@ const BarChart = ({ data, title, height = 200, delay = 0 }) => {
                 <span className="text-[#6E6E73] dark:text-gray-400">
                   {typeof item.value === 'number' ? `$${item.value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${item.value}%`}
                 </span>
-              </div>
+          </div>
               <div className="h-2 w-full bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
@@ -208,7 +209,7 @@ const BarChart = ({ data, title, height = 200, delay = 0 }) => {
                   className="h-full rounded-full"
                   style={{ backgroundColor: barColor }}
                 />
-              </div>
+        </div>
             </div>
           );
         })}
@@ -234,10 +235,10 @@ const LineChartComponent = ({ data, title, height = 200, delay = 0 }) => {
   }).join(' ');
   
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay }}
+  <motion.div 
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5, delay }}
       className="space-y-4"
     >
       {title && <h4 className="text-sm font-bold text-[#1a1a1a] dark:text-white">{title}</h4>}
@@ -308,8 +309,8 @@ const LineChartComponent = ({ data, title, height = 200, delay = 0 }) => {
           <span key={i}>{d.label}</span>
         )).filter((_, i) => i % Math.ceil(data.length / 6) === 0)}
       </div>
-    </motion.div>
-  );
+  </motion.div>
+);
 };
 
 // =====================================================
@@ -327,7 +328,7 @@ const DonutChart = ({ data, size = 180, delay = 0 }) => {
   let currentAngle = -90;
   
   return (
-    <motion.div
+  <motion.div 
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.6, delay }}
@@ -380,7 +381,7 @@ const DonutChart = ({ data, size = 180, delay = 0 }) => {
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-2xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">100%</span>
         <span className="text-xs text-[#6E6E73] dark:text-gray-400">Total</span>
-      </div>
+    </div>
     </motion.div>
   );
 };
@@ -629,7 +630,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <motion.div
+      <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -652,7 +653,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
           >
             <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
           </button>
-        </div>
+    </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Descripción */}
@@ -773,12 +774,12 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
                 disabled={isLoading}
                 className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50"
               />
-            </motion.div>
+  </motion.div>
           )}
 
           {/* Nivel de Necesidad (solo para Gastos) */}
           {formData.type === 'expense' && (
-            <motion.div
+  <motion.div 
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
@@ -818,11 +819,11 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
                 disabled={isLoading}
                 className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50"
               />
-            </div>
+      </div>
           </div>
 
           {/* Notas (Opcional) */}
-          <div>
+      <div>
             <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
               Notas <span className="text-xs">(opcional)</span>
             </label>
@@ -834,7 +835,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
               disabled={isLoading}
               className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50 resize-none"
             />
-          </div>
+      </div>
 
           {/* Botones */}
           <div className="pt-4 flex gap-3">
@@ -867,11 +868,11 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
                 'Guardar Transacción'
               )}
             </button>
-          </div>
-        </form>
-      </motion.div>
     </div>
-  );
+        </form>
+  </motion.div>
+    </div>
+);
 };
 
 // =====================================================
@@ -1046,10 +1047,10 @@ const DashboardHome = () => {
           />
         )}
         {isVoiceModalOpen && (
-          <VoiceRecordingModal
+          <VoiceRecordingScreen
             isOpen={isVoiceModalOpen}
             onClose={() => setIsVoiceModalOpen(false)}
-            onSuccess={handleTransactionAdded}
+            onTransactionCreated={handleTransactionAdded}
             userId={user?.id}
           />
         )}
@@ -1130,13 +1131,13 @@ const DashboardHome = () => {
               value={`$${realData.totalIncome.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               subtitle="Este mes"
               trendValue={realData.totalIncome > 0 ? "Actual" : "Sin datos"}
-              trendUp={true}
+            trendUp={true} 
               icon={TrendingUp}
               color="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"
               gradient="bg-green-500"
               trend={[50, 55, 60, 65, 70, 75, 80, 85, 90, 95]}
-              delay={0.1}
-            />
+            delay={0.1}
+          />
             
             {/* 2. Saldo Disponible - NUEVA TARJETA */}
             <KPICard
@@ -1153,8 +1154,8 @@ const DashboardHome = () => {
               trend={(realData.totalIncome - realData.totalExpenses) >= 0 
                 ? [60, 65, 70, 75, 80, 85, 90, 95, 100, 100]
                 : [100, 95, 90, 85, 80, 75, 70, 65, 60, 55]}
-              delay={0.2}
-            />
+            delay={0.2}
+          />
             
             {/* 3. Gastos Totales */}
             <KPICard
@@ -1162,13 +1163,13 @@ const DashboardHome = () => {
               value={`$${realData.totalExpenses.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               subtitle="Este mes"
               trendValue={realData.totalExpenses > 0 ? "Actual" : "Sin datos"}
-              trendUp={false}
+            trendUp={false} 
               icon={DollarSign}
               color="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
               gradient="bg-blue-500"
               trend={[40, 45, 50, 55, 60, 65, 70, 75, 80, 85]}
-              delay={0.3}
-            />
+            delay={0.3}
+          />
             
             {/* 4. Tasa de Ahorro */}
             <KPICard
@@ -1211,7 +1212,7 @@ const DashboardHome = () => {
               trend={[60, 65, 70, 75, 80, 85, 90, 95, 100, 100]}
               delay={0.6}
             />
-          </div>
+        </div>
 
       {/* Charts Row 1 - Gauge, Bar, Donut */}
       <div className="grid lg:grid-cols-3 gap-6">
@@ -1238,18 +1239,18 @@ const DashboardHome = () => {
             <div className="flex justify-between text-sm">
               <span className="text-[#6E6E73] dark:text-gray-400">Objetivo</span>
               <span className="font-bold text-[#1a1a1a] dark:text-white">35%</span>
-            </div>
+          </div>
             <div className="flex justify-between text-sm mt-2">
               <span className="text-[#6E6E73] dark:text-gray-400">Actual</span>
               <span className={`font-bold ${realData.savingsRate >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                 {realData.savingsRate.toFixed(1)}%
               </span>
-            </div>
+        </div>
           </div>
         </motion.div>
 
         {/* Bar Chart - Gastos por Categoría */}
-        <motion.div
+          <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.7 }}
@@ -1276,7 +1277,7 @@ const DashboardHome = () => {
           <div className="flex justify-between items-center w-full mb-6">
             <h3 className="font-bold text-[#1a1a1a] dark:text-white">Distribución</h3>
             <BarChart3 className="w-5 h-5 text-[#E47B45]" />
-          </div>
+              </div>
           <DonutChart 
             data={realData.categoryData.length > 0 ? realData.categoryData : defaultCategoryData} 
             size={180} 
@@ -1300,8 +1301,8 @@ const DashboardHome = () => {
             })}
           </div>
         </motion.div>
-      </div>
-
+            </div>
+            
       {/* Charts Row 2 - Line Chart y Comparativas */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Line Chart - Tendencias Mensuales */}
@@ -1323,7 +1324,7 @@ const DashboardHome = () => {
             height={200} 
             delay={1.1}
           />
-        </motion.div>
+          </motion.div>
 
         {/* Comparativa de Presupuestos */}
         <motion.div
@@ -1335,7 +1336,7 @@ const DashboardHome = () => {
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-bold text-[#1a1a1a] dark:text-white">Presupuesto vs Real</h3>
             <Activity className="w-5 h-5 text-[#E47B45]" />
-          </div>
+        </div>
           <div className="space-y-4">
             {realData.departmentData.length > 0 ? (
               realData.departmentData.map((item, i) => {
@@ -1358,7 +1359,7 @@ const DashboardHome = () => {
                       <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/5 text-[#6E6E73] dark:text-gray-400">
                         {percentage.toFixed(0)}%
                       </span>
-                    </div>
+      </div>
                   </div>
                   <div className="h-3 w-full bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
                     <motion.div
@@ -1459,11 +1460,11 @@ const DashboardHome = () => {
                     {React.isValidElement(item.icon) 
                       ? item.icon 
                       : React.createElement(item.icon, { className: "w-4 h-4 text-[#6E6E73] dark:text-gray-400" })}
-                  </div>
+        </div>
                   <div>
                     <p className="text-sm font-bold text-[#1a1a1a] dark:text-white">{item.name}</p>
                     <p className="text-xs text-[#6E6E73] dark:text-gray-400">{item.category} • {item.date}</p>
-                  </div>
+      </div>
                 </div>
                 <span className={`text-sm font-bold font-mono ${item.isIncome ? 'text-green-600 dark:text-green-400' : 'text-[#1a1a1a] dark:text-white'}`}>
                   {item.amount}
@@ -1485,7 +1486,10 @@ const DashboardHome = () => {
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 20, delay: 1.5 }}
-        onClick={() => setIsVoiceModalOpen(true)}
+        onClick={() => {
+          playStartRecordingSound();
+          setIsVoiceModalOpen(true);
+        }}
         className="fixed bottom-8 right-8 w-[68px] h-[68px] bg-[#1C8FA0] hover:bg-[#167a8a] text-white rounded-full shadow-[0_20px_40px_-12px_rgba(28,143,160,0.5)] flex items-center justify-center hover:scale-110 transition-all duration-300 z-50 group"
       >
         <Mic className="w-8 h-8 group-hover:scale-110 transition-transform duration-300" />

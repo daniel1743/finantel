@@ -260,18 +260,18 @@ const Budgets = () => {
           {['Mensual', 'Trimestral', 'Anual'].map((p) => {
             const periodMap = { 'Mensual': 'monthly', 'Trimestral': 'quarterly', 'Anual': 'yearly' };
             return (
-              <button
-                key={p}
+            <button
+              key={p}
                 onClick={() => setPeriod(periodMap[p])}
-                className={cn(
-                  "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+              className={cn(
+                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
                   period === periodMap[p]
-                    ? "bg-[#1a1a1a] dark:bg-white text-white dark:text-black shadow-md" 
-                    : "text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5"
-                )}
-              >
-                {p}
-              </button>
+                  ? "bg-[#1a1a1a] dark:bg-white text-white dark:text-black shadow-md" 
+                  : "text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5"
+              )}
+            >
+              {p}
+            </button>
             );
           })}
         </div>
@@ -303,24 +303,24 @@ const Budgets = () => {
 
         {/* Categories Grid */}
         <div className="lg:col-span-8 space-y-6">
-          {/* AI Recommendation */}
+           {/* AI Recommendation */}
           {recommendation && (
-            <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="bg-white/60 dark:bg-white/5 backdrop-blur-md border border-white/50 dark:border-white/10 rounded-[22px] p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center shrink-0">
-                  <Sparkles className="w-6 h-6 text-[#1C8FA0]" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-[#1a1a1a] dark:text-white">Oportunidad de Ahorro</h3>
-                  <p className="text-sm text-[#6E6E73] dark:text-gray-400 max-w-md mt-1">
-                    Si reduces tu presupuesto de <span className="font-bold text-[#1a1a1a] dark:text-white">{recommendation.budget.name}</span> un 10%, podrías destinar <span className="font-bold text-[#1C8FA0]">${recommendation.savings} extra</span> a tus metas cada mes.
-                  </p>
-                </div>
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="bg-white/60 dark:bg-white/5 backdrop-blur-md border border-white/50 dark:border-white/10 rounded-[22px] p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center shrink-0">
+                <Sparkles className="w-6 h-6 text-[#1C8FA0]" />
               </div>
+              <div>
+                <h3 className="font-bold text-[#1a1a1a] dark:text-white">Oportunidad de Ahorro</h3>
+                <p className="text-sm text-[#6E6E73] dark:text-gray-400 max-w-md mt-1">
+                    Si reduces tu presupuesto de <span className="font-bold text-[#1a1a1a] dark:text-white">{recommendation.budget.name}</span> un 10%, podrías destinar <span className="font-bold text-[#1C8FA0]">${recommendation.savings} extra</span> a tus metas cada mes.
+                </p>
+              </div>
+            </div>
               <button 
                 onClick={handleApplyRecommendation}
                 disabled={applyingRecommendation}
@@ -334,8 +334,8 @@ const Budgets = () => {
                 ) : (
                   'Aplicar recomendación'
                 )}
-              </button>
-            </motion.div>
+            </button>
+          </motion.div>
           )}
 
           <div className="grid sm:grid-cols-2 gap-6">

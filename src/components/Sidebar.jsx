@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useBilling } from '@/hooks/useBilling';
+import { useStaffTickets } from '@/hooks/useStaffTickets';
 import { Lock } from 'lucide-react';
 import { 
   LayoutDashboard, 
@@ -22,7 +23,8 @@ import {
   LogOut,
   Settings,
   User,
-  Download
+  Download,
+  Shield
 } from 'lucide-react';
 
 const MenuSection = ({ title, items, isCollapsed, currentPath, setIsMobileOpen, hasFamilyPlan, handleBlockedClick }) => (
@@ -101,6 +103,7 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
   const currentPath = location.pathname;
   const { signOut, user } = useAuth();
   const { subscription, loading: billingLoading } = useBilling(user?.id);
+  const { isStaff, checkingStaff } = useStaffTickets(user?.id);
   const navigate = useNavigate();
 
   // Verificar si tiene plan familiar (solo si subscription existe y no está cargando)
@@ -155,10 +158,30 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
       title: "Configuración",
       items: [
         { name: "Exportar Datos", icon: Download, path: "/dashboard/export" },
-            { name: "Centro de Ayuda", icon: Bell, path: "/dashboard/support" },
+        { name: "Centro de Ayuda", icon: Bell, path: "/dashboard/support" },
       ]
     }
   ];
+
+  // Agregar sección de administración solo si es staff
+  if (!checkingStaff && isStaff) {
+    menuStructure.push({
+      title: "Administración",
+      items: [
+        { name: "Panel de Soporte", icon: Shield, path: "/dashboard/admin/support" },
+      ]
+    });
+  }
+
+  // Agregar sección de administración solo si es staff
+  if (!checkingStaff && isStaff) {
+    menuStructure.push({
+      title: "Administración",
+      items: [
+        { name: "Panel de Soporte", icon: Shield, path: "/dashboard/admin/support" },
+      ]
+    });
+  }
 
   return (
     <>

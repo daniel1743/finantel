@@ -194,15 +194,15 @@ const CustomDropdown = ({
 // Modal de Transacción (Crear/Editar)
 // =====================================================
 const getInitialFormData = () => ({
-  description: '',
-  amount: '',
-  category_id: '',
-  custom_category: '',
-  date: new Date().toISOString().split('T')[0],
-  type: 'expense',
-  necessity_level: '',
-  notes: ''
-});
+    description: '',
+    amount: '',
+    category_id: '',
+    custom_category: '',
+    date: new Date().toISOString().split('T')[0],
+    type: 'expense',
+    necessity_level: '',
+    notes: ''
+  });
 
 const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transaction = null }) => {
   const { user } = useAuth();
@@ -395,7 +395,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
       if (isEditMode) {
         await updateTransaction(transaction.id, transactionData);
       } else {
-        await addTransaction(transactionData);
+      await addTransaction(transactionData);
       }
 
       toast({
@@ -755,17 +755,17 @@ const Transactions = () => {
           </div>
 
           {/* Botones tradicionales */}
-          <div className="flex gap-3">
+        <div className="flex gap-3">
             <button className="p-2.5 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-xl text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white transition-colors shadow-sm">
-              <Download className="w-5 h-5" />
-            </button>
-            <button
+            <Download className="w-5 h-5" />
+          </button>
+          <button
               onClick={openNewTransactionModal}
               className="px-4 py-2.5 bg-[#1a1a1a] dark:bg-white text-white dark:text-[#1a1a1a] rounded-xl text-sm font-medium hover:bg-black dark:hover:bg-gray-100 transition-colors shadow-lg shadow-black/10 flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Nueva Transacción
-            </button>
+          >
+            <Plus className="w-4 h-4" />
+            Nueva Transacción
+          </button>
           </div>
         </div>
       </div>
@@ -850,61 +850,61 @@ const Transactions = () => {
               const displayAmount = isIncome ? amount : -Math.abs(amount);
               
               return (
-                <motion.div
-                  key={tx.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                  onClick={() => setSelectedRow(tx.id === selectedRow ? null : tx.id)}
-                  className={cn(
+            <motion.div
+              key={tx.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+              onClick={() => setSelectedRow(tx.id === selectedRow ? null : tx.id)}
+              className={cn(
                     "grid grid-cols-12 gap-4 px-6 py-4 items-center border-b border-gray-50 dark:border-white/5 last:border-0 transition-all duration-200 cursor-pointer group relative",
                     selectedRow === tx.id ? "bg-[#1C8FA0]/5 dark:bg-[#1C8FA0]/10" : "hover:bg-white dark:hover:bg-white/5 hover:shadow-sm"
-                  )}
-                >
-                  {/* Hover Indicator Line */}
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#1C8FA0] opacity-0 group-hover:opacity-100 transition-opacity" />
+              )}
+            >
+              {/* Hover Indicator Line */}
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#1C8FA0] opacity-0 group-hover:opacity-100 transition-opacity" />
 
-                  {/* Description */}
-                  <div className="col-span-5 sm:col-span-4 flex items-center gap-4">
+              {/* Description */}
+              <div className="col-span-5 sm:col-span-4 flex items-center gap-4">
                     <div className={cn("w-10 h-10 rounded-full flex items-center justify-center shrink-0", iconColor)}>
                       {React.createElement(displayIcon, { className: "w-5 h-5" })}
-                    </div>
-                    <div className="truncate">
+                </div>
+                <div className="truncate">
                       <p className="font-bold text-[#1a1a1a] dark:text-white text-sm truncate">{tx.description || 'Sin descripción'}</p>
                       <p className="text-xs text-[#6E6E73] dark:text-gray-400 sm:hidden">{formattedDate}</p>
-                    </div>
-                  </div>
+                </div>
+              </div>
 
-                  {/* Category */}
-                  <div className="col-span-3 hidden sm:flex items-center">
+              {/* Category */}
+              <div className="col-span-3 hidden sm:flex items-center">
                     <span className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-400 text-xs font-medium border border-gray-200 dark:border-white/10">
                       {categoryName}
-                    </span>
-                  </div>
+                </span>
+              </div>
 
-                  {/* Type */}
-                  <div className="col-span-2 hidden lg:flex items-center">
+              {/* Type */}
+              <div className="col-span-2 hidden lg:flex items-center">
                     <span className="text-sm text-[#6E6E73] dark:text-gray-400">
                       {isIncome ? 'Ingreso' : 'Gasto'}
                     </span>
-                  </div>
+              </div>
 
-                  {/* Amount */}
-                  <div className="col-span-4 sm:col-span-3 lg:col-span-2 text-right">
-                    <span className={cn(
-                      "font-bold font-mono text-sm",
+              {/* Amount */}
+              <div className="col-span-4 sm:col-span-3 lg:col-span-2 text-right">
+                <span className={cn(
+                  "font-bold font-mono text-sm",
                       displayAmount > 0 ? "text-green-600 dark:text-green-400" : "text-[#1a1a1a] dark:text-white"
-                    )}>
+                )}>
                       {displayAmount > 0 ? '+' : ''}${Math.abs(displayAmount).toFixed(2)}
-                    </span>
-                  </div>
+                </span>
+              </div>
 
-                  {/* Date */}
-                  <div className="col-span-3 sm:col-span-2 lg:col-span-1 text-right hidden sm:block">
+              {/* Date */}
+              <div className="col-span-3 sm:col-span-2 lg:col-span-1 text-right hidden sm:block">
                     <span className="text-sm text-[#6E6E73] dark:text-gray-400">{formattedDate}</span>
-                  </div>
+              </div>
 
-                  {/* Hover Actions */}
+              {/* Hover Actions */}
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 dark:bg-[#1a1a1a]/80 backdrop-blur-sm p-1 rounded-lg shadow-sm">
                     <button
                       onClick={(e) => {
@@ -914,8 +914,8 @@ const Transactions = () => {
                       className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-md text-[#6E6E73] dark:text-gray-400 hover:text-[#1C8FA0] transition-colors"
                       title="Editar"
                     >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
+                  <Edit2 className="w-4 h-4" />
+                </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -924,8 +924,8 @@ const Transactions = () => {
                       className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-md text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white transition-colors"
                       title="Duplicar"
                     >
-                      <Copy className="w-4 h-4" />
-                    </button>
+                  <Copy className="w-4 h-4" />
+                </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -934,10 +934,10 @@ const Transactions = () => {
                       className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md text-[#6E6E73] dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                       title="Eliminar"
                     >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </motion.div>
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
               );
             })
           ) : (

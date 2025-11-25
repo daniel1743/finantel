@@ -162,7 +162,7 @@ const Profile = () => {
         <div className="bg-white dark:bg-[#1a1a1a] rounded-[26px] p-8 border border-gray-100 dark:border-white/5 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)] mb-8 flex flex-col md:flex-row items-center gap-8">
           <div className="relative">
             {avatarUrl ? (
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#1C8FA0] to-[#167a8a] p-[3px] shadow-xl shadow-[#1C8FA0]/20">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#1C8FA0] to-[#167a8a] p-[3px] shadow-xl shadow-[#1C8FA0]/20">
                 <img
                   src={avatarUrl}
                   alt="Profile"
@@ -189,7 +189,7 @@ const Profile = () => {
                     style={{ color: avatarStyle.color }}
                   >
                     {(user?.user_metadata?.full_name || user?.email || 'U').charAt(0).toUpperCase()}
-                  </span>
+                </span>
                 </div>
               </div>
             )}
@@ -270,11 +270,11 @@ const Profile = () => {
               onClick={() => setCurrencyOpen(true)}
               className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors group"
             >
-              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-white/5 group-hover:bg-white dark:group-hover:bg-white/10 flex items-center justify-center text-[#6E6E73] dark:text-gray-400 transition-colors">
                   <CreditCard className="w-5 h-5" />
-                </div>
-                <div className="text-left">
+                  </div>
+                  <div className="text-left">
                   <p className="font-bold text-[#1a1a1a] dark:text-white text-sm">Moneda Principal</p>
                   <p className="text-xs text-[#6E6E73] dark:text-gray-400">{currency} - {currencyName}</p>
                 </div>
@@ -289,14 +289,14 @@ const Profile = () => {
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-white/5 group-hover:bg-white dark:group-hover:bg-white/10 flex items-center justify-center text-[#6E6E73] dark:text-gray-400 transition-colors">
                   <Shield className="w-5 h-5" />
-                </div>
+                  </div>
                 <div className="text-left">
                   <p className="font-bold text-[#1a1a1a] dark:text-white text-sm">Autenticación en 2 Pasos</p>
                   <p className="text-xs text-[#6E6E73] dark:text-gray-400">Mayor seguridad para tu cuenta</p>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-[#1C8FA0] transition-colors" />
-            </button>
+              </button>
           </div>
         </ProfileSection>
 

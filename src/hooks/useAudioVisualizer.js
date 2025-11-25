@@ -17,8 +17,10 @@ export const useAudioVisualizer = (stream, isRecording) => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close().catch(err => {
+          console.warn('Error cerrando AudioContext:', err);
+        });
         audioContextRef.current = null;
       }
       setAudioData(Array(32).fill(0));
@@ -61,8 +63,10 @@ export const useAudioVisualizer = (stream, isRecording) => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close().catch(err => {
+          console.warn('Error cerrando AudioContext en cleanup:', err);
+        });
       }
     };
   }, [stream, isRecording]);

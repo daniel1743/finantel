@@ -85,7 +85,7 @@ const HeatMap = ({ transactions, timeRange }) => {
 
   const days = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
   const weeks = [1, 2, 3, 4];
-
+  
   return (
     <div className="space-y-2">
       <div className="flex justify-between mb-2">
@@ -339,18 +339,18 @@ const Analysis = () => {
             {['Semana', 'Mes', 'Año'].map((t) => {
               const rangeMap = { 'Semana': 'semana', 'Mes': 'mes', 'Año': 'año' };
               return (
-                <button
-                  key={t}
+              <button
+                key={t}
                   onClick={() => setTimeRange(rangeMap[t])}
-                  className={cn(
-                    "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-medium transition-all",
                     timeRange === rangeMap[t]
-                      ? "bg-[#1a1a1a] dark:bg-white text-white dark:text-black shadow-md" 
-                      : "text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5"
-                  )}
-                >
-                  {t}
-                </button>
+                    ? "bg-[#1a1a1a] dark:bg-white text-white dark:text-black shadow-md" 
+                    : "text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5"
+                )}
+              >
+                {t}
+              </button>
               );
             })}
           </div>
@@ -362,25 +362,25 @@ const Analysis = () => {
 
       {/* Insights Cards */}
       {insights.length > 0 ? (
-        <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-3 gap-6">
           {insights.map((item, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              className="bg-white dark:bg-[#1a1a1a] p-6 rounded-[22px] border border-gray-100 dark:border-white/5 shadow-sm flex items-start gap-4"
-            >
-              <div className={cn("w-12 h-12 rounded-xl bg-gray-50 dark:bg-white/5 flex items-center justify-center shrink-0", item.color)}>
-                <item.icon className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-[#1a1a1a] dark:text-white text-sm uppercase tracking-wider opacity-70">{item.title}</h3>
-                <p className="text-lg font-bold text-[#1a1a1a] dark:text-white mt-1 leading-tight">{item.desc}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            className="bg-white dark:bg-[#1a1a1a] p-6 rounded-[22px] border border-gray-100 dark:border-white/5 shadow-sm flex items-start gap-4"
+          >
+            <div className={cn("w-12 h-12 rounded-xl bg-gray-50 dark:bg-white/5 flex items-center justify-center shrink-0", item.color)}>
+              <item.icon className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-bold text-[#1a1a1a] dark:text-white text-sm uppercase tracking-wider opacity-70">{item.title}</h3>
+              <p className="text-lg font-bold text-[#1a1a1a] dark:text-white mt-1 leading-tight">{item.desc}</p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
       ) : (
         <div className="bg-white dark:bg-[#1a1a1a] p-6 rounded-[22px] border border-gray-100 dark:border-white/5 text-center text-[#6E6E73] dark:text-gray-400">
           <p>No hay suficientes datos para generar insights. Agrega más transacciones para ver patrones.</p>
@@ -391,21 +391,21 @@ const Analysis = () => {
         {/* Main Chart Area */}
         <ChartCard title="Tendencias Mensuales" className="lg:col-span-2 min-h-[300px]">
           {monthlyTrends.length > 0 ? (
-            <div className="h-64 w-full flex items-end justify-between gap-2 px-2">
+          <div className="h-64 w-full flex items-end justify-between gap-2 px-2">
               {monthlyTrends.map((h, i) => (
-                <div key={i} className="w-full flex flex-col justify-end gap-2 group cursor-pointer">
-                  <div className="relative w-full bg-gray-100 dark:bg-white/5 rounded-t-lg overflow-hidden" style={{ height: '100%' }}>
-                    <motion.div 
-                      initial={{ height: 0 }}
-                      animate={{ height: `${h}%` }}
-                      transition={{ duration: 1, delay: i * 0.05 }}
-                      className="absolute bottom-0 w-full bg-[#1C8FA0] opacity-80 group-hover:opacity-100 transition-opacity"
-                    />
-                  </div>
-                  <span className="text-[10px] text-center text-[#6E6E73] dark:text-gray-400">{i + 1}</span>
+              <div key={i} className="w-full flex flex-col justify-end gap-2 group cursor-pointer">
+                <div className="relative w-full bg-gray-100 dark:bg-white/5 rounded-t-lg overflow-hidden" style={{ height: '100%' }}>
+                  <motion.div 
+                    initial={{ height: 0 }}
+                    animate={{ height: `${h}%` }}
+                    transition={{ duration: 1, delay: i * 0.05 }}
+                    className="absolute bottom-0 w-full bg-[#1C8FA0] opacity-80 group-hover:opacity-100 transition-opacity"
+                  />
                 </div>
-              ))}
-            </div>
+                <span className="text-[10px] text-center text-[#6E6E73] dark:text-gray-400">{i + 1}</span>
+              </div>
+            ))}
+          </div>
           ) : (
             <div className="h-64 flex items-center justify-center text-[#6E6E73] dark:text-gray-400">
               <p>No hay datos para mostrar</p>
@@ -434,10 +434,10 @@ const Analysis = () => {
         <ChartCard title="Distribución de Gastos">
           {circleData.length > 0 ? (
             <>
-              <div className="flex items-center justify-center py-4">
-                <div className="relative w-48 h-48">
-                  <svg viewBox="0 0 100 100" className="transform -rotate-90 w-full h-full">
-                    <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f3f4f6" strokeWidth="20" className="dark:stroke-white/5" />
+          <div className="flex items-center justify-center py-4">
+            <div className="relative w-48 h-48">
+              <svg viewBox="0 0 100 100" className="transform -rotate-90 w-full h-full">
+                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f3f4f6" strokeWidth="20" className="dark:stroke-white/5" />
                     {circleData.map((cat, i) => (
                       <circle
                         key={i}
@@ -452,24 +452,24 @@ const Analysis = () => {
                         className="opacity-100"
                       />
                     ))}
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <span className="text-2xl font-bold text-[#1a1a1a] dark:text-white">${(totalExpensesForChart / 1000).toFixed(1)}k</span>
-                    <span className="text-xs text-[#6E6E73] dark:text-gray-400">Total</span>
-                  </div>
-                </div>
+                <span className="text-xs text-[#6E6E73] dark:text-gray-400">Total</span>
               </div>
-              <div className="space-y-2 mt-4">
+            </div>
+          </div>
+          <div className="space-y-2 mt-4">
                 {categoryDistribution.slice(0, 3).map((item, i) => (
-                  <div key={i} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
+              <div key={i} className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
                       <span className="text-[#6E6E73] dark:text-gray-400">{item.name}</span>
-                    </div>
+                </div>
                     <span className="font-bold text-[#1a1a1a] dark:text-white">{Math.round(item.percent)}%</span>
-                  </div>
-                ))}
               </div>
+            ))}
+          </div>
             </>
           ) : (
             <div className="py-8 text-center text-[#6E6E73] dark:text-gray-400">
@@ -481,31 +481,31 @@ const Analysis = () => {
         {/* Top Categories */}
         <ChartCard title="Top Categorías" className="lg:col-span-2">
           {topCategories.length > 0 ? (
-            <div className="space-y-4">
+          <div className="space-y-4">
               {topCategories.map((cat, i) => {
                 const maxAmount = Math.max(...topCategories.map(c => c.amount), 1);
                 return (
-                  <div key={i} className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="font-medium text-[#1a1a1a] dark:text-white">{cat.name}</span>
+              <div key={i} className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium text-[#1a1a1a] dark:text-white">{cat.name}</span>
                       <span className="text-[#6E6E73] dark:text-gray-400">${cat.amount.toFixed(2)}</span>
-                    </div>
-                    <div className="h-2 w-full bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
-                      <motion.div 
-                        initial={{ width: 0 }}
+                </div>
+                <div className="h-2 w-full bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
                         animate={{ width: `${(cat.amount / maxAmount) * 100}%` }}
-                        transition={{ duration: 1, delay: i * 0.1 }}
-                        className="h-full bg-[#1C8FA0] rounded-full"
-                      />
-                    </div>
-                  </div>
+                    transition={{ duration: 1, delay: i * 0.1 }}
+                    className="h-full bg-[#1C8FA0] rounded-full"
+                  />
+                </div>
+              </div>
                 );
               })}
             </div>
           ) : (
             <div className="py-8 text-center text-[#6E6E73] dark:text-gray-400">
               <p>No hay categorías para mostrar</p>
-            </div>
+          </div>
           )}
         </ChartCard>
       </div>

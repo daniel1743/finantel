@@ -35,6 +35,7 @@ const Family = lazy(() => import('@/pages/dashboard/Family'));
 const Analysis = lazy(() => import('@/pages/dashboard/Analysis'));
 const Support = lazy(() => import('@/pages/dashboard/Support'));
 const SupportTicketDetail = lazy(() => import('@/pages/dashboard/SupportTicketDetail'));
+const AdminSupport = lazy(() => import('@/pages/dashboard/AdminSupport'));
 const SharedExpenses = lazy(() => import('@/pages/dashboard/SharedExpenses'));
 const Notifications = lazy(() => import('@/pages/dashboard/Notifications'));
 const Export = lazy(() => import('@/pages/dashboard/Export'));
@@ -111,6 +112,7 @@ function App() {
                     <Route path="ab-testing" element={<ABTesting />} />
                     <Route path="support" element={<Support />} />
                     <Route path="support/:ticketId" element={<SupportTicketDetail />} />
+                    <Route path="admin/support" element={<AdminSupport />} />
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                   </Route>
                 </Routes>
