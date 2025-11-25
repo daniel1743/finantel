@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Voice-to-Transaction Function</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            margin: 10px 0;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status.checking {
+            background: #ffc107;
+            color: #000;
+        }
+        .status.ok {
+            background: #28a745;
+            color: white;
+        }
+        .status.failed {
+            background: #dc3545;
+            color: white;
+        }
+        code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Edge Function</h1>
+        <p style="text-align: center; color: #666;">
+            Verifica si tu función <code>voice-to-transaction</code> está correctamente desplegada
+        </p>
+
+        <div class="test-section">
+            <h3>Test 1: Verificar función existe
+                <span id="status1" class="status checking">⏳ Esperando...</span>
+            </h3>
+            <p>Envía una petición OPTIONS para verificar CORS</p>
+            <button onclick="test1()">▶ Ejecutar Test 1</button>
+            <div id="result1"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 2: Verificar formato JSON
+                <span id="status2" class="status checking">⏳ Esperando...</span>
+            </h3>
+            <p>Envía un JSON vacío para ver qué error retorna</p>
+            <button onclick="test2()">▶ Ejecutar Test 2</button>
+            <div id="result2"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 3: Verificar con audio falso
+                <span id="status3" class="status checking">⏳ Esperando...</span>
+            </h3>
+            <p>Envía un audio base64 falso con userId</p>
+            <button onclick="test3()">▶ Ejecutar Test 3</button>
+            <div id="result3"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📋 Diagnóstico</h3>
+            <div id="diagnosis" class="result info">
+                Ejecuta los tests para obtener un diagnóstico...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://yzakmqxbzwzbsdsadzej.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6YWttcXhiend6YnNkc2FkemVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5MTEzMTYsImV4cCI6MjA3OTQ4NzMxNn0.b_Y7BDr56MeaE_3x4rIYwWn_GG7RM_SOvB-7y5Gvjx4';
+        const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/voice-to-transaction`;
+
+        async function test1() {
+            const result = document.getElementById('result1');
+            const status = document.getElementById('status1');
+            result.innerHTML = '<div class="result info">⏳ Ejecutando...</div>';
+
+            try {
+                const response = await fetch(FUNCTION_URL, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    }
+                });
+
+                if (response.ok) {
+                    status.className = 'status ok';
+                    status.textContent = '✅ OK';
+                    result.innerHTML = `
+                        <div class="result success">
+✅ CORS configurado correctamente
+Status: ${response.status}
+La función existe y responde a OPTIONS
+                        </div>
+                    `;
+                } else {
+                    status.className = 'status failed';
+                    status.textContent = '❌ Error';
+                    result.innerHTML = `
+                        <div class="result error">
+❌ Error en CORS
+Status: ${response.status}
+La función puede no estar desplegada
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                status.className = 'status failed';
+                status.textContent = '❌ Error';
+                result.innerHTML = `
+                    <div class="result error">
+❌ No se pudo conectar
+Error: ${error.message}
+La función NO está desplegada o hay problemas de red
+                    </div>
+                `;
+            }
+        }
+
+        async function test2() {
+            const result = document.getElementById('result2');
+            const status = document.getElementById('status2');
+            result.innerHTML = '<div class="result info">⏳ Ejecutando...</div>';
+
+            try {
+                const response = await fetch(FUNCTION_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+
+                const data = await response.json();
+
+                if (data.error && data.error.includes('Body can not be decoded as form data')) {
+                    status.className = 'status failed';
+                    status.textContent = '❌ Código Viejo';
+                    result.innerHTML = `
+                        <div class="result error">
+❌ PROBLEMA: Código viejo desplegado
+Error: "${data.error}"
+
+⚠️ La función tiene el código viejo que espera FormData
+✅ SOLUCIÓN: Despliega el código CORREGIDO en Supabase Dashboard
+
+Pasos:
+1. Abre: ${SUPABASE_URL.replace('https://', 'https://supabase.com/dashboard/project/')}/functions
+2. Click en voice-to-transaction
+3. Reemplaza el código con index-CORREGIDO.ts
+4. Click "Deploy"
+                        </div>
+                    `;
+                } else if (data.error && data.error.includes('Faltan parámetros')) {
+                    status.className = 'status ok';
+                    status.textContent = '✅ Código Nuevo';
+                    result.innerHTML = `
+                        <div class="result success">
+✅ EXCELENTE: Código nuevo desplegado correctamente
+Error esperado: "${data.error}"
+
+La función está esperando los parámetros correctos (audio, userId)
+Esto significa que el código CORREGIDO está funcionando
+                        </div>
+                    `;
+                } else {
+                    status.className = 'status failed';
+                    status.textContent = '⚠️ Desconocido';
+                    result.innerHTML = `
+                        <div class="result error">
+⚠️ Error inesperado
+Status: ${response.status}
+Data: ${JSON.stringify(data, null, 2)}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                status.className = 'status failed';
+                status.textContent = '❌ Error';
+                result.innerHTML = `
+                    <div class="result error">
+❌ Error de conexión
+Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function test3() {
+            const result = document.getElementById('result3');
+            const status = document.getElementById('status3');
+            result.innerHTML = '<div class="result info">⏳ Ejecutando...</div>';
+
+            try {
+                const response = await fetch(FUNCTION_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        audio: 'fake-base64-audio',
+                        userId: 'test-user-id',
+                        mimeType: 'audio/webm'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.error && data.error.includes('invalid base64')) {
+                    status.className = 'status ok';
+                    status.textContent = '✅ Procesando';
+                    result.innerHTML = `
+                        <div class="result success">
+✅ La función está procesando el audio
+Error esperado: "${data.error}"
+
+Esto significa que:
+- El código nuevo está desplegado ✅
+- Acepta JSON con audio base64 ✅
+- Está intentando decodificar el audio ✅
+
+Solo falta probar con audio real desde la app
+                        </div>
+                    `;
+                } else {
+                    status.className = 'status failed';
+                    status.textContent = '⚠️ Revisar';
+                    result.innerHTML = `
+                        <div class="result error">
+⚠️ Respuesta inesperada
+Status: ${response.status}
+Data: ${JSON.stringify(data, null, 2)}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                status.className = 'status failed';
+                status.textContent = '❌ Error';
+                result.innerHTML = `
+                    <div class="result error">
+❌ Error de conexión
+Error: ${error.message}
+                    </div>
+                `;
+            }
+
+            updateDiagnosis();
+        }
+
+        function updateDiagnosis() {
+            const diagnosis = document.getElementById('diagnosis');
+            const status1 = document.getElementById('status1').textContent;
+            const status2 = document.getElementById('status2').textContent;
+
+            let message = '';
+
+            if (status2.includes('Código Viejo')) {
+                message = `
+🔴 DIAGNÓSTICO: Función con código viejo
+
+PROBLEMA:
+La función voice-to-transaction está desplegada pero con el código viejo
+que no puede procesar JSON con base64.
+
+SOLUCIÓN:
+1. Ve a: https://supabase.com/dashboard/project/yzakmqxbzwzbsdsadzej/functions
+2. Click en "voice-to-transaction"
+3. Abre el archivo: index-CORREGIDO.ts
+4. Copia TODO el contenido
+5. Pega en el editor de Supabase
+6. Click "Deploy"
+7. Espera 30 segundos
+8. Refresca esta página y vuelve a ejecutar los tests
+                `;
+            } else if (status2.includes('Código Nuevo')) {
+                message = `
+🟢 DIAGNÓSTICO: Todo está correcto
+
+✅ La función está desplegada con el código nuevo
+✅ Acepta JSON con audio base64
+✅ CORS configurado correctamente
+
+SIGUIENTE PASO:
+Prueba el micrófono en tu aplicación:
+1. Ve a: http://localhost:3001/dashboard/transactions
+2. Click en el micrófono 🎤
+3. Di: "Gasté mil pesos en Jumbo"
+4. Debería funcionar correctamente
+                `;
+            } else {
+                message = 'Ejecuta los tests para obtener un diagnóstico...';
+            }
+
+            diagnosis.className = status2.includes('Código Nuevo') ? 'result success' : 'result error';
+            diagnosis.textContent = message;
+        }
+    </script>
+</body>
+</html>
