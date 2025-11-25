@@ -207,25 +207,97 @@ function parseTranscript(text: string) {
   
   console.log('Monto final parseado:', amount);
 
-  // 3. EXTRAER DESCRIPCIÓN
+  // 3. EXTRAER DESCRIPCIÓN (limpiar completamente de números y montos)
   let description = text.trim();
   
-  // Limpiar la descripción: remover verbos comunes al inicio
-  const verbosPattern = /^(?:cobré|cobre|recibí|recibi|ingresé|ingrese|gané|gane|vendí|vendi|gasté|gaste|pagué|pague|compré|compre|di|dé|de)\s+/i;
+  // Paso 1: Remover verbos comunes al inicio
+  const verbosPattern = /^(?:cobré|cobre|recibí|recibi|ingresé|ingrese|gané|gane|vendí|vendi|gasté|gaste|pagué|pague|compré|compre|di|dé|de|gasto|gasto de)\s+/i;
   description = description.replace(verbosPattern, '');
   
-  // Remover montos de la descripción
-  description = description.replace(/\$?\s*\d{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?\s*(?:pesos|clp|usd)?/gi, '').trim();
+  // Paso 2: Remover TODOS los números y montos de la descripción
+  // Esto asegura que los números solo aparezcan en el campo "amount", no en "description"
   
-  // Si la descripción está vacía, usar el texto original (limitado)
-  if (!description || description.length < 3) {
-    description = text.slice(0, 100).trim();
+  // - Remover símbolo de dólar y espacios alrededor
+  description = description.replace(/\$\s*/g, '');
+  
+  // - Montos con formato chileno: $1.300, 950.000, 2.300 (punto como separador de miles)
+  description = description.replace(/\d{1,3}(?:\.\d{3})+/g, '');
+  
+  // - Montos con formato internacional: $950,000, 1,300 (coma como separador de miles)
+  description = description.replace(/\d{1,3}(?:,\d{3})+/g, '');
+  
+  // - Montos con punto como decimal: $1.20, 28.50, 1.82
+  description = description.replace(/\d+\.\d{1,2}/g, '');
+  
+  // - Montos con coma como decimal: $1,20, 28,50
+  description = description.replace(/\d+,\d{1,2}/g, '');
+  
+  // - TODOS los números sueltos (cualquier cantidad de dígitos)
+  // Esto remueve números como "1300", "950", "28", etc.
+  description = description.replace(/\d+/g, '');
+  
+  // - Palabras relacionadas con montos: "pesos", "clp", "usd"
+  description = description.replace(/\s*(?:pesos|clp|usd)\s*/gi, '');
+  
+  // - Palabras numéricas: "mil", "dos mil", "millón", etc.
+  description = description.replace(/\s+(?:mil|dos mil|tres mil|cuatro mil|cinco mil|seis mil|siete mil|ocho mil|nueve mil|diez mil|veinte mil|treinta mil|cuarenta mil|cincuenta mil|sesenta mil|setenta mil|ochenta mil|noventa mil|cien mil|doscientos mil|trescientos mil|cuatrocientos mil|quinientos mil|seiscientos mil|setecientos mil|ochocientos mil|novecientos mil|un millón|millones?)\s*/gi, '');
+  
+  // - Formato "k": 50k, 30k
+  description = description.replace(/\s*\d+\s*k\b/gi, '');
+  
+  // Paso 3: Limpiar espacios múltiples y puntuación extra
+  description = description.replace(/\s+/g, ' ').trim();
+  description = description.replace(/^[.,;:\s]+|[.,;:\s]+$/g, ''); // Remover puntuación al inicio/final
+  
+  // Paso 4: Si la descripción está vacía o muy corta, extraer palabras descriptivas del texto original
+  if (!description || description.length < 2) {
+    // Extraer solo palabras descriptivas (sin números, verbos, ni palabras de moneda)
+    const palabras = text.split(/\s+/).filter(palabra => {
+      const palabraLimpia = palabra.replace(/[0-9$.,]/g, '').toLowerCase();
+      // Filtrar:
+      // - Palabras vacías o solo números
+      if (!palabraLimpia || palabraLimpia.length === 0) return false;
+      // - Verbos comunes
+      if (/^(?:cobré|cobre|recibí|recibi|ingresé|ingrese|gané|gane|vendí|vendi|gasté|gaste|pagué|pague|compré|compre|di|dé|de|gasto)$/i.test(palabraLimpia)) return false;
+      // - Palabras numéricas
+      if (/^(?:mil|dos mil|tres mil|cuatro mil|cinco mil|seis mil|siete mil|ocho mil|nueve mil|diez mil|veinte mil|treinta mil|cuarenta mil|cincuenta mil|sesenta mil|setenta mil|ochenta mil|noventa mil|cien mil|doscientos mil|trescientos mil|cuatrocientos mil|quinientos mil|seiscientos mil|setecientos mil|ochocientos mil|novecientos mil|un millón|millones?)$/i.test(palabraLimpia)) return false;
+      // - Palabras de moneda
+      if (/^(?:pesos?|clp|usd)$/i.test(palabraLimpia)) return false;
+      // - Números puros
+      if (/^\d+$/.test(palabra)) return false;
+      return true;
+    });
+    
+    description = palabras.join(' ').trim();
+    
+    // Si aún está vacío después de filtrar, usar "Transacción" como fallback
+    if (!description || description.length < 2) {
+      description = 'Transacción';
+    }
   }
   
-  // Limitar longitud
-  if (description.length > 200) {
-    description = description.slice(0, 197) + '...';
+  // Paso 5: Limpiar espacios múltiples y puntuación extra (de nuevo, por si acaso)
+  description = description.replace(/\s+/g, ' ').trim();
+  description = description.replace(/^[.,;:\s]+|[.,;:\s]+$/g, '');
+  
+  // Paso 6: Capitalizar primera letra y limitar longitud
+  if (description.length > 0) {
+    description = description.charAt(0).toUpperCase() + description.slice(1);
   }
+  
+  // Limitar longitud final
+  if (description.length > 100) {
+    description = description.slice(0, 97).trim() + '...';
+  }
+  
+  // Verificar que no queden números en la descripción
+  if (/\d/.test(description)) {
+    console.warn('⚠️ ADVERTENCIA: La descripción aún contiene números:', description);
+    // Remover cualquier número que haya quedado
+    description = description.replace(/\d/g, '').trim();
+  }
+  
+  console.log('✅ Descripción final limpia (sin números):', description);
 
   // 4. CLASIFICACIÓN AUTOMÁTICA MEJORADA
   const category = classifyTransaction(description, lowerText);
