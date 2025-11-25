@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { Mic, Square, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Mic, Square, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
+import customSupabaseClient from '@/lib/customSupabaseClient';
 
 const VoiceInput = ({ onTransactionCreated, userId }) => {
   const [isRecording, setIsRecording] = useState(false);
@@ -69,35 +70,53 @@ const VoiceInput = ({ onTransactionCreated, userId }) => {
 
   const processAudio = async (audioBlob) => {
     try {
-      // FORM DATA CORRECTO
+      if (!userId) {
+        throw new Error('No se detectó el usuario actual.');
+      }
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!supabaseUrl) {
+        throw new Error('Falta configurar VITE_SUPABASE_URL.');
+      }
+
+      // Construir FormData con el audio sin transformar
       const formData = new FormData();
-      formData.append("audio", audioBlob, "audio.webm");
-      formData.append("userId", userId);
+      formData.append('audio', audioBlob, 'audio.webm');
+      formData.append('userId', userId);
 
-      const res = await fetch("https://yzakmqxbzwzbsdsadzej.supabase.co/functions/v1/voice-to-transaction", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-  },
-  body: formData,
-});
+      // Adjuntar token del usuario autentificado
+      const {
+        data: { session },
+      } = await customSupabaseClient.auth.getSession();
 
-      const data = await res.json();
+      const headers = {};
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
 
-      if (!data.success) {
-        throw new Error(data.error || "Error procesando audio");
+      const response = await fetch(`${supabaseUrl}/functions/v1/voice-to-transaction`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      const payloadText = await response.text();
+      const data = payloadText ? JSON.parse(payloadText) : null;
+
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.error || 'No se pudo procesar el audio');
       }
 
       setTranscript(data.transcript);
       setStatus('success');
 
       toast({
-        title: "✅ Gasto agregado",
-        description: `"${data.transcript}"`,
+        title: '✅ Gasto agregado',
+        description: `"${data.transcript}" → $${data.transaction?.amount?.toLocaleString?.() || ''}`,
       });
 
-      if (onTransactionCreated) {
-        onTransactionCreated(data.data);
+      if (onTransactionCreated && data.transaction) {
+        onTransactionCreated(data.transaction);
       }
 
       setTimeout(() => {
@@ -130,7 +149,7 @@ const VoiceInput = ({ onTransactionCreated, userId }) => {
           onClick={isRecording ? stopRecording : startRecording}
           disabled={isProcessing}
           className={`
-            w-20 h-20 rounded-full relative overflow-hidden
+            w-16 h-16 rounded-2xl relative overflow-hidden
             ${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-[#1C8FA0] hover:bg-[#167a8a]'}
             ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
           `}
@@ -148,11 +167,11 @@ const VoiceInput = ({ onTransactionCreated, userId }) => {
 
           <div className="relative z-10">
             {isProcessing ? (
-              <Loader2 className="w-8 h-8 text-white animate-spin" />
+              <Loader2 className="w-6 h-6 text-white animate-spin" />
             ) : isRecording ? (
-              <Square className="w-8 h-8 text-white" />
+              <Square className="w-6 h-6 text-white" />
             ) : (
-              <Mic className="w-8 h-8 text-white" />
+              <Mic className="w-6 h-6 text-white" />
             )}
           </div>
         </Button>

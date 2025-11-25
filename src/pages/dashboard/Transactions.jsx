@@ -654,7 +654,7 @@ const Transactions = () => {
         {/* Voice Input + Actions */}
         <div className="flex flex-col sm:flex-row items-center gap-6">
           {/* Componente de Voz */}
-          <div className="bg-gradient-to-br from-[#1C8FA0]/10 to-purple-500/10 rounded-3xl p-6 border border-[#1C8FA0]/20">
+          <div className="bg-gradient-to-br from-[#1C8FA0]/10 to-purple-500/10 rounded-2xl p-4 border border-[#1C8FA0]/15 shadow-sm w-full sm:w-auto">
             <VoiceInput
               onTransactionCreated={handleTransactionAdded}
               userId={user?.id}
@@ -708,7 +708,7 @@ const Transactions = () => {
         </div>
 
         {/* Table Body */}
-        <div className="overflow-y-auto flex-1">
+        <div className="overflow-y-auto flex-1 min-h-[520px]">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
