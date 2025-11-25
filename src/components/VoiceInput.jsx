@@ -76,53 +76,46 @@ const VoiceInput = ({ onTransactionCreated, userId }) => {
 
   const processAudio = async (audioBlob) => {
     try {
-      // Convertir blob a base64
-      const reader = new FileReader();
-      reader.readAsDataURL(audioBlob);
+      // Convertir blob a base64 para enviarlo en JSON
+      const arrayBuffer = await audioBlob.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
+      const base64Audio = btoa(String.fromCharCode(...bytes));
 
-      reader.onloadend = async () => {
-        const base64Audio = reader.result.split(',')[1];
+      // Llamar a la Edge Function con el audio en base64
+      const { data, error } = await customSupabaseClient.functions.invoke('voice-to-transaction', {
+        body: {
+          audio: base64Audio,
+          userId: userId,
+          mimeType: 'audio/webm'
+        }
+      });
 
-        // Llamar a la Edge Function
-        const { data, error } = await customSupabaseClient.functions.invoke('voice-to-transaction', {
-          body: {
-            audio: base64Audio,
-            userId: userId,
-          }
+      if (error) {
+        throw error;
+      }
+
+      if (data.success) {
+        setTranscript(data.transcript);
+        setStatus('success');
+
+        toast({
+          title: "✅ Gasto agregado",
+          description: `"${data.transcript}" → $${data.transaction.amount.toLocaleString()}`,
         });
 
-        if (error) {
-          throw error;
+        // Notificar al componente padre
+        if (onTransactionCreated) {
+          onTransactionCreated(data.transaction);
         }
 
-        if (data.success) {
-          setTranscript(data.transcript);
-          setStatus('success');
-
-          toast({
-            title: "✅ Gasto agregado",
-            description: `"${data.transcript}" → $${data.transaction.amount.toLocaleString()}`,
-          });
-
-          // Notificar al componente padre
-          if (onTransactionCreated) {
-            onTransactionCreated(data.transaction);
-          }
-
-          // Resetear después de 3 segundos
-          setTimeout(() => {
-            setStatus('idle');
-            setTranscript('');
-          }, 3000);
-        } else {
-          throw new Error(data.error || 'No se pudo procesar el audio');
-        }
-
-      };
-
-      reader.onerror = () => {
-        throw new Error('Error al leer el archivo de audio');
-      };
+        // Resetear después de 3 segundos
+        setTimeout(() => {
+          setStatus('idle');
+          setTranscript('');
+        }, 3000);
+      } else {
+        throw new Error(data.error || 'No se pudo procesar el audio');
+      }
 
     } catch (error) {
       console.error('Error procesando audio:', error);

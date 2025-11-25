@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Micrófono - Finantel</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #1C8FA0;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #167a8a;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-weight: 500;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🎤 Test de Micrófono</h1>
+        <p>Prueba si tu navegador puede grabar audio antes de usar el sistema de voz.</p>
+
+        <div>
+            <button onclick="testPermissions()">1️⃣ Probar Permisos</button>
+            <button onclick="testRecording()" id="recordBtn" disabled>2️⃣ Grabar 3 Segundos</button>
+            <button onclick="playRecording()" id="playBtn" disabled>3️⃣ Reproducir</button>
+        </div>
+
+        <div id="status"></div>
+        <audio id="audioPlayer" controls style="width: 100%; margin-top: 20px; display: none;"></audio>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let audioBlob;
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        async function testPermissions() {
+            showStatus('🔍 Solicitando permiso de micrófono...', 'info');
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+                showStatus('✅ Micrófono accesible! Ahora puedes probar grabación.', 'success');
+
+                // Habilitar botón de grabar
+                document.getElementById('recordBtn').disabled = false;
+
+                // Detener stream
+                stream.getTracks().forEach(track => track.stop());
+
+            } catch (error) {
+                showStatus(`❌ Error: ${error.message}<br><br>
+                    <strong>Solución:</strong><br>
+                    1. Click en el candado 🔒 en la barra de direcciones<br>
+                    2. Permisos → Micrófono → Permitir<br>
+                    3. Recarga la página e intenta de nuevo`, 'error');
+            }
+        }
+
+        async function testRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+                mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: 'audio/webm;codecs=opus'
+                });
+
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+
+                    const player = document.getElementById('audioPlayer');
+                    player.src = audioUrl;
+                    player.style.display = 'block';
+
+                    document.getElementById('playBtn').disabled = false;
+
+                    showStatus(`✅ Grabación completada! Tamaño: ${(audioBlob.size / 1024).toFixed(2)} KB<br>
+                        Haz click en "Reproducir" para escuchar.`, 'success');
+
+                    stream.getTracks().forEach(track => track.stop());
+                };
+
+                mediaRecorder.start();
+                showStatus('🎤 GRABANDO... (3 segundos)', 'info');
+                document.getElementById('recordBtn').disabled = true;
+
+                setTimeout(() => {
+                    mediaRecorder.stop();
+                    document.getElementById('recordBtn').disabled = false;
+                }, 3000);
+
+            } catch (error) {
+                showStatus(`❌ Error al grabar: ${error.message}`, 'error');
+            }
+        }
+
+        function playRecording() {
+            const player = document.getElementById('audioPlayer');
+            player.play();
+            showStatus('▶️ Reproduciendo grabación...', 'info');
+        }
+    </script>
+</body>
+</html>

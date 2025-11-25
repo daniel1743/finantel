@@ -27,6 +27,7 @@ import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useFinance } from '@/hooks/useFinance';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
+import VoiceInput from '@/components/VoiceInput';
 
 const transactionsData = [
   { id: 1, name: "Supermercado Metro", category: "Alimentación", type: "Gasto", amount: -124.50, date: "21 Nov, 2023", icon: ShoppingBag, color: "bg-orange-100 text-orange-600" },
@@ -644,22 +645,35 @@ const Transactions = () => {
       </AnimatePresence>
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#1a1a1a] font-['Inter_Tight']">Transacciones</h1>
-          <p className="text-[#6E6E73]">Gestiona y revisa todos tus movimientos financieros</p>
+          <h1 className="text-2xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">Transacciones</h1>
+          <p className="text-[#6E6E73] dark:text-gray-400">Gestiona y revisa todos tus movimientos financieros</p>
         </div>
-        <div className="flex gap-3">
-          <button className="p-2.5 bg-white border border-gray-200 rounded-xl text-[#6E6E73] hover:text-[#1a1a1a] transition-colors shadow-sm">
-            <Download className="w-5 h-5" />
-          </button>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2.5 bg-[#1a1a1a] text-white rounded-xl text-sm font-medium hover:bg-black transition-colors shadow-lg shadow-black/10 flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Nueva Transacción
-          </button>
+
+        {/* Voice Input + Actions */}
+        <div className="flex flex-col sm:flex-row items-center gap-6">
+          {/* Componente de Voz */}
+          <div className="bg-gradient-to-br from-[#1C8FA0]/10 to-purple-500/10 rounded-3xl p-6 border border-[#1C8FA0]/20">
+            <VoiceInput
+              onTransactionCreated={handleTransactionAdded}
+              userId={user?.id}
+            />
+          </div>
+
+          {/* Botones tradicionales */}
+          <div className="flex gap-3">
+            <button className="p-2.5 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-xl text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white transition-colors shadow-sm">
+              <Download className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="px-4 py-2.5 bg-[#1a1a1a] dark:bg-white text-white dark:text-[#1a1a1a] rounded-xl text-sm font-medium hover:bg-black dark:hover:bg-gray-100 transition-colors shadow-lg shadow-black/10 flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Nueva Transacción
+            </button>
+          </div>
         </div>
       </div>
 
