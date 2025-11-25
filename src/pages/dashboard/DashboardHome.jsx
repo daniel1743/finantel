@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
   Plus,
+  Mic,
   TrendingUp,
   TrendingDown,
   CreditCard,
@@ -32,7 +33,8 @@ import {
   Zap,
   Heart,
   Smartphone,
-  ShieldCheck
+  ShieldCheck,
+  Square
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
@@ -40,6 +42,7 @@ import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useFinance } from '@/hooks/useFinance';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/customSupabaseClient';
+import VoiceRecordingModal from '@/components/VoiceRecordingModal';
 
 // =====================================================
 // KPIs Cards - Tarjetas de Métricas Principales
@@ -880,6 +883,7 @@ const DashboardHome = () => {
   const { toast } = useToast();
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
 
   const handleTransactionAdded = () => {
     refresh();
@@ -1039,6 +1043,14 @@ const DashboardHome = () => {
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             onSuccess={handleTransactionAdded}
+          />
+        )}
+        {isVoiceModalOpen && (
+          <VoiceRecordingModal
+            isOpen={isVoiceModalOpen}
+            onClose={() => setIsVoiceModalOpen(false)}
+            onSuccess={handleTransactionAdded}
+            userId={user?.id}
           />
         )}
       </AnimatePresence>
@@ -1468,15 +1480,15 @@ const DashboardHome = () => {
         </div>
       </motion.div>
 
-      {/* Floating Action Button */}
+      {/* Floating Action Button - Micrófono */}
       <motion.button
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 20, delay: 1.5 }}
-        onClick={() => setIsModalOpen(true)}
-        className="fixed bottom-8 right-8 w-[68px] h-[68px] bg-[#1a1a1a] dark:bg-white text-white dark:text-black rounded-full shadow-[0_20px_40px_-12px_rgba(0,0,0,0.5)] flex items-center justify-center hover:scale-110 hover:bg-black dark:hover:bg-gray-100 transition-all duration-300 z-50 group"
+        onClick={() => setIsVoiceModalOpen(true)}
+        className="fixed bottom-8 right-8 w-[68px] h-[68px] bg-[#1C8FA0] hover:bg-[#167a8a] text-white rounded-full shadow-[0_20px_40px_-12px_rgba(28,143,160,0.5)] flex items-center justify-center hover:scale-110 transition-all duration-300 z-50 group"
       >
-        <Plus className="w-8 h-8 group-hover:rotate-90 transition-transform duration-300" />
+        <Mic className="w-8 h-8 group-hover:scale-110 transition-transform duration-300" />
       </motion.button>
     </div>
   );
