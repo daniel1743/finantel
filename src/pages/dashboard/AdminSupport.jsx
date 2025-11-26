@@ -341,7 +341,7 @@ const AdminSupport = () => {
                         </div>
                         <span className="text-[#6E6E73] dark:text-gray-400">•</span>
                         <span className="text-sm text-[#6E6E73] dark:text-gray-400">
-                          {new Date(ticket.created_at).toLocaleDateString('es-ES', {
+                          {new Date(ticket.created_at).toLocaleString('es-ES', {
                             dateStyle: 'medium',
                             timeStyle: 'short',
                           })}

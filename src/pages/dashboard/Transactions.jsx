@@ -28,6 +28,7 @@ import { useFinance } from '@/hooks/useFinance';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
 import VoiceInput from '@/components/VoiceInput';
+import { useUserCurrency } from '@/hooks/useUserCurrency';
 
 const transactionsData = [
   { id: 1, name: "Supermercado Metro", category: "Alimentación", type: "Gasto", amount: -124.50, date: "21 Nov, 2023", icon: ShoppingBag, color: "bg-orange-100 text-orange-600" },
@@ -653,9 +654,28 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
   );
 };
 
+// Función para formatear montos según la moneda
+const formatCurrency = (amount, currency = 'CLP') => {
+  const absAmount = Math.abs(amount);
+  
+  // Para CLP y otras monedas sin decimales, no mostrar decimales si es un número entero
+  if (currency === 'CLP' || currency === 'JPY' || currency === 'KRW') {
+    // Si es un número entero, no mostrar decimales
+    if (absAmount % 1 === 0) {
+      return absAmount.toLocaleString('es-CL', { maximumFractionDigits: 0 });
+    }
+    // Si tiene decimales, mostrar hasta 2 decimales
+    return absAmount.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+  
+  // Para USD y otras monedas con decimales, siempre mostrar 2 decimales
+  return absAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
 const Transactions = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { currency: userCurrency } = useUserCurrency();
   const {
     transactions,
     loading,
@@ -895,7 +915,7 @@ const Transactions = () => {
                   "font-bold font-mono text-sm",
                       displayAmount > 0 ? "text-green-600 dark:text-green-400" : "text-[#1a1a1a] dark:text-white"
                 )}>
-                      {displayAmount > 0 ? '+' : ''}${Math.abs(displayAmount).toFixed(2)}
+                      {displayAmount > 0 ? '+' : ''}${formatCurrency(displayAmount, tx.currency || userCurrency)}
                 </span>
               </div>
 

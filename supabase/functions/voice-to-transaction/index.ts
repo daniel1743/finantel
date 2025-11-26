@@ -15,89 +15,198 @@ const corsHeaders = {
 function parseTranscript(text: string) {
   const lowerText = text.toLowerCase();
 
-  // 1. DETECTAR TIPO DE TRANSACCIÓN (income vs expense)
+  // 1. DETECTAR TIPO DE TRANSACCIÓN (income vs expense) - MEJORADO
   let type = 'expense'; // Por defecto es gasto
   
-  // Palabras clave para INGRESOS
-  const incomeKeywords = ['cobré', 'cobre', 'recibí', 'recibi', 'ingresé', 'ingrese', 'gané', 'gane', 
-                          'vendí', 'vendi', 'cobro', 'ingreso', 'pago recibido', 'sueldo', 'salario'];
+  // Palabras clave para INGRESOS (más completas)
+  const incomeKeywords = [
+    // Verbos en pasado
+    'cobré', 'cobre', 'recibí', 'recibi', 'ingresé', 'ingrese', 'gané', 'gane', 
+    'vendí', 'vendi', 'entregaron', 'me pagaron', 'me dieron', 'me transfirieron',
+    // Verbos en presente
+    'cobro', 'recibo', 'ingreso', 'gano', 'vendo', 'recibo pago',
+    // Sustantivos y frases
+    'ingreso', 'pago recibido', 'sueldo', 'salario', 'pago de', 'transferencia recibida',
+    'depósito', 'abono', 'entrada de dinero', 'dinero recibido', 'dinero que recibí',
+    // Frases comunes
+    'me pagaron', 'me dieron dinero', 'recibí dinero', 'cobré dinero', 'ingresó dinero',
+    'dinero que cobré', 'dinero que recibí', 'pago que recibí'
+  ];
   
-  // Palabras clave para GASTOS
-  const expenseKeywords = ['gasté', 'gaste', 'pagué', 'pague', 'compré', 'compre', 'di', 'dé', 'de'];
+  // Palabras clave para GASTOS (más completas)
+  const expenseKeywords = [
+    // Verbos en pasado
+    'gasté', 'gaste', 'pagué', 'pague', 'compré', 'compre', 'di', 'dé', 'de',
+    'compré', 'adquirí', 'adquiri', 'contraté', 'contrate', 'suscribí', 'suscribi',
+    // Verbos en presente
+    'gasto', 'pago', 'compro', 'comprar', 'pagar', 'gastar',
+    // Sustantivos y frases
+    'gasto de', 'pago de', 'compra de', 'gasto en', 'pago por', 'compré en',
+    'dinero que gasté', 'dinero que pagué', 'dinero que di', 'dinero que invertí',
+    // Frases comunes
+    'gasté dinero', 'pagué dinero', 'di dinero', 'compré con', 'pagué por',
+    'gasto en', 'pago a', 'compré a'
+  ];
   
-  const hasIncomeKeyword = incomeKeywords.some(keyword => lowerText.includes(keyword));
-  const hasExpenseKeyword = expenseKeywords.some(keyword => lowerText.includes(keyword));
+  // Detectar palabras clave con mejor precisión
+  // Buscar al inicio de la frase (más confiable) o después de espacios
+  // IMPORTANTE: Escapar caracteres especiales en las palabras clave para regex
+  const escapedIncomeKeywords = incomeKeywords.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const escapedExpenseKeywords = expenseKeywords.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
   
-  if (hasIncomeKeyword && !hasExpenseKeyword) {
+  const incomePattern = new RegExp(`(?:^|\\s)(?:${escapedIncomeKeywords.join('|')})(?:\\s|$)`, 'i');
+  const expensePattern = new RegExp(`(?:^|\\s)(?:${escapedExpenseKeywords.join('|')})(?:\\s|$)`, 'i');
+  
+  const hasIncomeKeyword = incomePattern.test(lowerText);
+  const hasExpenseKeyword = expensePattern.test(lowerText);
+  
+  // También buscar palabras clave en cualquier parte (por si Whisper no transcribe perfectamente)
+  const hasIncomeAnywhere = incomeKeywords.some(keyword => {
+    // Escapar caracteres especiales para regex
+    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Buscar la palabra completa, no como parte de otra palabra
+    const regex = new RegExp(`\\b${escapedKeyword}\\b`, 'i');
+    return regex.test(lowerText);
+  });
+  
+  const hasExpenseAnywhere = expenseKeywords.some(keyword => {
+    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`\\b${escapedKeyword}\\b`, 'i');
+    return regex.test(lowerText);
+  });
+  
+  // Decidir el tipo basado en las detecciones
+  // Prioridad: si hay palabra de ingreso Y NO hay palabra de gasto → INGRESO
+  // Si hay palabra de gasto Y NO hay palabra de ingreso → GASTO
+  // Si hay ambas, dar prioridad a la que aparece primero o es más específica
+  if ((hasIncomeKeyword || hasIncomeAnywhere) && !(hasExpenseKeyword || hasExpenseAnywhere)) {
     type = 'income';
+    console.log('✅ Tipo detectado: INGRESO (income)');
+  } else if ((hasExpenseKeyword || hasExpenseAnywhere) && !(hasIncomeKeyword || hasIncomeAnywhere)) {
+    type = 'expense';
+    console.log('✅ Tipo detectado: GASTO (expense)');
+  } else if ((hasIncomeKeyword || hasIncomeAnywhere) && (hasExpenseKeyword || hasExpenseAnywhere)) {
+    // Si hay ambas, buscar cuál aparece primero (más cerca del inicio = más importante)
+    const incomeIndex = lowerText.search(incomePattern);
+    const expenseIndex = lowerText.search(expensePattern);
+    
+    if (incomeIndex !== -1 && (expenseIndex === -1 || incomeIndex < expenseIndex)) {
+      type = 'income';
+      console.log('✅ Tipo detectado: INGRESO (income) - aparece primero');
+    } else {
+      type = 'expense';
+      console.log('✅ Tipo detectado: GASTO (expense) - aparece primero o es más común');
+    }
+  } else {
+    // Por defecto es gasto si no se detecta nada
+    type = 'expense';
+    console.log('⚠️ No se detectó tipo específico, usando GASTO por defecto');
   }
+  
+  console.log('📊 Análisis de tipo:', {
+    texto: text,
+    tieneIngreso: hasIncomeKeyword || hasIncomeAnywhere,
+    tieneGasto: hasExpenseKeyword || hasExpenseAnywhere,
+    tipoFinal: type
+  });
 
-  // 2. EXTRAER MONTO (mejorado para formato chileno)
+  // 2. EXTRAER MONTO (mejorado para formato chileno e internacional)
   let amount = 0;
+  console.log('🔍 Iniciando extracción de monto del texto:', text);
 
-  // Detectar formato "50k", "30k", etc
+  // Detectar si el usuario menciona "pesos" o "clp" (indica formato chileno)
+  const hasPesosKeyword = /\b(?:pesos?|clp)\b/i.test(text);
+  console.log('🔍 ¿Menciona "pesos" o "clp"?', hasPesosKeyword);
+
+  // PRIORIDAD 0: Detectar formato "50k", "30k", etc
   const kMatch = lowerText.match(/(\d+)\s*k\b/);
   if (kMatch) {
     amount = parseInt(kMatch[1]) * 1000;
     console.log('✅ Formato "k" detectado:', kMatch[0], '→', amount);
   }
 
-  // PRIORIDAD 1: Detectar números con punto como separador de miles (formato chileno: 1.300, 950.000, 2.300)
-  // En Chile: punto = separador de miles cuando hay 3 dígitos después del punto
-  // Buscar específicamente patrones como "$1.300", "1.300 pesos", etc.
-  // Mejorar regex para capturar mejor incluso con texto alrededor
-  const chileanFormatMatch = lowerText.match(/(?:^|\s|\$)\s*(\d{1,3}(?:\.\d{3})+)\s*(?:pesos|clp|usd)?/);
-  if (!amount && chileanFormatMatch) {
-    // Formato chileno: remover puntos (son separadores de miles)
-    let numStr = chileanFormatMatch[1].replace(/\./g, '');
-    amount = parseFloat(numStr);
-    console.log('✅ Formato chileno (punto como miles) detectado:', chileanFormatMatch[1], '→', amount);
-  }
-
-  // PRIORIDAD 2: Detectar números con punto que tienen exactamente 3 dígitos después
-  // Esto captura casos como "1.300" que el regex anterior podría perder
+  // PRIORIDAD 1: FORMATO CHILENO (PUNTO COMO SEPARADOR DE MILES)
+  // Si el usuario menciona "pesos" o "clp", PRIORIZAR formato chileno
+  // Esto es CRÍTICO: "60.000 pesos" debe ser 60000, NO 60.00
   if (!amount) {
-    // Buscar cualquier número con punto seguido de exactamente 3 dígitos
-    const pointThreeDigitsMatch = lowerText.match(/(?:^|\s|\$)\s*(\d+)\.(\d{3})\b/);
-    if (pointThreeDigitsMatch) {
-      const parteEntera = pointThreeDigitsMatch[1];
-      const parteDecimal = pointThreeDigitsMatch[2];
-      // Si tiene exactamente 3 dígitos después del punto → separador de miles (1.300 = 1300)
+    // Buscar números con punto seguido de exactamente 3 dígitos (formato chileno estándar)
+    // Ejemplos: "60.000", "1.300", "950.000", "2.300"
+    // Usar el texto ORIGINAL (no lowerText) para mantener la puntuación exacta
+    const chileanFormatMatch = text.match(/(\d{1,3})\.(\d{3})\b/);
+    if (chileanFormatMatch) {
+      const parteEntera = chileanFormatMatch[1];
+      const parteDecimal = chileanFormatMatch[2];
+      // Si tiene exactamente 3 dígitos después del punto → separador de miles (60.000 = 60000)
       amount = parseFloat(parteEntera + parteDecimal);
-      console.log('✅ Punto como separador de miles (3 dígitos exactos):', pointThreeDigitsMatch[0], '→', amount);
+      console.log('✅ FORMATO CHILENO detectado (punto + 3 dígitos):', chileanFormatMatch[0], '→', amount);
     }
   }
 
-  // PRIORIDAD 3: Detectar números con punto que podrían ser separador de miles
-  // Si el número tiene 1-2 dígitos después del punto y es >= 10, probablemente es separador de miles
+  // PRIORIDAD 1.5: Formato chileno con múltiples puntos (ej: 1.500.000)
   if (!amount) {
-    const pointMatch = lowerText.match(/(?:^|\s|\$)\s*(\d+)\.(\d{1,2})\s*(?:pesos|clp|usd)?/);
-    if (pointMatch) {
-      const parteEntera = parseInt(pointMatch[1]);
-      const parteDecimal = pointMatch[2];
-      
-      // Si la parte entera es >= 10 y tiene 1-2 dígitos después → separador de miles
-      // Ejemplo: "10.50 pesos" = 1050, "20.30 pesos" = 2030
-      if (parteEntera >= 10 && parteDecimal.length <= 2) {
-        amount = parseFloat(parteEntera + parteDecimal.padEnd(3, '0'));
-        console.log('✅ Punto como separador de miles (número >= 10):', pointMatch[0], '→', amount);
-      }
+    const chileanMultiPointMatch = text.match(/(\d{1,3}(?:\.\d{3})+)/);
+    if (chileanMultiPointMatch) {
+      // Remover todos los puntos (son separadores de miles)
+      let numStr = chileanMultiPointMatch[1].replace(/\./g, '');
+      amount = parseFloat(numStr);
+      console.log('✅ FORMATO CHILENO (múltiples puntos) detectado:', chileanMultiPointMatch[1], '→', amount);
+    }
+  }
+
+  // PRIORIDAD 2: Si menciona "pesos" o "clp", cualquier número con punto es formato chileno
+  // Esto captura casos como "10.50 pesos" que deberían ser 1050 (no 10.50)
+  if (!amount && hasPesosKeyword) {
+    const chileanWithPesosMatch = text.match(/(\d+)\.(\d{1,2})\s*(?:pesos|clp)/i);
+    if (chileanWithPesosMatch) {
+      const parteEntera = chileanWithPesosMatch[1];
+      const parteDecimal = chileanWithPesosMatch[2];
+      // Si menciona "pesos", el punto es separador de miles
+      // "10.50 pesos" = 1050, "20.30 pesos" = 2030
+      amount = parseFloat(parteEntera + parteDecimal.padEnd(3, '0'));
+      console.log('✅ FORMATO CHILENO (con palabra "pesos"):', chileanWithPesosMatch[0], '→', amount);
+    }
+  }
+
+  // PRIORIDAD 3: Detectar números con comas como separador de miles (formato internacional: 100,000, 500,000)
+  // Solo si NO se menciona "pesos" o "clp" (para evitar conflictos)
+  if (!amount && !hasPesosKeyword) {
+    // Buscar números con comas (formato internacional)
+    const internationalFormatMatch = text.match(/(\d{1,3}(?:,\d{3})+)/);
+    if (internationalFormatMatch) {
+      // Formato internacional: remover TODAS las comas (son separadores de miles)
+      let numStr = internationalFormatMatch[1].replace(/,/g, '');
+      amount = parseFloat(numStr);
+      console.log('✅ Formato internacional (coma como miles) detectado:', internationalFormatMatch[1], '→', amount);
+    }
+  }
+  
+  // PRIORIDAD 3.5: Detectar números con coma seguidos de exactamente 3 dígitos (formato internacional)
+  if (!amount && !hasPesosKeyword) {
+    const commaThreeDigitsMatch = text.match(/(\d{1,3}),(\d{3})\b/);
+    if (commaThreeDigitsMatch) {
+      const parteEntera = commaThreeDigitsMatch[1];
+      const parteDecimal = commaThreeDigitsMatch[2];
+      // Si tiene exactamente 3 dígitos después de la coma → separador de miles (100,000 = 100000)
+      amount = parseFloat(parteEntera + parteDecimal);
+      console.log('✅ Coma como separador de miles (3 dígitos exactos):', commaThreeDigitsMatch[0], '→', amount);
+    }
+  }
+
+  // PRIORIDAD 4: Detectar punto como decimal (solo si NO menciona "pesos" y tiene 1-2 dígitos después)
+  // Esto es para casos como "1.50" o "28.30" cuando NO es formato chileno
+  if (!amount && !hasPesosKeyword) {
+    const decimalPointMatch = text.match(/(\d+)\.(\d{1,2})\b/);
+    if (decimalPointMatch) {
+      const parteEntera = parseInt(decimalPointMatch[1]);
+      const parteDecimal = decimalPointMatch[2];
       // Si es pequeño (< 10) con 1-2 dígitos → decimal real (1.20 = 1.20)
-      else if (parteEntera < 10 && parteDecimal.length <= 2) {
+      if (parteEntera < 10) {
         amount = parseFloat(parteEntera + '.' + parteDecimal);
-        console.log('✅ Punto como decimal (número < 10):', pointMatch[0], '→', amount);
+        console.log('✅ Punto como decimal (número < 10):', decimalPointMatch[0], '→', amount);
       }
     }
   }
 
-  // PRIORIDAD 3: Detectar números con comas como separador de miles (formato internacional: 950,000)
-  const internationalFormatMatch = lowerText.match(/\$?\s*(\d{1,3}(?:,\d{3})+)\s*(?:pesos|clp|usd)?/);
-  if (!amount && internationalFormatMatch) {
-    // Formato internacional: remover comas (son separadores de miles)
-    let numStr = internationalFormatMatch[1].replace(/,/g, '');
-    amount = parseFloat(numStr);
-    console.log('✅ Formato internacional (coma como miles) detectado:', internationalFormatMatch[1], '→', amount);
-  }
 
   // PRIORIDAD 4: Detectar patrones de texto como "950 mil", "2 mil 300", etc.
   if (!amount) {
@@ -111,35 +220,42 @@ function parseTranscript(text: string) {
   }
 
   // PRIORIDAD 5: Detectar números con coma como decimal (formato: 2,30 o 28,50)
-  // Solo si no se detectó como separador de miles
-  const decimalCommaMatch = lowerText.match(/\$?\s*(\d+),(\d{1,2})\s*(?:pesos|clp|usd)?/);
-  if (!amount && decimalCommaMatch) {
-    // Coma como decimal: reemplazar coma por punto
-    let numStr = decimalCommaMatch[1] + '.' + decimalCommaMatch[2];
-    amount = parseFloat(numStr);
-    console.log('✅ Formato decimal con coma detectado:', decimalCommaMatch[0], '→', amount);
+  // Solo si no se detectó como separador de miles (debe tener 1-2 dígitos después de la coma)
+  if (!amount) {
+    const decimalCommaMatch = lowerText.match(/(\d+),(\d{1,2})\b/);
+    if (decimalCommaMatch) {
+      // Coma como decimal: reemplazar coma por punto
+      let numStr = decimalCommaMatch[1] + '.' + decimalCommaMatch[2];
+      amount = parseFloat(numStr);
+      console.log('✅ Formato decimal con coma detectado:', decimalCommaMatch[0], '→', amount);
+    }
   }
 
   // PRIORIDAD 6: Detectar formato simple "$1200", "1200 pesos", etc (sin separadores)
   // ESTE DEBE IR AL FINAL para no capturar números que son parte de formatos más complejos
+  // IMPORTANTE: Solo capturar números grandes (4+ dígitos) para evitar capturar números pequeños
   if (!amount) {
-    // Buscar el número más grande en el texto (evitar capturar números pequeños que son parte de otros patrones)
-    const allNumbers = lowerText.match(/\$?\s*(\d+)\s*(?:pesos|clp|usd)?/g);
-    if (allNumbers && allNumbers.length > 0) {
-      // Tomar el número más grande encontrado
-      let maxAmount = 0;
-      for (const numStr of allNumbers) {
-        const numMatch = numStr.match(/(\d+)/);
-        if (numMatch) {
-          const num = parseFloat(numMatch[1]);
+    // Buscar números de 4 o más dígitos (probablemente son montos reales)
+    const largeNumberMatch = lowerText.match(/(\d{4,})/);
+    if (largeNumberMatch) {
+      amount = parseFloat(largeNumberMatch[1]);
+      console.log('✅ Formato simple (número grande 4+ dígitos) detectado:', largeNumberMatch[1], '→', amount);
+    } else {
+      // Si no hay números grandes, buscar el número más grande en el texto
+      const allNumbers = lowerText.match(/(\d+)/g);
+      if (allNumbers && allNumbers.length > 0) {
+        // Tomar el número más grande encontrado
+        let maxAmount = 0;
+        for (const numStr of allNumbers) {
+          const num = parseFloat(numStr);
           if (num > maxAmount) {
             maxAmount = num;
           }
         }
-      }
-      if (maxAmount > 0) {
-        amount = maxAmount;
-        console.log('✅ Formato simple detectado (número más grande):', maxAmount);
+        if (maxAmount > 0) {
+          amount = maxAmount;
+          console.log('✅ Formato simple detectado (número más grande):', maxAmount);
+        }
       }
     }
   }

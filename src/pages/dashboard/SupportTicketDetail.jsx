@@ -56,7 +56,7 @@ const SupportTicketDetail = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const messagesEndRef = useRef(null);
-  const { isStaff, respondAsStaff } = useStaffTickets(user?.id);
+  const { isStaff, checkingStaff, respondAsStaff } = useStaffTickets(user?.id);
 
   const [ticket, setTicket] = useState(null);
   const [responses, setResponses] = useState([]);
@@ -67,24 +67,50 @@ const SupportTicketDetail = () => {
 
   // Cargar ticket y respuestas
   useEffect(() => {
-    if (!ticketId || !user) return;
+    // Esperar a que se determine si el usuario es staff antes de cargar el ticket
+    if (!ticketId || !user || checkingStaff) return;
 
     const loadTicketData = async () => {
       try {
-        // Cargar ticket - si es staff, puede ver cualquier ticket
+        // Cargar ticket - si es staff, puede ver cualquier ticket sin restricciones
         let query = customSupabaseClient
           .from('support_tickets')
           .select('*')
           .eq('id', ticketId);
 
-        // Si no es staff, solo puede ver sus propios tickets
+        // Si NO es staff, solo puede ver sus propios tickets
         if (!isStaff) {
           query = query.eq('user_id', user.id);
         }
 
-        const { data: ticketData, error: ticketError } = await query.single();
+        const { data: ticketData, error: ticketError } = await query.maybeSingle();
 
-        if (ticketError) throw ticketError;
+        if (ticketError) {
+          console.error('Error loading ticket:', ticketError);
+          throw ticketError;
+        }
+        
+        if (!ticketData) {
+          // Si es staff y no encontró el ticket, redirigir al panel de admin
+          if (isStaff) {
+            toast({
+              title: 'Ticket no encontrado',
+              description: 'El ticket que buscas no existe',
+              variant: 'destructive',
+            });
+            navigate('/dashboard/admin/support');
+            return;
+          }
+          
+          // Si no es staff, redirigir al centro de ayuda
+          toast({
+            title: 'Ticket no encontrado',
+            description: 'El ticket que buscas no existe o no tienes permisos para verlo',
+            variant: 'destructive',
+          });
+          navigate('/dashboard/support');
+          return;
+        }
         setTicket(ticketData);
 
         // Si es staff, obtener nombre del staff
@@ -115,7 +141,7 @@ const SupportTicketDetail = () => {
     };
 
     loadTicketData();
-  }, [ticketId, user, isStaff]);
+  }, [ticketId, user, isStaff, checkingStaff, navigate, toast]);
 
   // Scroll to bottom cuando hay nuevas respuestas
   useEffect(() => {

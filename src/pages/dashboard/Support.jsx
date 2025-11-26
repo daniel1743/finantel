@@ -69,15 +69,17 @@ const Support = () => {
           .select('plan, status')
           .eq('user_id', user.id)
           .eq('status', 'active')
-          .single();
+          .maybeSingle();
 
         if (error) {
-          // If no subscription found, user is on free plan
-          if (error.code === 'PGRST116') {
-            setUserPlan('free');
-          }
-        } else {
+          // If error occurs, user is on free plan
+          console.error('Error fetching subscription:', error);
+          setUserPlan('free');
+        } else if (data) {
           setUserPlan(data?.plan || 'free');
+        } else {
+          // No subscription found, user is on free plan
+          setUserPlan('free');
         }
       } catch (err) {
         console.error('Error fetching user plan:', err);
