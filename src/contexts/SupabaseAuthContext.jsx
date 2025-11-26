@@ -18,22 +18,83 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
+  // Función para refrescar el token automáticamente
+  const refreshSession = useCallback(async () => {
+    try {
+      const { data: { session }, error } = await supabase.auth.refreshSession();
+      if (error) {
+        console.error('Error refreshing session:', error);
+        // Si el refresh falla, limpiar la sesión
+        if (error.message?.includes('exp') || error.message?.includes('Invalid')) {
+          await supabase.auth.signOut();
+          handleSession(null);
+          toast({
+            variant: "destructive",
+            title: "Sesión Expirada",
+            description: "Por favor, inicia sesión nuevamente.",
+          });
+        }
+        return;
+      }
+      handleSession(session);
+    } catch (err) {
+      console.error('Error in refreshSession:', err);
+      handleSession(null);
+    }
+  }, [handleSession, toast]);
+
   useEffect(() => {
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      handleSession(session);
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Error getting session:', error);
+          // Si el token está expirado, intentar refrescar
+          if (error.message?.includes('exp') || error.message?.includes('Invalid')) {
+            await refreshSession();
+            return;
+          }
+          handleSession(null);
+          return;
+        }
+        handleSession(session);
+      } catch (err) {
+        console.error('Error in getSession:', err);
+        handleSession(null);
+      }
     };
 
     getSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        handleSession(session);
+        console.log('Auth state changed:', event, session?.user?.email);
+        
+        // Manejar eventos específicos
+        if (event === 'TOKEN_REFRESHED') {
+          handleSession(session);
+        } else if (event === 'SIGNED_OUT') {
+          handleSession(null);
+        } else if (event === 'SIGNED_IN') {
+          handleSession(session);
+        } else {
+          handleSession(session);
+        }
       }
     );
 
-    return () => subscription.unsubscribe();
-  }, [handleSession]);
+    // Configurar refresh automático del token cada 55 minutos (los tokens de Supabase duran 1 hora)
+    const refreshInterval = setInterval(() => {
+      if (session) {
+        refreshSession();
+      }
+    }, 55 * 60 * 1000); // 55 minutos
+
+    return () => {
+      subscription.unsubscribe();
+      clearInterval(refreshInterval);
+    };
+  }, [handleSession, refreshSession]);
 
   const signUp = useCallback(async (email, password, options) => {
     const { error } = await supabase.auth.signUp({
@@ -54,21 +115,46 @@ export const AuthProvider = ({ children }) => {
   }, [toast]);
 
   const signIn = useCallback(async (email, password) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
+      if (error) {
+        // Manejar errores específicos
+        if (error.message?.includes('exp') || error.message?.includes('Invalid')) {
+          toast({
+            variant: "destructive",
+            title: "Error de Autenticación",
+            description: "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Error al Iniciar Sesión",
+            description: error.message || "Algo salió mal. Por favor, intenta de nuevo.",
+          });
+        }
+        return { error };
+      }
+
+      // Si el login es exitoso, actualizar la sesión
+      if (data?.session) {
+        handleSession(data.session);
+      }
+
+      return { error: null, data };
+    } catch (err) {
+      console.error('Error in signIn:', err);
       toast({
         variant: "destructive",
-        title: "Sign in Failed",
-        description: error.message || "Something went wrong",
+        title: "Error de Conexión",
+        description: "No se pudo conectar con el servidor. Verifica tu conexión a internet.",
       });
+      return { error: err };
     }
-
-    return { error };
-  }, [toast]);
+  }, [toast, handleSession]);
 
   const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut();

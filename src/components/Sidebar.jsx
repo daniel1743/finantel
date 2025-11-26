@@ -25,7 +25,8 @@ import {
   User,
   Download,
   Shield,
-  Zap
+  Zap,
+  TrendingUp
 } from 'lucide-react';
 
 const MenuSection = ({ title, items, isCollapsed, currentPath, setIsMobileOpen, hasFamilyPlan, handleBlockedClick }) => (
@@ -143,6 +144,7 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
       items: [
         { name: "Asistente IA", icon: Bot, path: "/dashboard/ai-assistant" },
         { name: "Planificador IA", icon: Zap, path: "/dashboard/ai-planner" },
+        { name: "Simulador de Futuro", icon: TrendingUp, path: "/dashboard/future-self" },
         { name: "Predicciones", icon: Sparkles, path: "/dashboard/predictions" },
         { name: "Análisis Profundo", icon: BarChart3, path: "/dashboard/analysis" },
         { name: "Alertas", icon: Bell, path: "/dashboard/alerts" },

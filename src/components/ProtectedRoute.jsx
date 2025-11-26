@@ -1,14 +1,43 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import { Loader2 } from 'lucide-react';
+import { supabase } from '@/lib/customSupabaseClient';
 
 const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, session } = useAuth();
   const { isDemoMode } = useDemoMode();
   const location = useLocation();
+
+  // Verificar si la sesión es válida
+  useEffect(() => {
+    const checkSession = async () => {
+      if (session) {
+        try {
+          // Verificar si el token está expirado
+          const expiresAt = session.expires_at;
+          const now = Math.floor(Date.now() / 1000);
+          
+          // Si el token expira en menos de 5 minutos, refrescarlo
+          if (expiresAt && (expiresAt - now) < 300) {
+            console.log('🔄 Token próximo a expirar, refrescando...');
+            const { data, error } = await supabase.auth.refreshSession();
+            if (error) {
+              console.error('Error refreshing session:', error);
+            }
+          }
+        } catch (err) {
+          console.error('Error checking session:', err);
+        }
+      }
+    };
+
+    if (!loading && session) {
+      checkSession();
+    }
+  }, [session, loading]);
 
   if (loading) {
     return (
@@ -18,6 +47,7 @@ const ProtectedRoute = ({ children }) => {
             F
           </div>
           <Loader2 className="w-6 h-6 text-[#1C8FA0] animate-spin" />
+          <p className="text-sm text-[#6E6E73]">Verificando sesión...</p>
         </div>
       </div>
     );
