@@ -24,3 +24,7 @@ VARIABLES-*.md
 # Supabase
 .supabase/
 *.local
+
+# Scripts SQL con credenciales hardcodeadas (usar versiones -SEGURO)
+ACTIVAR-CRON-JOBS.sql
+EJECUTAR-ESTE-SQL-EN-SUPABASE.sql
