@@ -7,6 +7,7 @@ import { ABTestProvider } from '@/contexts/ABTestContext';
 import { DemoModeProvider } from '@/contexts/DemoModeContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import ProtectedFamilyRoute from '@/components/ProtectedFamilyRoute';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import SeoHead from '@/components/SeoHead';
 import DemoModeBanner from '@/components/DemoModeBanner';
 import DemoConversionModal from '@/components/modals/DemoConversionModal';
@@ -53,22 +54,24 @@ const PageLoader = () => (
 
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <ABTestProvider>
-          <DemoModeProvider>
-            <Router
-              future={{
-                v7_startTransition: true,
-                v7_relativeSplatPath: true
-              }}
-            >
-              <SeoHead />
-              <DemoModeBanner />
-              <DemoConversionModal />
-              <div className="min-h-screen bg-[#F5F7F9] dark:bg-[#0f0f11] font-sans selection:bg-[#1C8FA0]/20 selection:text-[#1C8FA0] transition-colors duration-300">
-                <Suspense fallback={<PageLoader />}>
-                  <Routes>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AuthProvider>
+          <ABTestProvider>
+            <DemoModeProvider>
+              <Router
+                future={{
+                  v7_startTransition: true,
+                  v7_relativeSplatPath: true
+                }}
+              >
+                <SeoHead />
+                <DemoModeBanner />
+                <DemoConversionModal />
+                <div className="min-h-screen bg-[#F5F7F9] dark:bg-[#0f0f11] font-sans selection:bg-[#1C8FA0]/20 selection:text-[#1C8FA0] transition-colors duration-300">
+                  <ErrorBoundary>
+                    <Suspense fallback={<PageLoader />}>
+                      <Routes>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/pricing" element={<PricingPage />} />
                           <Route path="/legal/transparencia" element={<Transparency />} />
@@ -119,15 +122,17 @@ function App() {
                     <Route path="admin/support" element={<AdminSupport />} />
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                   </Route>
-                </Routes>
-                </Suspense>
-                <Toaster />
-              </div>
-            </Router>
-          </DemoModeProvider>
-        </ABTestProvider>
-      </AuthProvider>
-    </ThemeProvider>
+                      </Routes>
+                    </Suspense>
+                  </ErrorBoundary>
+                  <Toaster />
+                </div>
+              </Router>
+            </DemoModeProvider>
+          </ABTestProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

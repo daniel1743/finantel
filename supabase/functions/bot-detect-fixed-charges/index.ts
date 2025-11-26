@@ -287,17 +287,20 @@ serve(async (req) => {
           // Verificar si ya existe alerta similar
           const { data: existingAlerts } = await supabase
             .from("bot_alerts")
-            .select("id")
+            .select("id, payload")
             .eq("user_id", userId)
             .eq("bot_name", "bot-detect-fixed-charges")
             .eq("status", "pending")
-            .ilike(
-              "payload->>normalized_description",
-              pattern.normalized_description
-            )
-            .limit(1);
+            .limit(100); // Obtener más para filtrar en memoria
+          
+          // Filtrar en memoria por normalized_description
+          const matchingAlert = existingAlerts?.find(
+            (alert: any) => 
+              alert.payload?.normalized_description?.toLowerCase() === 
+              pattern.normalized_description.toLowerCase()
+          );
 
-          if (existingAlerts && existingAlerts.length > 0) {
+          if (matchingAlert) {
             console.log(
               `⏭️  Alerta duplicada para ${pattern.normalized_description}, omitiendo...`
             );
@@ -350,7 +353,7 @@ serve(async (req) => {
       } catch (err) {
         errors.push({
           user_id: userId,
-          error: err.message,
+          error: err instanceof Error ? err.message : String(err),
         });
       }
     }
@@ -392,7 +395,10 @@ serve(async (req) => {
   } catch (error) {
     console.error("❌ Error en bot-detect-fixed-charges:", error);
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
+      JSON.stringify({ 
+        success: false, 
+        error: error instanceof Error ? error.message : String(error) 
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,

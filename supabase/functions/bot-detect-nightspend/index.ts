@@ -303,7 +303,7 @@ serve(async (req) => {
       } catch (err) {
         errors.push({
           user_id: userId,
-          error: err.message,
+          error: err instanceof Error ? err.message : String(err),
         });
       }
     }
@@ -345,7 +345,10 @@ serve(async (req) => {
   } catch (error) {
     console.error("❌ Error en bot-detect-nightspend:", error);
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
+      JSON.stringify({ 
+        success: false, 
+        error: error instanceof Error ? error.message : String(error) 
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,

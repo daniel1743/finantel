@@ -17,6 +17,14 @@ import {
 } from 'lucide-react';
 
 const Auth = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { signIn, signUp } = useAuth();
+  
+  const searchParams = new URLSearchParams(location.search);
+  const offerParam = searchParams.get('offer');
+  
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -25,11 +33,6 @@ const Auth = () => {
     fullName: '',
     confirmPassword: ''
   });
-  
-  const { signIn, signUp } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { toast } = useToast();
   
   const from = location.state?.from?.pathname || "/dashboard";
 
@@ -82,9 +85,11 @@ const Auth = () => {
         className="w-full max-w-md bg-white/80 backdrop-blur-xl rounded-[32px] shadow-[0_40px_80px_-12px_rgba(0,0,0,0.12)] border border-white p-8 relative z-10"
       >
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-[#1C8FA0] rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-[#1C8FA0]/20 mx-auto mb-4">
-            F
-          </div>
+          <img
+            src="/finantel-logo.png"
+            alt="Finantel Logo"
+            className="h-12 w-auto mx-auto mb-4"
+          />
           <h1 className="text-2xl font-bold text-[#1a1a1a] font-['Inter_Tight']">
             {isLogin ? 'Bienvenido de nuevo' : 'Crea tu cuenta'}
           </h1>

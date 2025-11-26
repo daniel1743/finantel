@@ -68,7 +68,10 @@ export const AuthProvider = ({ children }) => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
+        // Solo loguear eventos importantes, no INITIAL_SESSION
+        if (event !== 'INITIAL_SESSION') {
+          console.log('Auth state changed:', event, session?.user?.email);
+        }
         
         // Manejar eventos específicos
         if (event === 'TOKEN_REFRESHED') {
@@ -76,6 +79,9 @@ export const AuthProvider = ({ children }) => {
         } else if (event === 'SIGNED_OUT') {
           handleSession(null);
         } else if (event === 'SIGNED_IN') {
+          handleSession(session);
+        } else if (event === 'INITIAL_SESSION') {
+          // Manejar sesión inicial sin loguear
           handleSession(session);
         } else {
           handleSession(session);

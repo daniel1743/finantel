@@ -2,39 +2,25 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import { ArrowRight, ShieldCheck, TrendingUp, PieChart } from 'lucide-react';
+import { ArrowRight, ShieldCheck, TrendingUp, PieChart, ShoppingBag, ArrowUpRight, Film } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useABTest } from '@/contexts/ABTestContext';
-import { useDemoMode } from '@/contexts/DemoModeContext';
 import NewsletterSignup from '@/components/NewsletterSignup';
+import RecentUsersCounter from '@/components/RecentUsersCounter';
 
 const Hero = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { experiments, trackConversion } = useABTest();
-  const { startDemoMode } = useDemoMode();
 
   // A/B Test Logic
   const ctaText = experiments['hero_cta_text'] === 'variant_b' ? 'Prueba Ahora' : 'Comenzar Gratis';
   const showNewsletter = experiments['pricing_plans'] === 'variant_b'; // Example usage of another test
 
-  const handleCTAClick = (action) => {
+  const handleCTAClick = () => {
     trackConversion('hero_cta_text');
-    if (action === 'dashboard') {
-      // Iniciar modo demo y redirigir al dashboard
-      startDemoMode();
-      navigate('/dashboard');
-      toast({
-        title: "✨ Modo Demo Activado",
-        description: "Tienes 1 hora para explorar Finantel sin registrarte.",
-      });
-    } else {
-      toast({
-        title: "🚧 Próximamente",
-        description: "Estamos preparando esta experiencia para ti.",
-      });
-    }
+    navigate('/auth');
   };
 
   return (
@@ -86,18 +72,11 @@ const Hero = () => {
               className="flex flex-col sm:flex-row gap-4 pt-4"
             >
               <Button 
-                onClick={() => handleCTAClick('start')}
+                onClick={handleCTAClick}
                 className="bg-[#1C8FA0] hover:bg-[#167a8a] text-white text-lg px-8 py-7 h-auto rounded-full shadow-xl shadow-[#1C8FA0]/20 transition-all hover:shadow-[#1C8FA0]/30 hover:-translate-y-1"
               >
                 {ctaText}
                 <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-              <Button
-                onClick={() => handleCTAClick('dashboard')}
-                variant="outline"
-                className="text-[#1C8FA0] border-[#1C8FA0] hover:bg-[#1C8FA0]/10 hover:text-[#167a8a] dark:hover:bg-[#1C8FA0]/20 text-lg px-8 py-7 h-auto rounded-full transition-all hover:-translate-y-1"
-              >
-                Probar Demo Gratuita
               </Button>
             </motion.div>
 
@@ -121,6 +100,11 @@ const Hero = () => {
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="relative z-10"
             >
+              {/* Recent Users Counter - Positioned absolutely */}
+              <div className="absolute -top-4 -right-4 z-20 hidden lg:block">
+                <RecentUsersCounter />
+              </div>
+
               {/* Main Card */}
               <div className="bg-white/80 dark:bg-[#1a1a1a]/80 backdrop-blur-xl rounded-[32px] p-6 shadow-[0_30px_60px_-12px_rgba(0,0,0,0.12)] dark:shadow-black/50 border border-white/50 dark:border-white/10 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#1C8FA0] to-[#E47B45]" />
@@ -152,14 +136,14 @@ const Hero = () => {
                 {/* Recent Transactions */}
                 <div className="space-y-4">
                   {[
-                    { name: "Supermercado", cat: "Alimentación", amount: "-$124.50", icon: "🛒" },
-                    { name: "Freelance Project", cat: "Ingresos", amount: "+$850.00", icon: "💻", positive: true },
-                    { name: "Netflix", cat: "Suscripciones", amount: "-$15.99", icon: "🎬" }
+                    { name: "Supermercado", cat: "Alimentación", amount: "-$124.50", Icon: ShoppingBag, color: "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400" },
+                    { name: "Freelance Project", cat: "Ingresos", amount: "+$850.00", Icon: ArrowUpRight, positive: true, color: "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" },
+                    { name: "Netflix", cat: "Suscripciones", amount: "-$15.99", Icon: Film, color: "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400" }
                   ].map((tx, i) => (
                     <div key={i} className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors cursor-default group">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
-                          {tx.icon}
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform ${tx.color}`}>
+                          <tx.Icon className="w-5 h-5" />
                         </div>
                         <div>
                           <p className="text-sm font-semibold text-[#1a1a1a] dark:text-white">{tx.name}</p>

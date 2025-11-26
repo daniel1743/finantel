@@ -34,8 +34,11 @@ const Header = () => {
     >
       <nav className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-[#1C8FA0] rounded-lg flex items-center justify-center text-white font-bold text-lg">F</div>
-          <span className="text-xl font-bold tracking-tight text-[#1C8FA0]">FINANTEL</span>
+          <img
+            src="/finantel-logo.png"
+            alt="Finantel Logo"
+            className="h-8 w-auto"
+          />
         </Link>
         
         <div className="hidden md:flex items-center gap-8">

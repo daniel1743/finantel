@@ -349,7 +349,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
             user_id: user.id,
             name: categoryName,
             color: formData.type === 'expense' ? '#E47B45' : '#1C8FA0',
-            icon: '💰',
+            icon: 'DollarSign',
           };
           
           // Intentar crear sin type primero
@@ -831,7 +831,7 @@ const Transactions = () => {
               // Mapear datos de Supabase a formato de UI
               const categoryName = tx.categories?.name || 'Sin categoría';
               const categoryColor = tx.categories?.color || '#3B82F6';
-              const categoryIcon = tx.categories?.icon || '💰';
+              const categoryIcon = tx.categories?.icon || 'DollarSign';
               
               // Determinar icono y color según tipo
               const isIncome = tx.type === 'income';

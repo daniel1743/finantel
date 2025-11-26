@@ -21,8 +21,11 @@ const Footer = () => {
         <div className="grid md:grid-cols-12 gap-12 mb-16">
           <div className="md:col-span-5 space-y-6">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#1C8FA0] rounded-lg flex items-center justify-center text-white font-bold text-lg">F</div>
-              <span className="text-xl font-bold tracking-tight text-[#1a1a1a]">FINANTEL</span>
+              <img
+                src="/finantel-logo.png"
+                alt="Finantel Logo"
+                className="h-8 w-auto"
+              />
             </div>
             <p className="text-[#6E6E73] max-w-sm leading-relaxed">
               Diseñando el futuro de las finanzas personales. Privacidad primero, inteligencia siempre.

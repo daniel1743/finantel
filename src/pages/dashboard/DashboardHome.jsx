@@ -557,7 +557,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
             user_id: user.id,
             name: categoryName,
             color: formData.type === 'expense' ? '#E47B45' : '#1C8FA0',
-            icon: '💰',
+            icon: 'DollarSign',
           };
 
           const { data: newCategory, error: categoryError } = await supabase
