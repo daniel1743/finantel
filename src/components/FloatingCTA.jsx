@@ -49,9 +49,9 @@ const FloatingCTA = () => {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 100, scale: 0.8 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 max-w-md w-full mx-4"
+          className="fixed bottom-4 sm:bottom-6 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 z-50 max-w-md sm:w-full mx-auto"
         >
-          <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-2xl border border-gray-200 dark:border-white/10 p-4 flex items-center gap-4 relative">
+          <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-2xl border border-gray-200 dark:border-white/10 p-4 flex items-center gap-3 sm:gap-4 relative">
             {/* Close Button */}
             <button
               onClick={handleDismiss}
@@ -74,10 +74,11 @@ const FloatingCTA = () => {
             {/* CTA Button */}
             <Button
               onClick={handleCTAClick}
-              className="bg-[#1C8FA0] hover:bg-[#167a8a] text-white rounded-full px-6 py-2 text-sm font-medium shadow-lg shadow-[#1C8FA0]/20 transition-all hover:shadow-[#1C8FA0]/30 hover:-translate-y-0.5 whitespace-nowrap"
+              className="bg-[#1C8FA0] hover:bg-[#167a8a] text-white rounded-full px-4 sm:px-6 py-2 text-xs sm:text-sm font-medium shadow-lg shadow-[#1C8FA0]/20 transition-all hover:shadow-[#1C8FA0]/30 hover:-translate-y-0.5 whitespace-nowrap flex-shrink-0"
             >
-              Comenzar
-              <ArrowRight className="w-4 h-4 ml-1" />
+              <span className="hidden sm:inline">Comenzar</span>
+              <span className="sm:hidden">Ir</span>
+              <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
             </Button>
           </div>
         </motion.div>

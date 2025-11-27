@@ -39,6 +39,7 @@ const SupportTicketDetail = lazy(() => import('@/pages/dashboard/SupportTicketDe
 const AdminSupport = lazy(() => import('@/pages/dashboard/AdminSupport'));
 const SharedExpenses = lazy(() => import('@/pages/dashboard/SharedExpenses'));
 const Notifications = lazy(() => import('@/pages/dashboard/Notifications'));
+const SystemNotifications = lazy(() => import('@/pages/dashboard/SystemNotifications'));
 const Export = lazy(() => import('@/pages/dashboard/Export'));
 const EmailPreferences = lazy(() => import('@/pages/dashboard/EmailPreferences'));
 const ABTesting = lazy(() => import('@/pages/dashboard/ABTesting'));
@@ -120,6 +121,7 @@ function App() {
                     <Route path="support" element={<Support />} />
                     <Route path="support/:ticketId" element={<SupportTicketDetail />} />
                     <Route path="admin/support" element={<AdminSupport />} />
+                    <Route path="admin/system-notifications" element={<SystemNotifications />} />
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                   </Route>
                       </Routes>

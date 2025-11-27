@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { ArrowRight, ShieldCheck, TrendingUp, PieChart, ShoppingBag, ArrowUpRight, Film, Music, Ticket, Coffee, Car, Plane, Zap } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useABTest } from '@/contexts/ABTestContext';
 import RecentUsersCounter from '@/components/RecentUsersCounter';
@@ -194,19 +194,20 @@ const Hero = () => {
                     <p className="text-xs font-semibold text-[#6E6E73] dark:text-gray-400 uppercase tracking-wider mb-2">
                       Transacciones Recientes
                     </p>
-                    <AnimatePresence mode="wait">
+                    <div className="space-y-2">
                       {getDisplayTransactions().map((tx, i) => (
                         <motion.div
                           key={`${currentTransactionIndex}-${i}`}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: -20 }}
-                          transition={{ duration: 0.4, delay: i * 0.1 }}
-                          className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors cursor-default group"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors cursor-default"
+                          style={{ minHeight: '60px' }}
                         >
                           <div className="flex items-center gap-3 min-w-0 flex-1">
-                            <div className={`w-9 h-9 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0 ${tx.color}`}>
-                              <tx.Icon className="w-4 h-4" />
+                            <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors flex-shrink-0 ${tx.color}`} style={{ minWidth: '36px', minHeight: '36px' }}>
+                              <tx.Icon className="w-4 h-4" style={{ width: '16px', height: '16px' }} />
                             </div>
                             <div className="min-w-0 flex-1">
                               <p className="text-sm font-semibold text-[#1a1a1a] dark:text-white truncate">{tx.name}</p>
@@ -218,7 +219,7 @@ const Hero = () => {
                           </span>
                         </motion.div>
                       ))}
-                    </AnimatePresence>
+                    </div>
                   </div>
                 </div>
               </motion.div>
