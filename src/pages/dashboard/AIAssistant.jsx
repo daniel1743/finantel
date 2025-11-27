@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { sendMessageToAI } from '@/lib/ai-service';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useSupportTickets } from '@/hooks/useSupportTickets';
+import { useFinance } from '@/hooks/useFinance';
 
 const QuickPill = ({ text, onClick }) => (
   <button 
@@ -82,6 +83,7 @@ const AIAssistant = () => {
   const topic = searchParams.get('topic');
   const { user } = useAuth();
   const { tickets, loading: ticketsLoading } = useSupportTickets(user?.id);
+  const { transactions, categories, budgets, goals, loading: financeLoading } = useFinance(user?.id);
   const isSupportMode = topic === 'support';
   const [isInitialized, setIsInitialized] = useState(false);
   
@@ -94,7 +96,12 @@ const AIAssistant = () => {
       }
       return "Hola, soy FinanBot, tu asistente de soporte. Puedo ayudarte con consultas sobre tu cuenta, tickets, facturación o cualquier problema técnico. ¿En qué puedo ayudarte?";
     }
-    return "Hola, soy tu Coach Financiero Finantel. ¿En qué puedo ayudarte hoy a optimizar tu dinero?";
+    // Mensaje inicial más cálido y personalizado según el nuevo prompt
+    const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
+    if (userName) {
+      return `Hola ${userName}, qué gusto verte por aquí. Cuéntame cómo te has sentido últimamente con tus gastos. Estoy contigo para ordenar todo sin estrés y ayudarte a planear lo que necesites.`;
+    }
+    return "Hola, qué gusto verte por aquí. Cuéntame cómo te has sentido últimamente con tus gastos. Estoy contigo para ordenar todo sin estrés y ayudarte a planear lo que necesites.";
   };
 
   const [messages, setMessages] = useState([
@@ -132,7 +139,7 @@ const AIAssistant = () => {
     setIsLoading(true);
 
     try {
-      // Construir contexto adicional si estamos en modo soporte
+      // Construir contexto adicional
       let contextMessages = [...messages, userMessage];
       
       if (isSupportMode && tickets && tickets.length > 0) {
@@ -150,11 +157,95 @@ El usuario está en el Centro de Ayuda. Responde como asistente de soporte técn
         
         // Insertar contexto al principio
         contextMessages = [supportContext, ...contextMessages];
+      } else {
+        // Modo Coach Financiero - Agregar datos reales de transacciones
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - 7);
+        
+        // Filtrar transacciones del mes actual
+        const monthTransactions = transactions?.filter(t => {
+          const txDate = new Date(t.date);
+          return txDate >= startOfMonth;
+        }) || [];
+        
+        // Filtrar transacciones de la semana
+        const weekTransactions = transactions?.filter(t => {
+          const txDate = new Date(t.date);
+          return txDate >= startOfWeek;
+        }) || [];
+        
+        // Calcular resumen de gastos por categoría del mes
+        const categoryTotals = {};
+        monthTransactions.forEach(tx => {
+          if (tx.type === 'expense' && tx.amount) {
+            const catName = tx.categories?.name || 'Sin categoría';
+            categoryTotals[catName] = (categoryTotals[catName] || 0) + parseFloat(tx.amount);
+          }
+        });
+        
+        // Formatear transacciones para el contexto
+        const transactionsContext = monthTransactions.length > 0 
+          ? monthTransactions.slice(0, 20).map(tx => ({
+              id: tx.id,
+              date: tx.date,
+              description: tx.description,
+              amount: tx.amount,
+              type: tx.type,
+              category: tx.categories?.name || 'Sin categoría'
+            }))
+          : [];
+        
+        const financialContext = {
+          role: 'system',
+          content: `DATOS FINANCIEROS REALES DEL USUARIO (${user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuario'}):
+
+IMPORTANTE: SOLO usa estos datos reales. NUNCA inventes, asumas o generes información financiera que no esté aquí.
+
+TRANSACCIONES DEL MES ACTUAL (${monthTransactions.length} transacciones):
+${transactionsContext.length > 0 
+  ? JSON.stringify(transactionsContext, null, 2)
+  : 'El usuario NO tiene transacciones registradas este mes.'}
+
+RESUMEN DE GASTOS POR CATEGORÍA (mes actual):
+${Object.keys(categoryTotals).length > 0
+  ? Object.entries(categoryTotals)
+      .sort((a, b) => b[1] - a[1])
+      .map(([cat, total]) => `- ${cat}: $${total.toLocaleString('es-CL')}`)
+      .join('\n')
+  : 'No hay gastos registrados este mes.'}
+
+TOTAL DE TRANSACCIONES:
+- Mes actual: ${monthTransactions.length}
+- Última semana: ${weekTransactions.length}
+- Total histórico: ${transactions?.length || 0}
+
+CATEGORÍAS DISPONIBLES: ${categories?.map(c => c.name).join(', ') || 'Ninguna categoría creada'}
+
+PRESUPUESTOS: ${budgets?.length || 0} presupuesto(s) activo(s)
+
+METAS: ${goals?.length || 0} meta(s) financiera(s)
+
+REGLAS CRÍTICAS:
+1. SOLO menciona datos que estén en la información de arriba
+2. Si no hay transacciones, di claramente: "Aún no tienes transacciones registradas este mes"
+3. Si el usuario pregunta por gastos y no hay datos, NO inventes números ni categorías
+4. Si hay datos, úsalos exactamente como aparecen
+5. NUNCA digas "aproximadamente" o "alrededor de" con números que no estén en los datos reales
+6. Si no sabes algo porque no hay datos, sé honesto: "No tengo esa información porque aún no has registrado transacciones en esa categoría"
+
+El usuario está en el Coach Financiero. Responde como coach-amigo usando SOLO los datos reales proporcionados arriba.`
+        };
+        
+        // Insertar contexto financiero al principio
+        contextMessages = [financialContext, ...contextMessages];
       }
 
       const aiResponseText = await sendMessageToAI(contextMessages);
       setMessages(prev => [...prev, { role: 'assistant', content: aiResponseText }]);
     } catch (error) {
+      console.error('Error sending message:', error);
       setMessages(prev => [...prev, { role: 'assistant', content: "Lo siento, hubo un error al procesar tu solicitud." }]);
     } finally {
       setIsLoading(false);
