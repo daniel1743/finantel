@@ -57,8 +57,14 @@ const NewsletterSignup = ({ variant = 'default' }) => {
             <Mail className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-[#1a1a1a] dark:text-white">Newsletter Exclusiva</h3>
-            <p className="text-xs text-[#6E6E73] dark:text-gray-400">Tips de ahorro y actualizaciones semanales.</p>
+            <h3 className="font-bold text-[#1a1a1a] dark:text-white">
+              {variant === 'financial' ? 'Consejos Financieros Inteligentes' : 'Newsletter Exclusiva'}
+            </h3>
+            <p className="text-xs text-[#6E6E73] dark:text-gray-400">
+              {variant === 'financial' 
+                ? 'Alertas de ahorro personalizadas y oportunidades detectadas por IA cada semana.'
+                : 'Tips de ahorro y actualizaciones semanales.'}
+            </p>
           </div>
         </div>
 

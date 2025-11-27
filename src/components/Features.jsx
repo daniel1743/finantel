@@ -40,7 +40,7 @@ const Features = () => {
   ];
 
   return (
-    <section className="py-32 bg-white">
+    <section id="features" className="py-32 bg-white scroll-mt-20">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="mb-20 max-w-2xl">
           <h2 className="text-4xl font-bold text-[#1a1a1a] mb-6">Potencia sin complejidad</h2>

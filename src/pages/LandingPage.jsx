@@ -22,9 +22,9 @@ const LandingPage = () => {
         <Hero />
         <UserStats />
         <BrandsScroll />
+        <Features />
         <WhyFinantel />
         <UniqueValue />
-        <Features />
         <Testimonials />
         <LimitedOffer />
         <Pricing />

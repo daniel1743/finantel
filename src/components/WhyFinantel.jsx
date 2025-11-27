@@ -22,7 +22,7 @@ const WhyFinantel = () => {
   ];
 
   return (
-    <section className="py-32 bg-white">
+    <section id="security" className="py-32 bg-white scroll-mt-20">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-20">
           <h2 className="text-sm font-bold text-[#1C8FA0] tracking-widest uppercase mb-3">Por qué Finantel</h2>

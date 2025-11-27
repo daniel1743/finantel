@@ -18,11 +18,31 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleNavClick = () => {
-    toast({
-      title: "🚧 Próximamente",
-      description: "Esta sección estará disponible muy pronto.",
-    });
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const headerOffset = 80; // Altura del header
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const handleNavClick = (item) => {
+    const sectionMap = {
+      'Características': 'features',
+      'Precios': 'pricing',
+      'Seguridad': 'security'
+    };
+    
+    const sectionId = sectionMap[item];
+    if (sectionId) {
+      scrollToSection(sectionId);
+    }
   };
 
   return (
@@ -45,8 +65,8 @@ const Header = () => {
           {['Características', 'Precios', 'Seguridad'].map((item) => (
             <button 
               key={item}
-              onClick={handleNavClick} 
-              className="text-sm font-medium text-[#6E6E73] hover:text-[#1C8FA0] transition-colors"
+              onClick={() => handleNavClick(item)} 
+              className="text-sm font-medium text-[#6E6E73] hover:text-[#1C8FA0] transition-colors cursor-pointer"
             >
               {item}
             </button>
