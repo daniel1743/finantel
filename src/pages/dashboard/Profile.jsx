@@ -11,12 +11,17 @@ import {
   Settings, 
   Bell, 
   CreditCard,
-  ChevronRight
+  ChevronRight,
+  Trash2,
+  Pause,
+  Play
 } from 'lucide-react';
 import NotificationsModal from '@/components/modals/NotificationsModal';
 import CurrencyModal from '@/components/modals/CurrencyModal';
 import TwoFactorAuthModal from '@/components/modals/TwoFactorAuthModal';
 import EditProfileModal from '@/components/modals/EditProfileModal';
+import DeleteAccountModal from '@/components/modals/DeleteAccountModal';
+import PauseAccountModal from '@/components/modals/PauseAccountModal';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useBilling } from '@/hooks/useBilling';
 
@@ -62,30 +67,92 @@ const ProfileRow = ({ icon: Icon, label, value, action, onClick }) => (
 );
 
 const Profile = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, refreshUser } = useAuth();
   const { subscription } = useBilling(user?.id);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [twoFactorOpen, setTwoFactorOpen] = useState(false);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
+  const [pauseAccountOpen, setPauseAccountOpen] = useState(false);
   const [currency, setCurrency] = useState('USD');
   const [currencyName, setCurrencyName] = useState('Dólar Estadounidense');
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [avatarStyle, setAvatarStyle] = useState({ fontStyle: 'bold', color: '#1C8FA0' });
+  const [isPaused, setIsPaused] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
 
+  // Cargar datos del usuario
   useEffect(() => {
     if (user?.id) {
+      setUserName(user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario Finantel');
+      setUserEmail(user.email || '');
       loadCurrency();
       loadAvatar();
+      checkAccountStatus();
     }
-  }, [user?.id]);
+  }, [user?.id, user?.user_metadata?.full_name, user?.user_metadata?.avatar_url]);
+
+  // Escuchar cambios en user_metadata - actualizar estados locales cuando cambie
+  useEffect(() => {
+    if (user) {
+      const newName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario Finantel';
+      const newAvatar = user.user_metadata?.avatar_url || null;
+      
+      // Actualizar estados
+      setUserName(newName);
+      setUserEmail(user.email || '');
+      
+      // Actualizar avatar
+      if (newAvatar) {
+        setAvatarUrl(newAvatar);
+      } else {
+        // Si no hay avatar URL, cargar preferencias de avatar (para plan free)
+        setAvatarUrl(null);
+        loadAvatar();
+      }
+    }
+  }, [user?.user_metadata?.full_name, user?.user_metadata?.avatar_url, user?.id, user?.email]);
+
+  const checkAccountStatus = async () => {
+    try {
+      // Verificar si la cuenta está pausada desde user_metadata
+      const paused = user?.user_metadata?.account_paused || false;
+      setIsPaused(paused);
+
+      // También verificar en profile_preferences (solo si la columna existe)
+      try {
+        const { data } = await supabase
+          .from('profile_preferences')
+          .select('account_paused')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (data?.account_paused !== undefined) {
+          setIsPaused(data.account_paused);
+        }
+      } catch (prefError) {
+        // Si la columna no existe, solo usar user_metadata
+        if (prefError.code !== '42703') {
+          console.error('Error checking profile_preferences:', prefError);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking account status:', error);
+    }
+  };
 
   const loadAvatar = async () => {
     try {
-      // Cargar foto de perfil si existe
+      // Cargar foto de perfil si existe (prioridad: user_metadata)
       if (user?.user_metadata?.avatar_url) {
         setAvatarUrl(user.user_metadata.avatar_url);
+        return; // Si hay avatar URL, no cargar preferencias de avatar
       }
+
+      // Si no hay avatar URL, limpiar
+      setAvatarUrl(null);
 
       // Cargar preferencias de avatar si es plan gratis
       const isFreePlan = !subscription || subscription?.plan === 'free';
@@ -203,16 +270,21 @@ const Profile = () => {
           
           <div className="text-center md:text-left flex-1">
             <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white mb-1">
-              {user?.user_metadata?.full_name || 'Usuario Finantel'}
+              {userName}
             </h2>
-            <p className="text-[#6E6E73] dark:text-gray-400 mb-4">{user?.email}</p>
+            <p className="text-[#6E6E73] dark:text-gray-400 mb-4">{userEmail}</p>
             <div className="flex flex-wrap justify-center md:justify-start gap-2">
               <span className="px-3 py-1 rounded-full bg-[#1C8FA0]/10 dark:bg-[#1C8FA0]/20 text-[#1C8FA0] dark:text-[#1C8FA0] text-xs font-bold border border-[#1C8FA0]/20 dark:border-[#1C8FA0]/30">
-                Plan Pro
+                Plan {subscription?.plan ? subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1) : 'Free'}
               </span>
               <span className="px-3 py-1 rounded-full bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-xs font-bold border border-green-100 dark:border-green-800/30">
                 Verificado
               </span>
+              {isPaused && (
+                <span className="px-3 py-1 rounded-full bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 text-xs font-bold border border-yellow-100 dark:border-yellow-800/30">
+                  Pausada
+                </span>
+              )}
             </div>
           </div>
 
@@ -230,14 +302,14 @@ const Profile = () => {
           <ProfileRow 
             icon={User} 
             label="Nombre Completo" 
-            value={user?.user_metadata?.full_name || 'No definido'} 
+            value={userName || 'No definido'} 
             action="Editar"
             onClick={() => setEditProfileOpen(true)}
           />
           <ProfileRow 
             icon={Mail} 
             label="Correo Electrónico" 
-            value={user?.email}
+            value={userEmail}
           />
           <ProfileRow 
             icon={Shield} 
@@ -300,6 +372,58 @@ const Profile = () => {
           </div>
         </ProfileSection>
 
+        <ProfileSection title="Gestión de Cuenta">
+          <div className="space-y-1">
+            <button 
+              onClick={() => setPauseAccountOpen(true)}
+              className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors group"
+            >
+              <div className="flex items-center gap-4">
+                <div className={`w-10 h-10 rounded-full group-hover:bg-white dark:group-hover:bg-white/10 flex items-center justify-center transition-colors ${
+                  isPaused 
+                    ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' 
+                    : 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400'
+                }`}>
+                  {isPaused ? (
+                    <Play className="w-5 h-5" />
+                  ) : (
+                    <Pause className="w-5 h-5" />
+                  )}
+                </div>
+                <div className="text-left">
+                  <p className="font-bold text-[#1a1a1a] dark:text-white text-sm">
+                    {isPaused ? 'Reactivar Cuenta' : 'Pausar Cuenta'}
+                  </p>
+                  <p className="text-xs text-[#6E6E73] dark:text-gray-400">
+                    {isPaused 
+                      ? 'Reanuda el acceso a tu cuenta' 
+                      : 'Temporalmente desactiva tu cuenta'}
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-[#1C8FA0] transition-colors" />
+            </button>
+
+            <button 
+              onClick={() => setDeleteAccountOpen(true)}
+              className="w-full flex items-center justify-between p-4 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-colors group border border-transparent hover:border-red-200 dark:hover:border-red-900/20"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-900/20 group-hover:bg-red-100 dark:group-hover:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 transition-colors">
+                  <Trash2 className="w-5 h-5" />
+                </div>
+                <div className="text-left">
+                  <p className="font-bold text-red-600 dark:text-red-400 text-sm">Eliminar Cuenta</p>
+                  <p className="text-xs text-red-500 dark:text-red-500/80">
+                    Elimina permanentemente tu cuenta y todos tus datos
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-red-500 transition-colors" />
+            </button>
+          </div>
+        </ProfileSection>
+
         <NotificationsModal 
           isOpen={notificationsOpen} 
           onClose={() => {
@@ -323,11 +447,30 @@ const Profile = () => {
           initialTab="profile"
           onClose={() => {
             setEditProfileOpen(false);
-            loadAvatar(); // Recargar avatar después de editar
           }}
+          onUpdate={async () => {
+            // Recargar usuario para obtener datos actualizados
+            if (refreshUser) {
+              await refreshUser();
+            }
+            // Esperar un momento para que se actualice el estado del contexto
+            // El useEffect se encargará de actualizar los estados locales automáticamente
+            setTimeout(() => {
+              loadAvatar();
+              loadCurrency();
+            }, 1000);
+          }}
+        />
+        <DeleteAccountModal
+          isOpen={deleteAccountOpen}
+          onClose={() => setDeleteAccountOpen(false)}
+        />
+        <PauseAccountModal
+          isOpen={pauseAccountOpen}
+          onClose={() => setPauseAccountOpen(false)}
+          isPaused={isPaused}
           onUpdate={() => {
-            loadAvatar();
-            loadCurrency();
+            checkAccountStatus();
             // Recargar usuario para obtener datos actualizados
             window.location.reload();
           }}

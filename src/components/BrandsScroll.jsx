@@ -1,56 +1,74 @@
 import React from 'react';
 import Marquee from 'react-fast-marquee';
 import { motion } from 'framer-motion';
+import {
+  SiVisa,
+  SiMastercard,
+  SiPaypal,
+  SiStripe,
+  SiAmericanexpress,
+  SiWise,
+  SiSquare,
+  SiRevolut
+} from 'react-icons/si';
 
-// Logos de marcas (puedes reemplazar con logos reales)
+// Array de marcas financieras con iconos de Simple Icons
 const brands = [
   {
     id: 1,
-    name: "TechCorp",
-    logo: "https://via.placeholder.com/150x60/1C8FA0/FFFFFF?text=TechCorp",
-    url: "#"
+    name: "Visa",
+    Icon: SiVisa,
+    color: "#1434CB",
+    url: "https://www.visa.com"
   },
   {
     id: 2,
-    name: "FinanceHub",
-    logo: "https://via.placeholder.com/150x60/E47B45/FFFFFF?text=FinanceHub",
-    url: "#"
+    name: "Mastercard",
+    Icon: SiMastercard,
+    color: "#EB001B",
+    url: "https://www.mastercard.com"
   },
   {
     id: 3,
-    name: "MoneyFlow",
-    logo: "https://via.placeholder.com/150x60/1a1a1a/FFFFFF?text=MoneyFlow",
-    url: "#"
+    name: "PayPal",
+    Icon: SiPaypal,
+    color: "#00457C",
+    url: "https://www.paypal.com"
   },
   {
     id: 4,
-    name: "WealthTech",
-    logo: "https://via.placeholder.com/150x60/1C8FA0/FFFFFF?text=WealthTech",
-    url: "#"
+    name: "Stripe",
+    Icon: SiStripe,
+    color: "#635BFF",
+    url: "https://www.stripe.com"
   },
   {
     id: 5,
-    name: "FinTech Pro",
-    logo: "https://via.placeholder.com/150x60/E47B45/FFFFFF?text=FinTech+Pro",
-    url: "#"
+    name: "American Express",
+    Icon: SiAmericanexpress,
+    color: "#006FCF",
+    url: "https://www.americanexpress.com"
   },
   {
     id: 6,
-    name: "SmartFinance",
-    logo: "https://via.placeholder.com/150x60/1a1a1a/FFFFFF?text=SmartFinance",
-    url: "#"
+    name: "Wise",
+    Icon: SiWise,
+    color: "#37517E",
+    url: "https://wise.com"
   },
   {
     id: 7,
-    name: "BudgetMaster",
-    logo: "https://via.placeholder.com/150x60/1C8FA0/FFFFFF?text=BudgetMaster",
-    url: "#"
+    name: "Square",
+    Icon: SiSquare,
+    color: "#000000",
+    url: "https://www.squareup.com"
   },
   {
     id: 8,
-    name: "CashFlow",
-    logo: "https://via.placeholder.com/150x60/E47B45/FFFFFF?text=CashFlow",
-    url: "#"
+    name: "Revolut",
+    Icon: SiRevolut,
+    color: "#0075EB",
+    url: "https://www.revolut.com"
   }
 ];
 
@@ -87,28 +105,31 @@ const BrandsScroll = () => {
             direction="left" // Dirección: derecha a izquierda
             className="py-4"
           >
-            {brands.map((brand) => (
-              <motion.div
-                key={brand.id}
-                className="flex items-center justify-center mx-8 md:mx-12"
-                whileHover={{ scale: 1.1 }}
-                transition={{ duration: 0.2 }}
-              >
-                <a
-                  href={brand.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block opacity-60 hover:opacity-100 transition-opacity duration-300 grayscale hover:grayscale-0"
+            {brands.map((brand) => {
+              const Icon = brand.Icon;
+              return (
+                <motion.div
+                  key={brand.id}
+                  className="flex items-center justify-center mx-8 md:mx-12"
+                  whileHover={{ scale: 1.1 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  <img
-                    src={brand.logo}
-                    alt={brand.name}
-                    className="h-12 md:h-16 w-auto object-contain max-w-[150px]"
-                    loading="lazy"
-                  />
-                </a>
-              </motion.div>
-            ))}
+                  <a
+                    href={brand.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block opacity-60 hover:opacity-100 transition-all duration-300"
+                    title={brand.name}
+                  >
+                    <Icon
+                      size={48}
+                      color={brand.color}
+                      className="transition-all duration-300 grayscale hover:grayscale-0"
+                    />
+                  </a>
+                </motion.div>
+              );
+            })}
           </Marquee>
         </div>
       </div>

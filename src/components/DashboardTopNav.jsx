@@ -21,15 +21,28 @@ import { Link, useNavigate } from 'react-router-dom';
 
 const DashboardTopNav = ({ onMenuClick }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, signOut, refreshUser } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { countryCode, currency } = useUserCurrency();
   const navigate = useNavigate();
   const menuContainerRef = useRef(null);
   const buttonRef = useRef(null);
   
-  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuario';
+  // Estado local para el nombre y avatar del usuario
+  const [userName, setUserName] = useState(user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuario');
+  const [userAvatar, setUserAvatar] = useState(user?.user_metadata?.avatar_url || null);
   const userEmail = user?.email || 'usuario@finantel.app';
+
+  // Actualizar nombre y avatar cuando cambie el usuario
+  useEffect(() => {
+    if (user) {
+      const newName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario';
+      const newAvatar = user.user_metadata?.avatar_url || null;
+      
+      setUserName(newName);
+      setUserAvatar(newAvatar);
+    }
+  }, [user?.user_metadata?.full_name, user?.user_metadata?.avatar_url, user?.email, user?.id]);
 
   // Cerrar menú al hacer clic fuera
   useEffect(() => {
@@ -104,8 +117,23 @@ const DashboardTopNav = ({ onMenuClick }) => {
               }}
               className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1C8FA0] to-[#167a8a] p-[2px] shadow-lg shadow-[#1C8FA0]/20 hover:shadow-[#1C8FA0]/30 transition-all hover:-translate-y-0.5 relative"
             >
-              <div className="w-full h-full rounded-full bg-white dark:bg-[#1a1a1a] flex items-center justify-center overflow-hidden">
-                <span className="text-sm font-bold text-[#1C8FA0]">
+              <div className="w-full h-full rounded-full bg-white dark:bg-[#1a1a1a] flex items-center justify-center overflow-hidden relative">
+                {userAvatar ? (
+                  <img 
+                    src={userAvatar} 
+                    alt={userName}
+                    className="w-full h-full rounded-full object-cover"
+                    onError={(e) => {
+                      // Si la imagen falla al cargar, ocultar y mostrar inicial
+                      e.target.style.display = 'none';
+                      const fallback = e.target.parentElement.querySelector('.avatar-fallback');
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <span 
+                  className={`text-sm font-bold text-[#1C8FA0] avatar-fallback ${userAvatar ? 'hidden' : 'flex'}`}
+                >
                   {userName.charAt(0).toUpperCase()}
                 </span>
               </div>

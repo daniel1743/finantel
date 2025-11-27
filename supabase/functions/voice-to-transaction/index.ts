@@ -437,7 +437,7 @@ function classifyTransaction(description: string, lowerText: string): string {
   // Base de datos de palabras clave por categoría
   const categoryKeywords: { [key: string]: string[] } = {
     'Alimentación': [
-      'arepa', 'empanada', 'harina', 'pan', 'comida', 'supermercado', 'jumbo', 'lider', 
+      'arepa', 'empanada', 'harina', 'pan', 'comida', 'supermercado', 'jumbo', 'lider',
       'santa isabel', 'tottus', 'unimarc', 'ekono', 'super', 'market', 'despensa',
       'abarrotes', 'verduras', 'frutas', 'carne', 'pescado', 'pollo', 'lácteos'
     ],
@@ -465,9 +465,11 @@ function classifyTransaction(description: string, lowerText: string): string {
       'cine', 'película', 'pelicula', 'teatro', 'concierto', 'evento', 'fiesta', 'diversión',
       'diversion', 'juego', 'videojuego', 'playstation', 'xbox', 'nintendo'
     ],
-    'Ropa': [
-      'ropa', 'zapatos', 'zapato', 'camisa', 'pantalón', 'pantalon', 'vestido', 'chaqueta',
-      'tienda de ropa', 'boutique', 'moda'
+    'Ropa y Calzado': [
+      'ropa', 'zapatos', 'zapato', 'zapatillas', 'zapatilla', 'calzado', 'tenis', 'botas',
+      'bota', 'sandalias', 'sandalia', 'camisa', 'pantalón', 'pantalon', 'vestido', 'chaqueta',
+      'tienda de ropa', 'boutique', 'moda', 'polera', 'poleron', 'falda', 'short', 'calcetines',
+      'ropa interior', 'sostén', 'brasier', 'blusa', 'sweater', 'jeans', 'jogger', 'zapateria'
     ],
     'Educación': [
       'colegio', 'universidad', 'curso', 'clase', 'libro', 'material', 'educación', 'educacion',

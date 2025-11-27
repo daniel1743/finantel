@@ -94,7 +94,7 @@ const AIAssistant = () => {
       }
       return "Hola, soy FinanBot, tu asistente de soporte. Puedo ayudarte con consultas sobre tu cuenta, tickets, facturación o cualquier problema técnico. ¿En qué puedo ayudarte?";
     }
-    return "Hola, soy tu asistente financiero personal. ¿En qué puedo ayudarte hoy a optimizar tu dinero?";
+    return "Hola, soy tu Coach Financiero Finantel. ¿En qué puedo ayudarte hoy a optimizar tu dinero?";
   };
 
   const [messages, setMessages] = useState([
@@ -181,7 +181,7 @@ El usuario está en el Centro de Ayuda. Responde como asistente de soporte técn
               </>
             ) : (
               <>
-                <h1 className="text-2xl font-bold text-[#1a1a1a] font-['Inter_Tight']">Asistente Financiero IA</h1>
+                <h1 className="text-2xl font-bold text-[#1a1a1a] font-['Inter_Tight']">Coach Financiero Finantel</h1>
                 <span className="relative flex h-3 w-3">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
@@ -191,8 +191,8 @@ El usuario está en el Centro de Ayuda. Responde como asistente de soporte técn
           </div>
           <p className="text-[#6E6E73] text-sm mt-1">
             {isSupportMode 
-              ? "Con contexto de tus tickets y alertas • Potenciado por DeepSeek & Qwen"
-              : "Potenciado por DeepSeek & Qwen Intelligence"
+              ? "Con contexto de tus tickets y alertas • Potenciado por GPT-5"
+              : "Potenciado por GPT-5"
             }
           </p>
         </div>

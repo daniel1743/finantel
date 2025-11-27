@@ -22,7 +22,7 @@ import {
   Calendar,
   DollarSign
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useFinance } from '@/hooks/useFinance';
 import { useToast } from '@/components/ui/use-toast';
@@ -668,6 +668,31 @@ const Transactions = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [transactionModalMode, setTransactionModalMode] = useState('add');
   const [transactionToEdit, setTransactionToEdit] = useState(null);
+  const [userCurrency, setUserCurrency] = useState('USD');
+
+  // Cargar moneda del usuario
+  useEffect(() => {
+    const loadUserCurrency = async () => {
+      if (!user?.id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('profile_preferences')
+          .select('currency')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (!error && data?.currency) {
+          setUserCurrency(data.currency);
+        }
+      } catch (error) {
+        console.error('Error loading user currency:', error);
+        // Mantener USD como default si hay error
+      }
+    };
+
+    loadUserCurrency();
+  }, [user?.id]);
 
   const handleTransactionAdded = () => {
     refresh();
@@ -747,6 +772,7 @@ const Transactions = () => {
             <VoiceInput
               onTransactionCreated={handleTransactionAdded}
               userId={user?.id}
+              currency={userCurrency}
             />
             <div className="hidden sm:flex flex-col text-left">
               <span className="text-sm font-semibold text-[#1a1a1a] dark:text-white">Registrar por voz</span>
@@ -895,7 +921,7 @@ const Transactions = () => {
                   "font-bold font-mono text-sm",
                       displayAmount > 0 ? "text-green-600 dark:text-green-400" : "text-[#1a1a1a] dark:text-white"
                 )}>
-                      {displayAmount > 0 ? '+' : ''}${Math.abs(displayAmount).toFixed(2)}
+                      {displayAmount > 0 ? '+' : ''}{formatCurrency(Math.abs(displayAmount), userCurrency)}
                 </span>
               </div>
 

@@ -4,8 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import customSupabaseClient from '@/lib/customSupabaseClient';
+import { formatCurrency } from '@/lib/utils';
 
-const VoiceInput = ({ onTransactionCreated, userId }) => {
+const VoiceInput = ({ onTransactionCreated, userId, currency = 'USD' }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -112,7 +113,7 @@ const VoiceInput = ({ onTransactionCreated, userId }) => {
 
       toast({
         title: '✅ Gasto agregado',
-        description: `"${data.transcript}" → $${data.transaction?.amount?.toLocaleString?.() || ''}`,
+        description: `"${data.transcript}" → ${formatCurrency(data.transaction?.amount || 0, currency)}`,
       });
 
       if (onTransactionCreated && data.transaction) {

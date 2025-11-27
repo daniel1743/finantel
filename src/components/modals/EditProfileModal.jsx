@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, Mail, Lock, Camera, Loader2, CheckCircle2, AlertCircle, Upload, Crown } from 'lucide-react';
+import { X, User, Mail, Lock, Camera, Loader2, CheckCircle2, AlertCircle, Upload, Crown, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
 import { compressImage, isValidImage } from '@/lib/imageUtils';
 import { useBilling } from '@/hooks/useBilling';
+import AvatarSelectorModal from './AvatarSelectorModal';
 
 // Estilos de letras para plan gratis
 const FONT_STYLES = [
@@ -56,6 +57,10 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [photoUrl, setPhotoUrl] = useState(null);
+  
+  // Modal de avatares premium
+  const [avatarModalOpen, setAvatarModalOpen] = useState(false);
+  const [selectedPremiumAvatar, setSelectedPremiumAvatar] = useState(null);
 
   const isFreePlan = !subscription || subscription?.plan === 'free';
 
@@ -73,6 +78,10 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
       // Cargar foto de perfil si existe
       if (user.user_metadata?.avatar_url) {
         setPhotoUrl(user.user_metadata.avatar_url);
+        // Verificar si es un avatar premium (URL de dicebear)
+        if (user.user_metadata.avatar_url.includes('dicebear.com')) {
+          setSelectedPremiumAvatar(user.user_metadata.avatar_url);
+        }
       }
       
       // Cargar preferencias de avatar si es plan gratis
@@ -199,6 +208,12 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
 
       if (updateError) throw updateError;
 
+      // Esperar un momento para que Supabase procese la actualización
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Forzar refresh de la sesión para obtener los datos actualizados
+      await supabase.auth.refreshSession();
+
       setPhotoUrl(publicUrl);
       
       toast({
@@ -237,7 +252,7 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({
+      const { data, error } = await supabase.auth.updateUser({
         data: {
           full_name: formData.fullName.trim(),
         },
@@ -245,12 +260,22 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
 
       if (error) throw error;
 
+      // Esperar un momento para que Supabase procese la actualización
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Forzar refresh de la sesión para obtener los datos actualizados
+      await supabase.auth.refreshSession();
+
       toast({
         title: "¡Actualizado!",
         description: "Tu nombre ha sido actualizado",
       });
 
-      onUpdate?.();
+      // Llamar onUpdate después de un pequeño delay para asegurar que el contexto se actualice
+      setTimeout(() => {
+        onUpdate?.();
+      }, 300);
+
       onClose();
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -365,22 +390,36 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
   const handleSaveAvatar = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('profile_preferences')
-        .upsert({
-          user_id: user.id,
-          avatar_font_style: avatarStyle.fontStyle,
-          avatar_color: avatarStyle.color,
-          updated_at: new Date().toISOString(),
-        }, {
-          onConflict: 'user_id'
+      // Si hay un avatar premium seleccionado, guardarlo
+      if (selectedPremiumAvatar) {
+        const { error: updateError } = await supabase.auth.updateUser({
+          data: {
+            avatar_url: selectedPremiumAvatar,
+          },
         });
 
-      if (error) throw error;
+        if (updateError) throw updateError;
+      }
+
+      // Guardar preferencias de avatar (plan gratis) - solo si no hay avatar premium
+      if (!selectedPremiumAvatar) {
+        const { error } = await supabase
+          .from('profile_preferences')
+          .upsert({
+            user_id: user.id,
+            avatar_font_style: avatarStyle.fontStyle,
+            avatar_color: avatarStyle.color,
+            updated_at: new Date().toISOString(),
+          }, {
+            onConflict: 'user_id'
+          });
+
+        if (error) throw error;
+      }
 
       toast({
         title: "¡Actualizado!",
-        description: "Tu avatar ha sido actualizado",
+        description: selectedPremiumAvatar ? "Tu avatar premium ha sido actualizado" : "Tu avatar ha sido actualizado",
       });
 
       onUpdate?.();
@@ -394,6 +433,50 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSelectPremiumAvatar = (avatarUrl) => {
+    setSelectedPremiumAvatar(avatarUrl);
+    setPhotoUrl(avatarUrl);
+    // Si es plan pago, también actualizar directamente
+    if (!isFreePlan) {
+      handleSavePremiumAvatar(avatarUrl);
+    }
+  };
+
+  const handleSavePremiumAvatar = async (avatarUrl) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          avatar_url: avatarUrl,
+        },
+      });
+
+      if (error) throw error;
+
+      // Esperar un momento para que Supabase procese la actualización
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Forzar refresh de la sesión para obtener los datos actualizados
+      await supabase.auth.refreshSession();
+
+      toast({
+        title: "¡Avatar actualizado!",
+        description: "Tu avatar premium ha sido guardado",
+      });
+
+      // Llamar onUpdate después de un pequeño delay
+      setTimeout(() => {
+        onUpdate?.();
+      }, 300);
+    } catch (error) {
+      console.error('Error saving premium avatar:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo guardar el avatar",
+      });
     }
   };
 
@@ -488,9 +571,24 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
             >
               {/* Foto de Perfil */}
               <div>
-                <label className="block text-sm font-medium text-[#1a1a1a] dark:text-white mb-3">
-                  Foto de Perfil
-                </label>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-sm font-medium text-[#1a1a1a] dark:text-white">
+                    Foto de Perfil
+                  </label>
+                  <div className="relative group">
+                    <button
+                      onClick={() => setAvatarModalOpen(true)}
+                      className="p-2 rounded-full bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors border border-gray-200 dark:border-white/10"
+                      title="Avatares"
+                    >
+                      <UserCircle className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+                    </button>
+                    <div className="absolute bottom-full right-0 mb-2 px-2 py-1 bg-[#1a1a1a] dark:bg-white text-white dark:text-[#1a1a1a] text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                      Avatares
+                      <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-[#1a1a1a] dark:border-t-white"></div>
+                    </div>
+                  </div>
+                </div>
                 
                 {isFreePlan ? (
                   <div className="space-y-4">
@@ -503,15 +601,25 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
                     
                     {/* Avatar Personalizado */}
                     <div className="space-y-4">
-                      <div className="flex justify-center">
-                        <div
-                          className="w-24 h-24 rounded-full flex items-center justify-center text-white text-3xl shadow-lg"
-                          style={{ backgroundColor: avatarStyle.color }}
-                        >
-                          <span className={getFontClass(avatarStyle.fontStyle)}>
-                            {getInitial()}
-                          </span>
-                        </div>
+                      <div className="flex justify-center relative">
+                        {selectedPremiumAvatar ? (
+                          <div className="w-24 h-24 rounded-full overflow-hidden shadow-lg border-2 border-white dark:border-[#1a1a1a]">
+                            <img
+                              src={selectedPremiumAvatar}
+                              alt="Avatar Premium"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div
+                            className="w-24 h-24 rounded-full flex items-center justify-center text-white text-3xl shadow-lg"
+                            style={{ backgroundColor: avatarStyle.color }}
+                          >
+                            <span className={getFontClass(avatarStyle.fontStyle)}>
+                              {getInitial()}
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       <div>
@@ -564,9 +672,9 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
                           <div className="w-24 h-24 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center border-2 border-dashed border-[#1C8FA0]">
                             <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
                           </div>
-                        ) : photoUrl || photoPreview ? (
+                        ) : selectedPremiumAvatar || photoUrl || photoPreview ? (
                           <img
-                            src={photoPreview || photoUrl}
+                            src={photoPreview || selectedPremiumAvatar || photoUrl}
                             alt="Profile"
                             className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
                           />
@@ -575,17 +683,20 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
                             {getInitial()}
                           </div>
                         )}
-                        <button
-                          onClick={() => fileInputRef.current?.click()}
-                          disabled={uploading || verifying}
-                          className="absolute bottom-0 right-0 w-8 h-8 bg-[#1C8FA0] rounded-full text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform disabled:opacity-50"
-                        >
-                          {uploading || verifying ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Camera className="w-4 h-4" />
-                          )}
-                        </button>
+                        <div className="absolute -bottom-1 -right-1 flex gap-1">
+                          <button
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={uploading || verifying}
+                            className="w-8 h-8 bg-[#1C8FA0] rounded-full text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform disabled:opacity-50"
+                            title="Subir foto"
+                          >
+                            {uploading || verifying ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Camera className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
                         <input
                           ref={fileInputRef}
                           type="file"
@@ -774,6 +885,14 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
             </motion.div>
           )}
         </AnimatePresence>
+        
+        {/* Modal de Selección de Avatares Premium */}
+        <AvatarSelectorModal
+          isOpen={avatarModalOpen}
+          onClose={() => setAvatarModalOpen(false)}
+          onSelect={handleSelectPremiumAvatar}
+          currentAvatar={selectedPremiumAvatar || photoUrl}
+        />
       </motion.div>
     </div>
   );

@@ -74,7 +74,8 @@ export const AuthProvider = ({ children }) => {
         }
         
         // Manejar eventos específicos
-        if (event === 'TOKEN_REFRESHED') {
+        if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+          // USER_UPDATED se dispara cuando se actualiza el usuario con updateUser()
           handleSession(session);
         } else if (event === 'SIGNED_OUT') {
           handleSession(null);
@@ -84,6 +85,7 @@ export const AuthProvider = ({ children }) => {
           // Manejar sesión inicial sin loguear
           handleSession(session);
         } else {
+          // Para cualquier otro evento, actualizar la sesión
           handleSession(session);
         }
       }
@@ -176,6 +178,34 @@ export const AuthProvider = ({ children }) => {
     return { error };
   }, [toast]);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      // Refrescar la sesión completa para obtener los datos actualizados
+      const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+      
+      if (refreshError) {
+        console.error('Error refreshing session:', refreshError);
+        // Si falla el refresh, intentar obtener solo el usuario
+        const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+        if (userError) {
+          console.error('Error getting user:', userError);
+          return;
+        }
+        if (currentUser) {
+          setUser(currentUser);
+        }
+        return;
+      }
+
+      // Si el refresh fue exitoso, actualizar con la nueva sesión
+      if (refreshedSession) {
+        handleSession(refreshedSession);
+      }
+    } catch (err) {
+      console.error('Error in refreshUser:', err);
+    }
+  }, [handleSession]);
+
   const value = useMemo(() => ({
     user,
     session,
@@ -183,7 +213,8 @@ export const AuthProvider = ({ children }) => {
     signUp,
     signIn,
     signOut,
-  }), [user, session, loading, signUp, signIn, signOut]);
+    refreshUser,
+  }), [user, session, loading, signUp, signIn, signOut, refreshUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
