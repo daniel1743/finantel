@@ -29,16 +29,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
 import VoiceInput from '@/components/VoiceInput';
 
-const transactionsData = [
-  { id: 1, name: "Supermercado Metro", category: "Alimentación", type: "Gasto", amount: -124.50, date: "21 Nov, 2023", icon: ShoppingBag, color: "bg-orange-100 text-orange-600" },
-  { id: 2, name: "Freelance Project", category: "Ingresos", type: "Ingreso", amount: 850.00, date: "20 Nov, 2023", icon: ArrowUpRight, color: "bg-green-100 text-green-600" },
-  { id: 3, name: "Starbucks Coffee", category: "Ocio", type: "Gasto", amount: -8.50, date: "20 Nov, 2023", icon: Coffee, color: "bg-purple-100 text-purple-600" },
-  { id: 4, name: "Internet Fibra", category: "Servicios", type: "Gasto", amount: -45.00, date: "19 Nov, 2023", icon: Home, color: "bg-blue-100 text-blue-600" },
-  { id: 5, name: "Uber Trip", category: "Transporte", type: "Gasto", amount: -15.20, date: "18 Nov, 2023", icon: Car, color: "bg-gray-100 text-gray-600" },
-  { id: 6, name: "Vuelo a Madrid", category: "Viajes", type: "Gasto", amount: -450.00, date: "15 Nov, 2023", icon: Plane, color: "bg-sky-100 text-sky-600" },
-  { id: 7, name: "Spotify Premium", category: "Suscripciones", type: "Gasto", amount: -9.99, date: "14 Nov, 2023", icon: ShoppingBag, color: "bg-pink-100 text-pink-600" },
-];
-
 const FilterButton = ({ label, active }) => (
   <button className={cn(
     "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all",
@@ -665,10 +655,26 @@ const Transactions = () => {
   } = useFinance(user?.id);
   const [selectedRow, setSelectedRow] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 300); // Debounce de 300ms
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [transactionModalMode, setTransactionModalMode] = useState('add');
   const [transactionToEdit, setTransactionToEdit] = useState(null);
   const [userCurrency, setUserCurrency] = useState('USD');
+
+  // Filtrar transacciones con memoización para mejor rendimiento
+  const filteredTransactions = useMemo(() => {
+    if (!debouncedSearchQuery.trim()) {
+      return transactions;
+    }
+    
+    const query = debouncedSearchQuery.toLowerCase();
+    return transactions.filter(tx => {
+      const description = (tx.description || '').toLowerCase();
+      const category = (tx.categories?.name || '').toLowerCase();
+      const amount = String(tx.amount || '');
+      return description.includes(query) || category.includes(query) || amount.includes(query);
+    });
+  }, [transactions, debouncedSearchQuery]);
 
   // Cargar moneda del usuario
   useEffect(() => {
@@ -832,8 +838,8 @@ const Transactions = () => {
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
             </div>
-          ) : transactions && transactions.length > 0 ? (
-            transactions.map((tx, index) => {
+          ) : filteredTransactions && filteredTransactions.length > 0 ? (
+            filteredTransactions.map((tx, index) => {
               // Mapear datos de Supabase a formato de UI
               const categoryName = tx.categories?.name || 'Sin categoría';
               const categoryColor = tx.categories?.color || '#3B82F6';
@@ -969,15 +975,22 @@ const Transactions = () => {
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <DollarSign className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-4" />
-              <p className="text-[#6E6E73] dark:text-gray-400 font-medium">No hay transacciones aún</p>
-              <p className="text-sm text-[#6E6E73] dark:text-gray-500 mt-1">Crea tu primera transacción para comenzar</p>
+              <p className="text-[#6E6E73] dark:text-gray-400 font-medium">
+                {debouncedSearchQuery.trim() ? 'No se encontraron transacciones' : 'No hay transacciones aún'}
+              </p>
+              <p className="text-sm text-[#6E6E73] dark:text-gray-500 mt-1">
+                {debouncedSearchQuery.trim() ? 'Intenta con otros términos de búsqueda' : 'Crea tu primera transacción para comenzar'}
+              </p>
             </div>
           )}
         </div>
 
         {/* Pagination */}
         <div className="p-4 border-t border-gray-100 flex items-center justify-between bg-gray-50/30">
-          <span className="text-xs text-[#6E6E73]">Mostrando 1-7 de 124 transacciones</span>
+          <span className="text-xs text-[#6E6E73]">
+            Mostrando {filteredTransactions.length} de {transactions.length} transacciones
+            {debouncedSearchQuery.trim() && ` (filtradas por "${debouncedSearchQuery}")`}
+          </span>
           <div className="flex gap-2">
             <button className="px-3 py-1.5 text-xs font-medium text-[#6E6E73] hover:text-[#1a1a1a] disabled:opacity-50">Anterior</button>
             <button className="px-3 py-1.5 text-xs font-medium bg-white border border-gray-200 rounded-md shadow-sm text-[#1a1a1a]">1</button>
