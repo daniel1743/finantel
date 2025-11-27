@@ -1,17 +1,34 @@
 // =====================================================
-// EDGE FUNCTION: create-checkout-session
+// EDGE FUNCTION: create-checkout-session (CON SENTRY)
 // =====================================================
 // Crea una sesión de checkout en Mercado Pago
-// y retorna la URL de redirección (init_point)
+// con validación estricta, rate limiting, sanitización y Sentry
 // =====================================================
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { 
+  securityMiddleware, 
+  genericErrorResponse,
+  getClientIP 
+} from '../_shared/security.ts';
+import { 
+  sanitizeRequest, 
+  sanitizeUUID, 
+  sanitizeEnum,
+  sanitizeString 
+} from '../_shared/sanitizer.ts';
+import { corsHeaders } from '../_shared/cors.ts';
+import { 
+  initSentryEdge, 
+  captureError, 
+  captureCriticalError,
+  monitorPerformance,
+  setUserContext 
+} from '../_shared/sentry.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// Inicializar Sentry
+initSentryEdge();
 
 interface RequestBody {
   planId: string;
@@ -47,171 +64,208 @@ interface MercadoPagoPreference {
 }
 
 serve(async (req) => {
-  // Manejar CORS preflight
+  // =====================================================
+  // 1. MANEJAR CORS PREFLIGHT
+  // =====================================================
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  // Solo permitir POST
+  if (req.method !== 'POST') {
+    return genericErrorResponse('Method not allowed', 405);
+  }
+
   try {
-    // 1. Autenticar usuario
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'No authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // =====================================================
+    // 2. MIDDLEWARE DE SEGURIDAD
+    // =====================================================
+    const security = await securityMiddleware(req, true);
+    if (!security.authorized) {
+      return genericErrorResponse(security.error || 'Unauthorized', security.status || 401);
     }
 
-    // Crear cliente Supabase para verificar usuario
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: authHeader },
-        },
+    const userId = security.userId!;
+    const ipAddress = getClientIP(req);
+
+    // Establecer contexto de usuario en Sentry
+    setUserContext(userId);
+
+    // =====================================================
+    // 3. SANITIZAR Y VALIDAR REQUEST
+    // =====================================================
+    const rawBody = await req.json();
+    const sanitizedBody = sanitizeRequest(rawBody) as RequestBody;
+
+    // Validar planId
+    const planId = sanitizeString(sanitizedBody.planId);
+    if (!planId || planId.length < 3) {
+      return genericErrorResponse('Invalid planId', 400);
+    }
+
+    // Validar provider
+    const provider = sanitizeEnum(sanitizedBody.provider || 'mercadopago', ['mercadopago', 'stripe'] as const);
+    if (!provider) {
+      return genericErrorResponse('Invalid provider', 400);
+    }
+
+    // =====================================================
+    // 4. OBTENER PLAN DESDE BASE DE DATOS (CON MONITOREO)
+    // =====================================================
+    const plan = await monitorPerformance('fetch_plan', async () => {
+      const supabaseAdmin = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+        {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false
+          }
+        }
+      );
+
+      const { data: planData, error: planError } = await supabaseAdmin
+        .from('billing_plans')
+        .select('*')
+        .eq('slug', planId)
+        .eq('is_active', true)
+        .single();
+
+      if (planError || !planData) {
+        throw new Error(`Plan not found: ${planError?.message || 'Unknown error'}`);
       }
-    );
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabaseClient.auth.getUser();
+      return planData;
+    }, { planId, userId });
 
-    if (userError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid user token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // 2. Parsear body
-    const body: RequestBody = await req.json();
-    const { planId, provider = 'mercadopago' } = body;
-
-    if (!planId) {
-      return new Response(
-        JSON.stringify({ error: 'planId is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // 3. Obtener plan desde la base de datos
+    // =====================================================
+    // 5. OBTENER DATOS DEL USUARIO
+    // =====================================================
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
     );
 
-    const { data: plan, error: planError } = await supabaseAdmin
-      .from('billing_plans')
-      .select('*')
-      .eq('slug', planId)
-      .eq('is_active', true)
-      .single();
-
-    if (planError || !plan) {
-      return new Response(
-        JSON.stringify({ error: 'Plan not found or inactive' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    const { data: user, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
+    if (userError || !user) {
+      captureError(new Error('User not found'), { userId });
+      return genericErrorResponse('User not found', 404);
     }
 
-    // 4. Si el provider es Mercado Pago, crear preferencia
+    // =====================================================
+    // 6. CREAR PREFERENCIA EN MERCADO PAGO (CON MONITOREO)
+    // =====================================================
     if (provider === 'mercadopago') {
-      const accessToken = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN') || 
-                         Deno.env.get('MERCADOPAGO_ACCESS_TOKEN_TEST');
+      const mpResponse = await monitorPerformance('create_mp_preference', async () => {
+        const accessToken = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN') || 
+                           Deno.env.get('MERCADOPAGO_ACCESS_TOKEN_TEST');
 
-      if (!accessToken) {
-        return new Response(
-          JSON.stringify({ error: 'Mercado Pago access token not configured' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+        if (!accessToken) {
+          throw new Error('Payment provider not configured');
+        }
 
-      // Obtener URL base del frontend (puedes configurarlo como variable de entorno)
-      const frontendUrl = Deno.env.get('FRONTEND_URL') || 'http://localhost:3000';
+        const frontendUrl = Deno.env.get('FRONTEND_URL') || 'https://finantel.app';
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 
-      // Construir preferencia de Mercado Pago
-      const preference: MercadoPagoPreference = {
-        items: [
-          {
-            title: `Plan ${plan.name} - Finantel`,
-            quantity: 1,
-            unit_price: parseFloat(plan.price_monthly.toString()),
-            currency_id: plan.currency || 'CLP',
+        // Sanitizar datos antes de enviar
+        const userEmail = sanitizeString(user.user?.email || '');
+        const userName = sanitizeString(user.user?.user_metadata?.full_name || userEmail.split('@')[0] || 'Usuario');
+
+        const preference: MercadoPagoPreference = {
+          items: [
+            {
+              title: `Plan ${sanitizeString(plan.name)} - Finantel`,
+              quantity: 1,
+              unit_price: parseFloat(plan.price_monthly.toString()),
+              currency_id: plan.currency || 'CLP',
+            },
+          ],
+          payer: {
+            email: userEmail,
+            name: userName,
           },
-        ],
-        payer: {
-          email: user.email || '',
-          name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario',
-        },
-        back_urls: {
-          success: `${frontendUrl}/dashboard/billing?status=success`,
-          failure: `${frontendUrl}/dashboard/billing?status=failure`,
-          pending: `${frontendUrl}/dashboard/billing?status=pending`,
-        },
-        auto_return: 'approved',
-        payment_methods: {
-          installments: 12, // Máximo 12 cuotas
-        },
-        notification_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/mercadopago-webhook`,
-        statement_descriptor: 'FINANTEL',
-        external_reference: `user_${user.id}_plan_${plan.slug}_${Date.now()}`,
-        metadata: {
-          user_id: user.id,
-          plan_id: plan.id,
-          plan_slug: plan.slug,
-        },
-      };
-
-      // 5. Crear preferencia en Mercado Pago
-      const mpResponse = await fetch('https://api.mercadopago.com/checkout/preferences', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify(preference),
-      });
-
-      if (!mpResponse.ok) {
-        const errorData = await mpResponse.text();
-        console.error('Mercado Pago API Error:', errorData);
-        return new Response(
-          JSON.stringify({ error: 'Failed to create Mercado Pago preference', details: errorData }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      const mpData = await mpResponse.json();
-
-      // 6. Guardar intento de pago en la base de datos
-      const { error: paymentError } = await supabaseAdmin
-        .from('billing_payments')
-        .insert({
-          user_id: user.id,
-          mercado_pago_preference_id: mpData.id,
-          amount: plan.price_monthly,
-          currency: plan.currency || 'CLP',
-          status: 'pending',
+          back_urls: {
+            success: `${frontendUrl}/dashboard/billing?status=success`,
+            failure: `${frontendUrl}/dashboard/billing?status=failure`,
+            pending: `${frontendUrl}/dashboard/billing?status=pending`,
+          },
+          auto_return: 'approved',
+          payment_methods: {
+            installments: 12,
+          },
+          notification_url: `${supabaseUrl}/functions/v1/mercadopago-webhook`,
+          statement_descriptor: 'FINANTEL',
+          external_reference: `user_${userId}_plan_${plan.slug}_${Date.now()}`,
           metadata: {
-            preference_id: mpData.id,
+            user_id: userId,
             plan_id: plan.id,
             plan_slug: plan.slug,
           },
+        };
+
+        // Crear preferencia en Mercado Pago
+        const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify(preference),
         });
 
-      if (paymentError) {
-        console.error('Error saving payment record:', paymentError);
-        // No fallar si no se puede guardar, pero loguear el error
+        if (!response.ok) {
+          const errorData = await response.text();
+          throw new Error(`Mercado Pago API error: ${errorData}`);
+        }
+
+        return await response.json();
+      }, { planId, userId, provider });
+
+      // =====================================================
+      // 7. GUARDAR INTENTO DE PAGO
+      // =====================================================
+      try {
+        const { error: paymentError } = await supabaseAdmin
+          .from('billing_payments')
+          .insert({
+            user_id: userId,
+            mercado_pago_preference_id: mpResponse.id,
+            amount: plan.price_monthly,
+            currency: plan.currency || 'CLP',
+            status: 'pending',
+            metadata: {
+              preference_id: mpResponse.id,
+              plan_id: plan.id,
+              plan_slug: plan.slug,
+              ip_address: ipAddress,
+            },
+          });
+
+        if (paymentError) {
+          // No fallar si no se puede guardar, pero registrar
+          captureError(new Error('Error saving payment record'), {
+            error: paymentError.message,
+            userId,
+            preferenceId: mpResponse.id,
+          });
+        }
+      } catch (error) {
+        captureError(error as Error, { userId, step: 'save_payment' });
       }
 
-      // 7. Retornar URL de checkout
+      // =====================================================
+      // 8. RETORNAR RESPUESTA
+      // =====================================================
       return new Response(
         JSON.stringify({
-          init_point: mpData.init_point,
-          preference_id: mpData.id,
-          sandbox_init_point: mpData.sandbox_init_point, // Para testing
+          url: mpResponse.init_point || mpResponse.sandbox_init_point,
+          id: mpResponse.id,
         }),
         {
           status: 200,
@@ -220,18 +274,18 @@ serve(async (req) => {
       );
     }
 
-    // Si es otro provider (ej: Stripe), retornar error por ahora
-    return new Response(
-      JSON.stringify({ error: `Provider ${provider} not yet implemented` }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    // Otro provider no implementado
+    return genericErrorResponse('Provider not yet implemented', 400);
 
   } catch (error) {
+    // Capturar error crítico en Sentry
+    captureCriticalError(error as Error, {
+      endpoint: 'create-checkout-session',
+      method: req.method,
+      url: req.url,
+    });
+
     console.error('Error in create-checkout-session:', error);
-    return new Response(
-      JSON.stringify({ error: error.message || 'Internal server error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return genericErrorResponse('Internal server error', 500);
   }
 });
-

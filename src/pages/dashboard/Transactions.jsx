@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
@@ -28,6 +28,7 @@ import { useFinance } from '@/hooks/useFinance';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
 import VoiceInput from '@/components/VoiceInput';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const FilterButton = ({ label, active }) => (
   <button className={cn(

@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 
 import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
+import { setUserContext as setSentryUser } from '@/lib/sentry';
+import { identifyUser, trackEvent, AnalyticsEvents, resetUser as resetAnalyticsUser } from '@/lib/analytics';
 
 const AuthContext = createContext(undefined);
 
@@ -14,8 +16,21 @@ export const AuthProvider = ({ children }) => {
 
   const handleSession = useCallback(async (session) => {
     setSession(session);
-    setUser(session?.user ?? null);
+    const currentUser = session?.user ?? null;
+    setUser(currentUser);
     setLoading(false);
+    
+    // Actualizar contexto de Sentry y Analytics
+    if (currentUser) {
+      setSentryUser(currentUser);
+      identifyUser(currentUser.id, {
+        email: currentUser.email,
+        name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0],
+      });
+    } else {
+      setSentryUser(null);
+      resetAnalyticsUser();
+    }
   }, []);
 
   // Función para refrescar el token automáticamente
@@ -150,6 +165,11 @@ export const AuthProvider = ({ children }) => {
       // Si el login es exitoso, actualizar la sesión
       if (data?.session) {
         handleSession(data.session);
+        // Track evento de login
+        trackEvent(AnalyticsEvents.USER_LOGGED_IN, {
+          method: 'email',
+          timestamp: new Date().toISOString(),
+        });
       }
 
       return { error: null, data };
@@ -165,6 +185,9 @@ export const AuthProvider = ({ children }) => {
   }, [toast, handleSession]);
 
   const signOut = useCallback(async () => {
+    // Track evento de logout antes de cerrar sesión
+    trackEvent(AnalyticsEvents.USER_LOGGED_OUT);
+    
     const { error } = await supabase.auth.signOut();
 
     if (error) {
@@ -173,6 +196,10 @@ export const AuthProvider = ({ children }) => {
         title: "Sign out Failed",
         description: error.message || "Something went wrong",
       });
+    } else {
+      // Limpiar contexto de Sentry y Analytics
+      setSentryUser(null);
+      resetAnalyticsUser();
     }
 
     return { error };
