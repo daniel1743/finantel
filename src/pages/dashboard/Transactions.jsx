@@ -29,6 +29,9 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
 import VoiceInput from '@/components/VoiceInput';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useCustomCategories } from '@/hooks/useCustomCategories';
+import { CategoryInputWithCustom } from '@/components/CategoryInputWithCustom';
+import { NecessityInputWithCustom } from '@/components/NecessityInputWithCustom';
 
 const FilterButton = ({ label, active }) => (
   <button className={cn(
@@ -64,14 +67,11 @@ const EXPENSE_CATEGORIES = [
   { id: 'personalizar-gasto', name: '+ Personalizar' }
 ];
 
+// Solo 3 opciones: Necesario, Innecesario, Personalizada
 const NECESSITY_LEVELS = [
-  { id: 'muy-necesario', name: 'Muy Necesario', color: 'text-red-600' },
-  { id: 'necesario', name: 'Necesario', color: 'text-orange-600' },
-  { id: 'poco-necesario', name: 'Poco Necesario', color: 'text-yellow-600' },
-  { id: 'nada-necesario', name: 'Nada Necesario', color: 'text-blue-600' },
-  { id: 'innecesario', name: 'Innecesario', color: 'text-purple-600' },
-  { id: 'impulso', name: 'Compra por Impulso', color: 'text-pink-600' },
-  { id: 'arrepentimiento', name: 'Arrepentimiento/Malgasto', color: 'text-gray-600' }
+  { id: 'necesario', name: 'Necesario', color: 'text-green-600', isCustom: false },
+  { id: 'innecesario', name: 'Innecesario', color: 'text-red-600', isCustom: false },
+  { id: 'personalizada', name: 'Personalizada', color: 'text-blue-600', isCustom: true }
 ];
 
 // =====================================================
@@ -199,11 +199,21 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
   const { user } = useAuth();
   const { addTransaction, updateTransaction } = useFinance(user?.id);
   const { toast } = useToast();
+  const { 
+    customCategories, 
+    customNeeds, 
+    createCustomCategory, 
+    deleteCustomCategory,
+    createCustomNeed,
+    deleteCustomNeed
+  } = useCustomCategories();
   const isEditMode = mode === 'edit' && Boolean(transaction);
 
   const [formData, setFormData] = useState(getInitialFormData());
   const [isLoading, setIsLoading] = useState(false);
   const [showCustomCategory, setShowCustomCategory] = useState(false);
+  const [customCategoryName, setCustomCategoryName] = useState('');
+  const [customNeedName, setCustomNeedName] = useState('');
 
   useEffect(() => {
     if (!isOpen) return;
@@ -269,32 +279,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
       return;
     }
 
-    if (!formData.category_id) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Por favor selecciona una categoría",
-      });
-      return;
-    }
-
-    if (showCustomCategory && !formData.custom_category.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Por favor ingresa el nombre de la categoría personalizada",
-      });
-      return;
-    }
-
-    if (formData.type === 'expense' && !formData.necessity_level) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Por favor selecciona el nivel de necesidad",
-      });
-      return;
-    }
+    // Categoría y necesidad son opcionales - no validar
 
     if (!user?.id) {
       toast({
@@ -308,65 +293,95 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
     setIsLoading(true);
 
     try {
-      // Buscar o crear el category_id
+      // Buscar o crear el category_id (OPCIONAL)
       let categoryId = null;
-      let categoryName = null;
       
-      if (showCustomCategory && formData.custom_category) {
-        // Categoría personalizada
-        categoryName = formData.custom_category.trim();
-      } else if (formData.category_id) {
-        // Categoría predefinida
-        categoryName = formData.type === 'income'
-          ? INCOME_CATEGORIES.find(cat => cat.id === formData.category_id)?.name
-          : EXPENSE_CATEGORIES.find(cat => cat.id === formData.category_id)?.name;
-      }
-      
-      // Buscar la categoría en Supabase o crearla si no existe
-      if (categoryName) {
-        // Buscar si ya existe (SIN usar 'type' porque puede no existir)
-        const { data: categoryData } = await supabase
-          .from('categories')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('name', categoryName)
-          .maybeSingle();
-        
-        // Si no existe, crearla
-        if (!categoryData) {
-          // Crear categoría SIN type (la columna puede no existir)
-          const insertData = {
-            user_id: user.id,
-            name: categoryName,
-            color: formData.type === 'expense' ? '#E47B45' : '#1C8FA0',
-            icon: '💰',
-          };
-          
-          // Intentar crear sin type primero
-          const { data: newCategory, error: categoryError } = await supabase
-            .from('categories')
-            .insert(insertData)
-            .select('id')
-            .single();
-          
-          if (categoryError) {
-            throw new Error(`Error al crear categoría: ${categoryError.message}`);
-          }
-          
-          categoryId = newCategory.id;
-          
-          // Intentar actualizar con type si la columna existe (no crítico si falla)
-          try {
-            await supabase
-              .from('categories')
-              .update({ type: formData.type })
-              .eq('id', categoryId);
-          } catch (err) {
-            // Ignorar si falla (la columna type no existe aún)
-            console.log('No se pudo actualizar type (columna puede no existir aún)');
-          }
+      // PRIORIDAD 1: Si hay texto escrito en customCategoryName (texto libre)
+      if (customCategoryName && customCategoryName.trim()) {
+        const categoryName = customCategoryName.trim();
+        // Crear o buscar la categoría personalizada
+        const newCategoryId = await createCustomCategory(categoryName, formData.type);
+        if (newCategoryId) {
+          categoryId = newCategoryId;
         } else {
-          categoryId = categoryData.id;
+          // Si no se pudo crear, buscar si ya existe
+          const { data: categoryData } = await supabase
+            .from('categories')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('name', categoryName)
+            .maybeSingle();
+          
+          if (categoryData) {
+            categoryId = categoryData.id;
+          }
+        }
+      } 
+      // PRIORIDAD 2: Si hay custom_category en formData (fallback)
+      else if (formData.custom_category && formData.custom_category.trim()) {
+        const categoryName = formData.custom_category.trim();
+        const newCategoryId = await createCustomCategory(categoryName, formData.type);
+        if (newCategoryId) {
+          categoryId = newCategoryId;
+        }
+      }
+      // PRIORIDAD 3: Si hay category_id (predefinida o UUID)
+      else if (formData.category_id && formData.category_id.trim()) {
+        // Si es un UUID directo (categoría existente), usarlo
+        if (formData.category_id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+          categoryId = formData.category_id;
+        } else {
+          // Categoría predefinida - buscar o crear
+          const categoryName = formData.type === 'income'
+            ? INCOME_CATEGORIES.find(cat => cat.id === formData.category_id)?.name
+            : EXPENSE_CATEGORIES.find(cat => cat.id === formData.category_id)?.name;
+          
+          if (categoryName) {
+            const { data: categoryData } = await supabase
+              .from('categories')
+              .select('id')
+              .eq('user_id', user.id)
+              .eq('name', categoryName)
+              .maybeSingle();
+            
+            if (categoryData) {
+              categoryId = categoryData.id;
+            } else {
+              // Crear categoría predefinida si no existe
+              const newCategoryId = await createCustomCategory(categoryName, formData.type);
+              if (newCategoryId) {
+                categoryId = newCategoryId;
+              }
+            }
+          }
+        }
+      }
+
+      // Manejar necesidad personalizada (OPCIONAL)
+      let necessityValue = null;
+      if (formData.type === 'expense') {
+        // PRIORIDAD 1: Si hay texto libre en customNeedName
+        if (customNeedName && customNeedName.trim()) {
+          necessityValue = customNeedName.trim();
+          // Guardar como necesidad personalizada
+          await createCustomNeed(necessityValue);
+        }
+        // PRIORIDAD 2: Si hay custom_need en formData
+        else if (formData.custom_need && formData.custom_need.trim()) {
+          necessityValue = formData.custom_need.trim();
+          await createCustomNeed(necessityValue);
+        }
+        // PRIORIDAD 3: Si hay necessity_level (seleccionada del dropdown o texto)
+        else if (formData.necessity_level && formData.necessity_level.trim()) {
+          const need = formData.necessity_level.trim();
+          // Si NO es una opción predefinida, es texto libre
+          if (need !== 'necesario' && need !== 'innecesario' && need !== 'personalizada') {
+            necessityValue = need;
+            await createCustomNeed(necessityValue);
+          } else {
+            // Es una opción predefinida
+            necessityValue = need;
+          }
         }
       }
 
@@ -377,8 +392,10 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
         date: formData.date,
         type: formData.type,
         // necessity_level no existe en el schema, guardarlo en metadata JSONB
-        metadata: formData.type === 'expense' && formData.necessity_level 
-          ? { necessity_level: formData.necessity_level }
+        metadata: formData.type === 'expense' && necessityValue
+          ? { 
+              necessity_level: necessityValue
+            }
           : {},
         notes: formData.notes.trim() || null,
       };
@@ -396,6 +413,8 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
 
       setFormData(getInitialFormData());
       setShowCustomCategory(false);
+      setCustomCategoryName('');
+      setCustomNeedName('');
 
       onClose();
       if (onSuccess) onSuccess();
@@ -520,37 +539,29 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
             <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
               Categoría
             </label>
-            <CustomDropdown
-              value={formData.category_id}
-              onChange={(value) => handleCategoryChange(value)}
+            <CategoryInputWithCustom
+              value={customCategoryName || formData.category_id}
+              onChange={(value) => {
+                // Si es texto libre (no UUID, no predefinida)
+                if (typeof value === 'string' && value.trim() && 
+                    !value.startsWith('personalizar') && 
+                    !value.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+                  setCustomCategoryName(value);
+                  setFormData({ ...formData, category_id: '', custom_category: value });
+                } else {
+                  setCustomCategoryName('');
+                  handleCategoryChange(value);
+                }
+              }}
               options={formData.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES}
-              placeholder="Selecciona una categoría"
+              customCategories={customCategories.filter(cat => 
+                formData.type === 'income' ? cat.type === 'income' : cat.type === 'expense'
+              )}
+              placeholder="Escribe o selecciona una categoría (opcional)"
               disabled={isLoading}
-              required
+              onDeleteCustom={deleteCustomCategory}
             />
           </div>
-
-          {/* Categoría Personalizada (si se selecciona "Personalizar") */}
-          {showCustomCategory && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-            >
-              <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
-                Nombre de Categoría Personalizada
-              </label>
-              <input
-                type="text"
-                placeholder="Ej. Entretenimiento, Mascotas..."
-                required
-                value={formData.custom_category}
-                onChange={(e) => setFormData({ ...formData, custom_category: e.target.value })}
-                disabled={isLoading}
-                className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50"
-              />
-            </motion.div>
-          )}
 
           {/* Nivel de Necesidad (solo para Gastos) */}
           {formData.type === 'expense' && (
@@ -562,13 +573,25 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
               <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
                 Nivel de Necesidad
               </label>
-              <CustomDropdown
-                value={formData.necessity_level}
-                onChange={(value) => setFormData({ ...formData, necessity_level: value })}
-                options={NECESSITY_LEVELS}
-                placeholder="Selecciona nivel de necesidad"
+              <NecessityInputWithCustom
+                value={customNeedName || formData.necessity_level}
+                onChange={(value) => {
+                  // Si es texto libre (no es una opción predefinida)
+                  if (typeof value === 'string' && value.trim() && 
+                      value !== 'necesario' && 
+                      value !== 'innecesario' && 
+                      value !== 'personalizada') {
+                    setCustomNeedName(value);
+                    setFormData({ ...formData, necessity_level: value, custom_need: value });
+                  } else {
+                    setCustomNeedName('');
+                    setFormData({ ...formData, necessity_level: value, custom_need: '' });
+                  }
+                }}
+                customNeeds={customNeeds}
+                placeholder="Escribe o selecciona nivel de necesidad (opcional)"
                 disabled={isLoading}
-                required
+                onDeleteCustom={deleteCustomNeed}
               />
             </motion.div>
           )}
@@ -621,10 +644,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
               disabled={
                 isLoading ||
                 !formData.description.trim() ||
-                !formData.amount ||
-                !formData.category_id ||
-                (showCustomCategory && !formData.custom_category.trim()) ||
-                (formData.type === 'expense' && !formData.necessity_level)
+                !formData.amount
               }
               className="flex-1 py-3 rounded-xl bg-[#1a1a1a] dark:bg-white text-white dark:text-black font-medium hover:bg-black dark:hover:bg-gray-100 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >

@@ -7,6 +7,10 @@
 import { DataCollector } from './dataCollector';
 import { ScoreCalculator } from './calculators/scoreCalculator';
 import { TransactionAnalyzer } from './analyzers/transactionAnalyzer';
+import { PatternAnalyzer } from './analyzers/patternAnalyzer';
+import { LeakageAnalyzer } from './analyzers/leakageAnalyzer';
+import { EmotionalAnalyzer } from './analyzers/emotionalAnalyzer';
+import { RiskAnalyzer } from './analyzers/riskAnalyzer';
 import { generateAIInsights, generateRecommendations } from './aiService';
 
 export class DeepFinanceEngine {
@@ -51,42 +55,81 @@ export class DeepFinanceEngine {
         ? (netSavings / totalIncome) * 100 
         : 0;
 
-      // 5. ANÁLISIS BÁSICO DE PATRONES (Fase 1 - básico)
-      const patterns = this.detectBasicPatterns(transactionAnalysis);
+      // 5. ANÁLISIS DE PATRONES (Fase 1.2 - PatternAnalyzer completo)
+      console.log('[DeepFinance] Detectando patrones...');
+      const patternAnalyzer = new PatternAnalyzer(
+        this.rawData.transactions,
+        this.rawData.budgets,
+        this.rawData.categories
+      );
+      const patternAnalysis = patternAnalyzer.analyzeAll();
+      
+      // Convertir a formato compatible con el resto del sistema
+      const patterns = this.formatPatternsForEngine(patternAnalysis);
 
-      // 6. ANÁLISIS EMOCIONAL BÁSICO (Fase 1 - básico)
-      const emotional = this.analyzeEmotionalBasic(transactionAnalysis);
+      // 6. ANÁLISIS DE FUGAS FINANCIERAS (Fase 1.3 - LeakageAnalyzer)
+      console.log('[DeepFinance] Detectando fugas financieras...');
+      const leakageAnalyzer = new LeakageAnalyzer(
+        this.rawData.transactions,
+        this.rawData.budgets
+      );
+      const leakages = leakageAnalyzer.analyzeAll();
 
-      // 7. ANÁLISIS DE RIESGO BÁSICO (Fase 1 - básico)
-      const risk = this.analyzeRiskBasic(totalIncome, totalExpenses, savingsRate);
+      // 7. ANÁLISIS EMOCIONAL AVANZADO (Fase 1.3 - EmotionalAnalyzer)
+      console.log('[DeepFinance] Analizando gastos emocionales...');
+      const emotionalAnalyzer = new EmotionalAnalyzer(
+        this.rawData.transactions,
+        this.rawData.budgets,
+        null // moodData - se puede integrar después
+      );
+      const emotional = emotionalAnalyzer.analyzeAll();
 
-      // 8. PREPARAR DATOS PARA CÁLCULO DE PUNTAJE
+      // 8. ANÁLISIS DE RIESGO AVANZADO (Fase 1.3 - RiskAnalyzer)
+      console.log('[DeepFinance] Analizando riesgos financieros...');
+      const riskAnalyzer = new RiskAnalyzer(
+        this.rawData.transactions,
+        this.rawData.budgets,
+        this.rawData.goals
+      );
+      const risk = riskAnalyzer.analyzeAll();
+
+      // 9. PREPARAR DATOS PARA CÁLCULO DE PUNTAJE
       const analysisData = {
         budgets: this.analyzeBudgets(),
         totalIncome,
         totalExpenses,
         patterns,
-        risk,
-        emotional,
+        risk: {
+          level: risk.level,
+          score: riskAnalyzer.calculateRiskScore(risk.factors),
+          factors: risk.factors
+        },
+        emotional: {
+          percentage: emotional.impact.percentage,
+          total: emotional.impact.total
+        },
+        leakages: leakages.totalImpact,
         goals: this.rawData.goals,
       };
 
-      // 9. CALCULAR PUNTAJE GLOBAL
+      // 10. CALCULAR PUNTAJE GLOBAL
       console.log('[DeepFinance] Calculando puntaje...');
       const score = this.scoreCalculator.calculateGlobalScore(analysisData);
       const scoreBreakdown = this.scoreCalculator.calculateScoreBreakdown(analysisData);
 
-      // 10. GENERAR RECOMENDACIONES (basadas en datos reales)
+      // 11. GENERAR RECOMENDACIONES (basadas en datos reales)
       console.log('[DeepFinance] Generando recomendaciones...');
       const recommendations = generateRecommendations({
         score,
         savingsRate: Math.round(savingsRate * 100) / 100,
         budgets: this.analyzeBudgets(),
-        emotional,
+        emotional: emotional.impact,
         patterns,
+        leakages: leakages.totalImpact,
+        risk: risk.level
       });
 
-      // 11. GENERAR INSIGHTS CON IA (DeepSeek/Qwen)
+      // 12. GENERAR INSIGHTS CON IA (DeepSeek/Qwen)
       console.log('[DeepFinance] Generando insights con IA...');
       let aiInsights = null;
       try {
@@ -99,8 +142,14 @@ export class DeepFinanceEngine {
             netSavings,
             savingsRate: Math.round(savingsRate * 100) / 100,
             patterns,
-            emotional,
-            risk,
+            emotional: emotional.impact,
+            risk: {
+              level: risk.level,
+              factors: risk.factors,
+              stability: risk.stability,
+              liquidity: risk.liquidity
+            },
+            leakages: leakages.totalImpact,
             categoryBreakdown: transactionAnalysis.categoryBreakdown,
             monthlyBreakdown: transactionAnalysis.monthlyBreakdown,
             budgets: this.analyzeBudgets(),
@@ -113,7 +162,7 @@ export class DeepFinanceEngine {
         // Continuar con análisis sin IA si falla
       }
 
-      // 12. CONSTRUIR RESULTADO FINAL
+      // 13. CONSTRUIR RESULTADO FINAL
       const analysis = {
         // Metadatos
         userId: this.userId,
@@ -137,6 +186,7 @@ export class DeepFinanceEngine {
         patterns,
         emotional,
         risk,
+        leakages,
 
         // Desglose por categoría
         categoryBreakdown: transactionAnalysis.categoryBreakdown,
@@ -191,24 +241,94 @@ export class DeepFinanceEngine {
   }
 
   /**
-   * Detecta patrones básicos (Fase 1)
-   * @param {Object} transactionAnalysis
+   * Formatea los patrones del PatternAnalyzer para el engine
+   * @param {Object} patternAnalysis
    * @returns {Array}
    */
-  detectBasicPatterns(transactionAnalysis) {
+  formatPatternsForEngine(patternAnalysis) {
     const patterns = [];
 
-    // Patrón 1: Día de la semana con más gastos
-    const dayPattern = this.detectDayOfWeekPattern();
-    if (dayPattern) patterns.push(dayPattern);
+    // Patrón temporal: día de la semana
+    if (patternAnalysis.temporal?.dayOfWeek) {
+      patterns.push({
+        type: 'day_of_week',
+        description: patternAnalysis.temporal.dayOfWeek.description,
+        day: patternAnalysis.temporal.dayOfWeek.dominantDay,
+        impact: patternAnalysis.temporal.dayOfWeek.dominantDayTotal,
+        data: patternAnalysis.temporal.dayOfWeek
+      });
+    }
 
-    // Patrón 2: Categoría dominante
-    const categoryPattern = this.detectCategoryPattern(transactionAnalysis.categoryBreakdown);
-    if (categoryPattern) patterns.push(categoryPattern);
+    // Patrón temporal: hora del día
+    if (patternAnalysis.temporal?.hourOfDay) {
+      patterns.push({
+        type: 'hour_of_day',
+        description: patternAnalysis.temporal.hourOfDay.description,
+        hour: patternAnalysis.temporal.hourOfDay.dominantHour,
+        impact: patternAnalysis.temporal.hourOfDay.dominantHourTotal,
+        data: patternAnalysis.temporal.hourOfDay
+      });
+    }
 
-    // Patrón 3: Tendencia mensual
-    const trendPattern = this.detectTrendPattern(transactionAnalysis.monthlyBreakdown);
-    if (trendPattern) patterns.push(trendPattern);
+    // Patrón de categoría
+    if (patternAnalysis.category) {
+      patterns.push({
+        type: 'dominant_category',
+        description: patternAnalysis.category.description,
+        category: patternAnalysis.category.topCategory.name,
+        percentage: patternAnalysis.category.topCategory.percentage,
+        amount: patternAnalysis.category.topCategory.total,
+        data: patternAnalysis.category
+      });
+    }
+
+    // Categorías crecientes
+    if (patternAnalysis.category?.growingCategories?.length > 0) {
+      patternAnalysis.category.growingCategories.forEach(cat => {
+        patterns.push({
+          type: 'growing_category',
+          description: `${cat.categoryName} ha crecido un ${cat.growthPercent}%`,
+          category: cat.categoryName,
+          growth: cat.growthPercent,
+          data: cat
+        });
+      });
+    }
+
+    // Tendencia mensual
+    if (patternAnalysis.trends?.overall !== 'stable') {
+      patterns.push({
+        type: 'trend',
+        description: patternAnalysis.trends.description,
+        trend: patternAnalysis.trends.overall,
+        changePercent: patternAnalysis.trends.changePercent,
+        data: patternAnalysis.trends
+      });
+    }
+
+    // Patrones de comportamiento: gastos repetitivos
+    if (patternAnalysis.behavioral?.repetitive?.length > 0) {
+      patternAnalysis.behavioral.repetitive.forEach(rep => {
+        patterns.push({
+          type: 'repetitive_spending',
+          description: `Posible suscripción: ${rep.description} ($${rep.amount}/mes)`,
+          amount: rep.amount,
+          frequency: rep.frequency,
+          annualEstimate: rep.annualEstimate,
+          data: rep
+        });
+      });
+    }
+
+    // Patrones de comportamiento: gastos irregulares
+    if (patternAnalysis.behavioral?.irregular?.length > 0) {
+      patterns.push({
+        type: 'irregular_spending',
+        description: `${patternAnalysis.behavioral.irregular.length} gasto(s) inusual(es) detectado(s)`,
+        count: patternAnalysis.behavioral.irregular.length,
+        data: patternAnalysis.behavioral.irregular
+      });
+    }
 
     return patterns;
   }
