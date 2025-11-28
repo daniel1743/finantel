@@ -11,7 +11,8 @@ import {
   CheckCircle2,
   AlertTriangle,
   Archive,
-  MessageSquare
+  MessageSquare,
+  X
 } from 'lucide-react';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,8 @@ import customSupabaseClient from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import { useStaffTickets } from '@/hooks/useStaffTickets';
+import { VerifiedFinantelPulse } from '@/components/VerifiedFinantelPulse';
+import { AvatarWithVerified } from '@/components/AvatarWithVerified';
 
 const statusConfig = {
   abierto: {
@@ -113,9 +116,9 @@ const SupportTicketDetail = () => {
         }
         setTicket(ticketData);
 
-        // Si es staff, obtener nombre del staff
-        if (isStaff && user?.email) {
-          setStaffName(user.email.split('@')[0] || 'Staff');
+        // Si es staff, establecer nombre por defecto como "soporte"
+        if (isStaff) {
+          setStaffName('soporte');
         }
 
         // Cargar respuestas
@@ -229,18 +232,35 @@ const SupportTicketDetail = () => {
 
   const StatusIcon = statusConfig[ticket.status]?.icon || AlertCircle;
 
+  const handleGoBack = () => {
+    if (isStaff) {
+      navigate('/dashboard/admin/support');
+    } else {
+      navigate('/dashboard/support');
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between gap-4">
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/dashboard/support')}
-          className="gap-2"
+          onClick={handleGoBack}
+          className="gap-2 text-[#1a1a1a] dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10"
         >
           <ArrowLeft className="w-4 h-4" />
           Volver
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleGoBack}
+          className="gap-2 text-[#1a1a1a] dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10"
+          title="Cerrar"
+        >
+          <X className="w-5 h-5" />
         </Button>
       </div>
 
@@ -248,9 +268,20 @@ const SupportTicketDetail = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-[#1a1a1a] rounded-2xl p-6 border border-gray-200 dark:border-white/10"
+        className="bg-white dark:bg-[#1a1a1a] rounded-2xl p-6 border border-gray-200 dark:border-white/10 relative"
       >
-        <div className="flex items-start justify-between gap-4 mb-4">
+        {/* Botón cerrar en esquina superior derecha */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleGoBack}
+          className="absolute top-4 right-4 text-[#1a1a1a] dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10"
+          title="Cerrar"
+        >
+          <X className="w-5 h-5" />
+        </Button>
+        
+        <div className="flex items-start justify-between gap-4 mb-4 pr-8">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <h1 className="text-2xl font-bold text-[#1a1a1a] dark:text-white">
@@ -307,14 +338,18 @@ const SupportTicketDetail = () => {
                 )}
               >
                 {/* Avatar */}
-                <div className={cn(
-                  'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
-                  response.is_staff_response
-                    ? 'bg-[#1C8FA0] text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-                )}>
-                  <User className="w-4 h-4" />
-                </div>
+                {response.is_staff_response ? (
+                  <div className="relative flex-shrink-0">
+                    <AvatarWithVerified logo="/finantel-logo.png" fallback="F" />
+                  </div>
+                ) : (
+                  <div className={cn(
+                    'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
+                    'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                  )}>
+                    <User className="w-4 h-4" />
+                  </div>
+                )}
 
                 {/* Message */}
                 <div className={cn(
@@ -328,9 +363,14 @@ const SupportTicketDetail = () => {
                       : 'bg-[#1C8FA0] text-white'
                   )}>
                     {response.is_staff_response && response.staff_name && (
-                      <p className="text-xs font-semibold text-[#1C8FA0] mb-1">
-                        {response.staff_name}
-                      </p>
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className="text-xs font-semibold text-[#1C8FA0]">
+                          {response.staff_name}
+                        </span>
+                        <VerifiedFinantelPulse />
+                        <span className="text-xs text-[#6E6E73] dark:text-gray-400">•</span>
+                        <span className="text-xs text-[#6E6E73] dark:text-gray-400 font-medium">Finantel</span>
+                      </div>
                     )}
                     <p className="text-sm whitespace-pre-wrap">{response.message}</p>
                   </div>

@@ -47,6 +47,24 @@ select:focus {
   box-shadow: 0 0 0 2px rgba(28, 143, 160, 0.2);
 }
 
+/* Animación Shimmer para Verified Finantel Badge */
+@keyframes shimmer-finantel {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.4;
+  }
+  60% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateX(250%);
+    opacity: 0;
+  }
+}
+
 /* Contenedor de modales responsive */
 .modal-container {
   max-height: 90vh;

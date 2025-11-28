@@ -4,6 +4,7 @@ import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
 import { setUserContext as setSentryUser } from '@/lib/sentry';
 import { identifyUser, trackEvent, AnalyticsEvents, resetUser as resetAnalyticsUser } from '@/lib/analytics';
+import appUpdateService from '@/lib/appUpdateService';
 
 const AuthContext = createContext(undefined);
 
@@ -95,6 +96,12 @@ export const AuthProvider = ({ children }) => {
         } else if (event === 'SIGNED_OUT') {
           handleSession(null);
         } else if (event === 'SIGNED_IN') {
+          // Limpiar caché al iniciar sesión para asegurar que se vean los cambios
+          appUpdateService.clearCache().then(() => {
+            console.log('[Auth] Caché limpiado al iniciar sesión');
+          }).catch((error) => {
+            console.error('[Auth] Error limpiando caché:', error);
+          });
           handleSession(session);
         } else if (event === 'INITIAL_SESSION') {
           // Manejar sesión inicial sin loguear

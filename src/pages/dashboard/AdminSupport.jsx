@@ -96,12 +96,10 @@ const AdminSupport = () => {
   useEffect(() => {
     if (isStaff) {
       getStaffList().then(setStaffList);
-      // Obtener nombre del staff desde el perfil
-      if (user?.email) {
-        setStaffName(user.email.split('@')[0] || 'Staff');
-      }
+      // Establecer nombre por defecto como "soporte"
+      setStaffName('soporte');
     }
-  }, [isStaff, user, getStaffList]);
+  }, [isStaff, getStaffList]);
 
   useEffect(() => {
     if (isStaff) {

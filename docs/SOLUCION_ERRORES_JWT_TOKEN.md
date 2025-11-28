@@ -329,3 +329,4 @@ console.log('Persist session:', supabase.auth.persistSession);
 
 *Última actualización: 26 de Enero 2025*
 
+

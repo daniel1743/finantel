@@ -10,11 +10,18 @@
 
 let mixpanel = null;
 
+// Flags para evitar spam de warnings
+let mixpanelWarningShown = false;
+let ga4WarningShown = false;
+
 const initMixpanel = () => {
   const token = import.meta.env.VITE_MIXPANEL_TOKEN;
   
   if (!token) {
-    console.log('Mixpanel no configurado (token faltante)');
+    if (!mixpanelWarningShown) {
+      console.warn('Analytics: Mixpanel deshabilitado (token faltante)');
+      mixpanelWarningShown = true;
+    }
     return;
   }
 
@@ -60,7 +67,10 @@ const initGA4 = () => {
   const measurementId = import.meta.env.VITE_GA4_MEASUREMENT_ID;
   
   if (!measurementId) {
-    console.log('GA4 no configurado (measurement ID faltante)');
+    if (!ga4WarningShown) {
+      console.warn('Analytics: GA4 deshabilitado (measurement ID faltante)');
+      ga4WarningShown = true;
+    }
     return;
   }
 
