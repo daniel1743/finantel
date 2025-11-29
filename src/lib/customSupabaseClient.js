@@ -14,6 +14,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Configurar cliente con opciones para manejo de tokens
+// Usamos localStorage siempre, pero podemos limpiar la sesión según la preferencia del usuario
 const customSupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true, // Refrescar tokens automáticamente

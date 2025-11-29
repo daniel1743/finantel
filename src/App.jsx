@@ -18,6 +18,7 @@ import { Loader2 } from 'lucide-react';
 // Lazy Loading Components
 const LandingPage = lazy(() => import('@/pages/LandingPage'));
 const Auth = lazy(() => import('@/pages/Auth'));
+const AuthCallback = lazy(() => import('@/pages/AuthCallback'));
 const Onboarding = lazy(() => import('@/pages/Onboarding'));
 const PricingPage = lazy(() => import('@/pages/PricingPage'));
 const Transparency = lazy(() => import('@/pages/legal/Transparency'));
@@ -80,6 +81,7 @@ function App() {
                   <Route path="/pricing" element={<PricingPage />} />
                           <Route path="/legal/transparencia" element={<Transparency />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route path="/onboarding" element={<Onboarding />} />
                   
                   {/* Protected Dashboard Routes */}

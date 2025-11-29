@@ -180,6 +180,13 @@ export const AuthProvider = ({ children }) => {
             console.error('[Auth] Error limpiando caché:', error);
           });
           handleSession(newSession);
+          
+          // Track evento de login (puede ser email o OAuth)
+          const authMethod = newSession?.user?.app_metadata?.provider || 'email';
+          trackEvent(AnalyticsEvents.USER_LOGGED_IN, {
+            method: authMethod,
+            timestamp: new Date().toISOString(),
+          });
         } else if (event === 'INITIAL_SESSION') {
           // Manejar sesión inicial solo una vez
           isInitializingRef.current = true;
@@ -223,12 +230,37 @@ export const AuthProvider = ({ children }) => {
     return { error };
   }, [toast]);
 
-  const signIn = useCallback(async (email, password) => {
+  const signIn = useCallback(async (email, password, rememberMe = true) => {
     try {
+      // Guardar preferencia de "recordar sesión"
+      localStorage.setItem('finantel_remember_me', rememberMe ? 'true' : 'false');
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+      
+      // Si el usuario no quiere mantener sesión, configurar listener para limpiar al cerrar
+      if (!rememberMe && typeof window !== 'undefined') {
+        // Limpiar sesión cuando se cierra la pestaña/ventana
+        const handleBeforeUnload = () => {
+          supabase.auth.signOut().catch(() => {
+            // Ignorar errores al cerrar sesión
+          });
+        };
+        
+        // Agregar listener temporal (se limpiará cuando se cierre la pestaña)
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        
+        // También limpiar cuando la pestaña pierde visibilidad (opcional, más agresivo)
+        const handleVisibilityChange = () => {
+          if (document.hidden) {
+            // Cuando la pestaña se oculta, no hacer nada todavía
+            // Solo limpiar cuando realmente se cierra
+          }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+      }
 
       if (error) {
         // Manejar errores específicos
@@ -269,6 +301,51 @@ export const AuthProvider = ({ children }) => {
       return { error: err };
     }
   }, [toast, handleSession]);
+
+  const signInWithGoogle = useCallback(async (rememberMe = true) => {
+    try {
+      // Guardar preferencia de "recordar sesión"
+      localStorage.setItem('finantel_remember_me', rememberMe ? 'true' : 'false');
+      
+      // Obtener la URL actual para redirección
+      // Usar la URL completa con el protocolo correcto
+      const redirectTo = `${window.location.origin}/auth/callback`;
+      
+      console.log('[Auth] Iniciando sesión con Google, redirectTo:', redirectTo);
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectTo,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error al Iniciar Sesión con Google",
+          description: error.message || "No se pudo conectar con Google. Por favor, intenta de nuevo.",
+        });
+        return { error };
+      }
+
+      // La redirección se manejará automáticamente
+      // El callback URL manejará el resto
+      return { error: null, data };
+    } catch (err) {
+      console.error('Error in signInWithGoogle:', err);
+      toast({
+        variant: "destructive",
+        title: "Error de Conexión",
+        description: "No se pudo conectar con Google. Verifica tu conexión a internet.",
+      });
+      return { error: err };
+    }
+  }, [toast]);
 
   const signOut = useCallback(async () => {
     // Track evento de logout antes de cerrar sesión
@@ -325,9 +402,10 @@ export const AuthProvider = ({ children }) => {
     loading,
     signUp,
     signIn,
+    signInWithGoogle,
     signOut,
     refreshUser,
-  }), [user, session, loading, signUp, signIn, signOut, refreshUser]);
+  }), [user, session, loading, signUp, signIn, signInWithGoogle, signOut, refreshUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

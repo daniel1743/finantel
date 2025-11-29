@@ -13,14 +13,23 @@ import { useAppUpdate } from '@/hooks/useAppUpdate';
 const UpdateNotification = () => {
   const { updateAvailable, applyUpdate, isMobile } = useAppUpdate();
   const [dismissed, setDismissed] = React.useState(false);
+  const [isUpdating, setIsUpdating] = React.useState(false);
 
-  // Solo mostrar en móviles o si el usuario quiere verla
-  if (!updateAvailable || dismissed) {
+  // NO aplicar automáticamente - solo mostrar notificación
+  // El usuario debe hacer clic para actualizar
+
+  if (!updateAvailable || dismissed || isUpdating) {
     return null;
   }
 
   const handleUpdate = async () => {
-    await applyUpdate();
+    setIsUpdating(true);
+    try {
+      await applyUpdate();
+    } catch (err) {
+      console.error('[UpdateNotification] Error aplicando actualización:', err);
+      setIsUpdating(false);
+    }
   };
 
   const handleDismiss = () => {

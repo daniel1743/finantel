@@ -21,9 +21,11 @@ export const useAppUpdate = () => {
       setIsMobile(appUpdateService.isMobile);
 
       if (registered) {
-        // Escuchar actualizaciones
+        // Escuchar actualizaciones (solo notificar, NO aplicar automáticamente)
         appUpdateService.on('update-available', () => {
           setUpdateAvailable(true);
+          // NO aplicar automáticamente para evitar bucles infinitos
+          // El usuario puede decidir cuándo actualizar
         });
       }
     };

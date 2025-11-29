@@ -5,7 +5,7 @@
 // =====================================================
 
 const APP_VERSION = '2.1.0'; // ⚠️ ACTUALIZAR EN CADA DEPLOY
-const VERSION_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutos
+const VERSION_CHECK_INTERVAL = 1 * 60 * 1000; // 1 minuto (más frecuente para detectar actualizaciones rápido)
 
 class AppUpdateService {
   constructor() {
@@ -14,6 +14,9 @@ class AppUpdateService {
     this.listeners = new Set();
     this.isMobile = this.detectMobile();
     this.versionCheckInterval = null;
+    this.isUpdating = false; // Flag para evitar múltiples actualizaciones
+    this.lastVersion = null; // Última versión detectada
+    this.reloadAttempted = false; // Flag para evitar recargas múltiples
   }
 
   // Detectar si es dispositivo móvil
@@ -60,22 +63,32 @@ class AppUpdateService {
   // Manejar cuando se encuentra una actualización
   handleUpdateFound() {
     console.log('[AppUpdate] Nueva versión encontrada');
-    const newWorker = this.registration.installing;
+    const newWorker = this.registration.installing || this.registration.waiting;
 
     if (!newWorker) return;
+
+    // Evitar procesar múltiples veces
+    if (this.isUpdating) {
+      console.log('[AppUpdate] Ya hay una actualización en proceso, ignorando...');
+      return;
+    }
 
     newWorker.addEventListener('statechange', () => {
       if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
         // Hay una nueva versión instalada
+        // Solo marcar como disponible, NO aplicar automáticamente
         this.updateAvailable = true;
         this.notifyListeners('update-available');
-        
-        // Mostrar notificación solo en móviles
-        if (this.isMobile) {
-          this.showUpdateNotification();
-        }
+        console.log('[AppUpdate] Nueva versión disponible (esperando confirmación)');
+      } else if (newWorker.state === 'activated') {
+        // El nuevo worker está activo
+        console.log('[AppUpdate] Nuevo Service Worker activado');
+        // NO recargar automáticamente aquí para evitar bucles
       }
     });
+
+    // NO activar automáticamente el worker esperando
+    // Dejarlo para que el usuario o el sistema lo active cuando sea apropiado
   }
 
   // Mostrar notificación de actualización (solo móviles)
@@ -124,20 +137,32 @@ class AppUpdateService {
 
   // Manejar mensajes del Service Worker
   handleSWMessage(event) {
-    const { type, version } = event.data;
+    const { type, version, forceReload } = event.data;
 
     switch (type) {
       case 'SW_ACTIVATED':
         console.log('[AppUpdate] Service Worker activado, versión:', version);
-        if (version !== APP_VERSION) {
+        // Solo notificar si la versión es diferente y no hemos intentado recargar
+        if (version !== APP_VERSION && version !== this.lastVersion && !this.reloadAttempted) {
+          this.lastVersion = version;
           this.updateAvailable = true;
           this.notifyListeners('update-available');
+          // NO recargar automáticamente para evitar bucles
         }
         break;
 
       case 'FORCE_RELOAD':
-        console.log('[AppUpdate] Forzando recarga...');
-        this.forceReload();
+        // Solo recargar si no hemos intentado ya
+        if (!this.reloadAttempted) {
+          console.log('[AppUpdate] Forzando recarga...');
+          this.reloadAttempted = true;
+          setTimeout(() => this.forceReload(), 100);
+        }
+        break;
+
+      case 'CACHE_CLEARED':
+        console.log('[AppUpdate] Caché limpiado por Service Worker');
+        // NO recargar automáticamente para evitar bucles
         break;
 
       default:
@@ -145,19 +170,66 @@ class AppUpdateService {
     }
   }
 
-  // Forzar recarga de la aplicación
+  // Forzar recarga de la aplicación (con protección contra bucles)
   forceReload() {
-    // Limpiar caché del navegador
-    if ('caches' in window) {
-      caches.keys().then((cacheNames) => {
-        cacheNames.forEach((cacheName) => {
-          caches.delete(cacheName);
-        });
-      });
+    // Prevenir recargas múltiples
+    if (this.reloadAttempted) {
+      console.log('[AppUpdate] Recarga ya intentada, ignorando...');
+      return;
     }
 
-    // Recargar la página
-    window.location.reload(true);
+    this.reloadAttempted = true;
+    this.isUpdating = true;
+
+    // Limpiar caché del navegador completamente
+    if ('caches' in window) {
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            console.log('[AppUpdate] Eliminando caché:', cacheName);
+            return caches.delete(cacheName);
+          })
+        );
+      }).then(() => {
+        console.log('[AppUpdate] Recargando página...');
+        // Recargar con bypass de caché
+        window.location.reload(true);
+      }).catch((err) => {
+        console.error('[AppUpdate] Error limpiando caché:', err);
+        // Recargar de todas formas
+        window.location.reload(true);
+      });
+    } else {
+      // Recargar con bypass de caché
+      window.location.reload(true);
+    }
+  }
+
+  // Aplicar actualización (solo cuando el usuario lo solicite o sea necesario)
+  async applyUpdateImmediately() {
+    if (!this.registration || this.isUpdating) {
+      console.log('[AppUpdate] Actualización ya en proceso o sin registro');
+      return;
+    }
+
+    this.isUpdating = true;
+
+    try {
+      // Si hay un worker esperando, activarlo
+      if (this.registration.waiting) {
+        this.registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        // Esperar a que se active
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      // Limpiar caché y recargar
+      await this.clearCache();
+      this.forceReload();
+    } catch (error) {
+      console.error('[AppUpdate] Error aplicando actualización:', error);
+      this.isUpdating = false;
+      this.reloadAttempted = false;
+    }
   }
 
   // Limpiar caché completamente
@@ -213,20 +285,36 @@ class AppUpdateService {
 
   // Verificar si hay actualizaciones
   async checkForUpdates() {
-    if (!this.registration) return;
+    if (!this.registration || this.isUpdating) return;
 
     try {
+      // Forzar verificación de actualizaciones
       await this.registration.update();
+      
+      // NO activar automáticamente el worker esperando
+      // Solo notificar que hay una actualización disponible
+      if (this.registration.waiting) {
+        console.log('[AppUpdate] Worker esperando detectado (no activando automáticamente)');
+        this.updateAvailable = true;
+        this.notifyListeners('update-available');
+      }
     } catch (error) {
       console.error('[AppUpdate] Error verificando actualizaciones:', error);
     }
   }
 
-  // Aplicar actualización
+  // Aplicar actualización (método principal, llamado por el usuario)
   async applyUpdate() {
-    if (!this.updateAvailable || !this.registration) {
+    if (!this.updateAvailable || !this.registration || this.isUpdating) {
+      console.log('[AppUpdate] No se puede aplicar actualización:', {
+        updateAvailable: this.updateAvailable,
+        hasRegistration: !!this.registration,
+        isUpdating: this.isUpdating
+      });
       return false;
     }
+
+    this.isUpdating = true;
 
     try {
       // Limpiar caché antes de actualizar
@@ -235,6 +323,8 @@ class AppUpdateService {
       // Forzar actualización del Service Worker
       if (this.registration.waiting) {
         this.registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        // Esperar un momento para que se active
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
 
       // Recargar la página
@@ -242,6 +332,8 @@ class AppUpdateService {
       return true;
     } catch (error) {
       console.error('[AppUpdate] Error aplicando actualización:', error);
+      this.isUpdating = false;
+      this.reloadAttempted = false;
       return false;
     }
   }

@@ -30,7 +30,6 @@ import {
   GraduationCap,
   Heart,
   Baby,
-  Ring,
   ShoppingBag,
   Wrench,
   Building2,
@@ -60,7 +59,7 @@ const goalIcons = [
   // Celebración y eventos
   { icon: Cake, name: 'Cumpleaños', keywords: ['cumpleaños', 'fiesta', 'celebración', 'aniversario'] },
   { icon: Gift, name: 'Regalo', keywords: ['regalo', 'obsequio', 'presente', 'navidad'] },
-  { icon: Ring, name: 'Boda', keywords: ['boda', 'matrimonio', 'compromiso', 'anillo'] },
+  { icon: Heart, name: 'Boda', keywords: ['boda', 'matrimonio', 'compromiso', 'anillo', 'pareja'] },
   
   // Entretenimiento
   { icon: Tv, name: 'TV', keywords: ['televisor', 'tv', 'pantalla', 'entretenimiento'] },
@@ -131,7 +130,9 @@ const goalsData = [
     saved: 2450, 
     date: "Oct 2024", 
     imageAlt: "Cherry blossoms in Japan",
-    color: "bg-pink-500"
+    color: "bg-pink-500",
+    icon: Plane,
+    icon_name: 'Viaje'
   },
   { 
     id: 2, 
@@ -294,6 +295,24 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [suggestedMonthly, setSuggestedMonthly] = useState(null);
+  const [selectedIcon, setSelectedIcon] = useState(null);
+  const [showIconPicker, setShowIconPicker] = useState(false);
+
+  // Sugerir icono automáticamente cuando cambia el nombre
+  useEffect(() => {
+    if (formData.name && !selectedIcon) {
+      const suggested = suggestIcon(formData.name);
+      setSelectedIcon(suggested);
+    }
+  }, [formData.name, selectedIcon]);
+
+  // Resetear cuando se abre el modal
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedIcon(null);
+      setShowIconPicker(false);
+    }
+  }, [isOpen]);
 
   // Calcular sugerencia inteligente basada en ingresos
   useEffect(() => {
@@ -374,11 +393,16 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
         deadlineDate = date.toISOString().split('T')[0];
       }
 
+      // Encontrar el nombre del icono seleccionado
+      const iconOption = goalIcons.find(opt => opt.icon === selectedIcon);
+      const iconName = iconOption ? iconOption.name : null;
+
       const goalData = {
         name: formData.name.trim(),
         target_amount: parsedAmount,
         deadline: deadlineDate,
         description: formData.description.trim() || null,
+        metadata: iconName ? { icon_name: iconName } : {}
       };
 
       await addGoal(goalData);
@@ -391,6 +415,8 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
         description: ''
       });
       setSuggestedMonthly(null);
+      setSelectedIcon(null);
+      setShowIconPicker(false);
       
       onClose();
       if (onSuccess) onSuccess();
@@ -468,6 +494,85 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
               disabled={isLoading}
               className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50"
             />
+          </div>
+
+          {/* Selector de Iconos */}
+          <div>
+            <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-3">
+              Icono de la meta
+            </label>
+            
+            {/* Icono seleccionado */}
+            {selectedIcon && (
+              <div className="mb-3 flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center border-2 border-[#1C8FA0]">
+                  {React.createElement(selectedIcon, { className: "w-6 h-6 text-[#1C8FA0]" })}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-[#1a1a1a] dark:text-white">
+                    {goalIcons.find(opt => opt.icon === selectedIcon)?.name || 'Icono seleccionado'}
+                  </p>
+                  <p className="text-xs text-[#6E6E73] dark:text-gray-400">
+                    El icono se sugiere automáticamente según el nombre
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowIconPicker(!showIconPicker)}
+                  className="px-4 py-2 text-sm font-medium text-[#1C8FA0] hover:bg-[#1C8FA0]/10 rounded-lg transition-colors"
+                >
+                  {showIconPicker ? 'Ocultar' : 'Cambiar'}
+                </button>
+              </div>
+            )}
+
+            {/* Grid de iconos */}
+            {showIconPicker && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="grid grid-cols-5 sm:grid-cols-6 gap-3 p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10 max-h-64 overflow-y-auto"
+              >
+                {goalIcons.map((iconOption, idx) => {
+                  const IconComponent = iconOption.icon;
+                  const isSelected = selectedIcon === iconOption.icon;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setSelectedIcon(iconOption.icon);
+                        setShowIconPicker(false);
+                      }}
+                      className={cn(
+                        "p-3 rounded-xl transition-all hover:scale-110 flex flex-col items-center gap-2",
+                        isSelected
+                          ? "bg-[#1C8FA0] text-white shadow-lg"
+                          : "bg-white dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 text-[#6E6E73] dark:text-gray-400 border border-gray-200 dark:border-white/10"
+                      )}
+                      title={iconOption.name}
+                    >
+                      <IconComponent className="w-5 h-5" />
+                      <span className="text-xs font-medium truncate w-full text-center">
+                        {iconOption.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </motion.div>
+            )}
+
+            {/* Botón para mostrar selector si no hay icono seleccionado */}
+            {!selectedIcon && (
+              <button
+                type="button"
+                onClick={() => setShowIconPicker(!showIconPicker)}
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-sm font-medium text-[#6E6E73] dark:text-gray-400"
+              >
+                {showIconPicker ? 'Ocultar iconos' : 'Seleccionar icono'}
+              </button>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -852,6 +957,16 @@ const Goals = () => {
             const remaining = parseFloat(goal.target_amount || 0) - parseFloat(goal.current_amount || 0);
             const monthlyNeeded = monthsLeft && monthsLeft > 0 ? Math.ceil(remaining / monthsLeft) : null;
             
+            // Obtener el icono de la meta (desde metadata o sugerir)
+            let goalIcon = Target;
+            const iconName = goal.metadata?.icon_name || goal.icon_name;
+            if (iconName) {
+              const iconOption = goalIcons.find(opt => opt.name === iconName);
+              goalIcon = iconOption ? iconOption.icon : suggestIcon(goal.name);
+            } else {
+              goalIcon = suggestIcon(goal.name);
+            }
+
             const goalCardData = {
               id: goal.id,
               name: goal.name,
@@ -861,7 +976,9 @@ const Goals = () => {
               imageAlt: goal.description || goal.name,
               color: goal.status === 'completed' ? 'bg-green-500' : 'bg-[#1C8FA0]',
               monthsLeft,
-              monthlyNeeded
+              monthlyNeeded,
+              icon: goalIcon,
+              icon_name: iconName
             };
             
             return <GoalCard key={goal.id} goal={goalCardData} index={index} onDelete={handleDeleteGoal} />;

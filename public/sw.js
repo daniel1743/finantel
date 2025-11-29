@@ -21,26 +21,30 @@ const STATIC_ASSETS = [
 self.addEventListener('install', (event) => {
   console.log('[SW] Instalando Service Worker versión', APP_VERSION);
   
+  // Forzar activación inmediata sin esperar a que se cierren las pestañas
+  self.skipWaiting();
+  
   event.waitUntil(
     Promise.all([
-      // Cachear assets estáticos
-      caches.open(STATIC_CACHE_NAME).then((cache) => {
-        return cache.addAll(STATIC_ASSETS);
-      }),
-      // Limpiar cachés antiguos
+      // Limpiar TODAS las cachés antiguas primero
       caches.keys().then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
-            if (cacheName !== CACHE_NAME && cacheName !== STATIC_CACHE_NAME) {
-              console.log('[SW] Eliminando caché antigua:', cacheName);
-              return caches.delete(cacheName);
-            }
+            console.log('[SW] Eliminando caché antigua:', cacheName);
+            return caches.delete(cacheName);
           })
         );
+      }),
+      // Cachear assets estáticos solo después de limpiar
+      caches.open(STATIC_CACHE_NAME).then((cache) => {
+        return cache.addAll(STATIC_ASSETS).catch((err) => {
+          console.warn('[SW] Error cacheando assets estáticos:', err);
+        });
       })
     ]).then(() => {
       console.log('[SW] Service Worker instalado correctamente');
-      return self.skipWaiting(); // Activar inmediatamente
+      // Forzar activación inmediata
+      return self.skipWaiting();
     })
   );
 });
@@ -51,7 +55,7 @@ self.addEventListener('activate', (event) => {
   
   event.waitUntil(
     Promise.all([
-      // Limpiar todos los cachés que no sean la versión actual
+      // Limpiar TODAS las cachés que no sean la versión actual
       caches.keys().then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
@@ -62,17 +66,22 @@ self.addEventListener('activate', (event) => {
           })
         );
       }),
-      // Tomar control de todas las páginas
+      // Tomar control inmediato de todas las páginas
       self.clients.claim()
     ]).then(() => {
       console.log('[SW] Service Worker activado');
-      // Notificar a todos los clientes sobre la nueva versión
-      return self.clients.matchAll().then((clients) => {
+      // Notificar a todos los clientes sobre la nueva versión (SIN forzar recarga)
+      return self.clients.matchAll({ includeUncontrolled: true }).then((clients) => {
         clients.forEach((client) => {
-          client.postMessage({
-            type: 'SW_ACTIVATED',
-            version: APP_VERSION
-          });
+          try {
+            client.postMessage({
+              type: 'SW_ACTIVATED',
+              version: APP_VERSION
+              // NO forzar recarga automáticamente para evitar bucles
+            });
+          } catch (err) {
+            console.warn('[SW] Error notificando cliente:', err);
+          }
         });
       });
     })
@@ -131,57 +140,55 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Para assets estáticos: Cache First con validación
+  // Para assets estáticos: Network First (siempre obtener la versión más reciente)
   if (request.destination === 'script' || 
       request.destination === 'style' ||
       request.destination === 'image' ||
       request.destination === 'font') {
     event.respondWith(
-      caches.match(request).then((cachedResponse) => {
-        if (cachedResponse) {
-          // Verificar si hay actualización en background
-          fetch(request).then((networkResponse) => {
-            if (networkResponse.status === 200) {
-              caches.open(STATIC_CACHE_NAME).then((cache) => {
-                cache.put(request, networkResponse.clone());
-              });
-            }
-          }).catch(() => {
-            // Sin red, usar caché
-          });
-          return cachedResponse;
-        }
-        // No está en caché, obtener de red
-        return fetch(request).then((response) => {
-          if (response.status === 200) {
-            const responseClone = response.clone();
-            caches.open(STATIC_CACHE_NAME).then((cache) => {
-              cache.put(request, responseClone);
-            });
-          }
-          return response;
-        });
-      })
-    );
-    return;
-  }
-
-  // Para HTML: Network First (siempre obtener la última versión)
-  if (request.destination === 'document' || request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request)
+      fetch(request, { cache: 'no-cache' }) // Forzar obtener de red
         .then((response) => {
-          // Cachear HTML solo si es exitoso
+          // Solo cachear si la respuesta es exitosa
           if (response.status === 200) {
             const responseClone = response.clone();
             caches.open(STATIC_CACHE_NAME).then((cache) => {
-              cache.put(request, responseClone);
+              cache.put(request, responseClone).catch((err) => {
+                console.warn('[SW] Error cacheando asset:', err);
+              });
             });
           }
           return response;
         })
         .catch(() => {
-          // Fallback a caché si no hay red
+          // Solo usar caché si no hay red
+          return caches.match(request).then((cachedResponse) => {
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+            // Si no hay caché ni red, devolver error
+            return new Response('Recurso no disponible', { status: 503 });
+          });
+        })
+    );
+    return;
+  }
+
+  // Para HTML: Network First (siempre obtener la última versión, sin caché)
+  if (request.destination === 'document' || request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request, { 
+        cache: 'no-store', // No usar caché del navegador
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      })
+        .then((response) => {
+          // No cachear HTML para forzar siempre la última versión
+          return response;
+        })
+        .catch(() => {
+          // Fallback a caché solo si no hay red
           return caches.match(request).then((cachedResponse) => {
             return cachedResponse || new Response('Sin conexión', { status: 503 });
           });
@@ -190,9 +197,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Default: Network First
+  // Default: Network First (sin caché)
   event.respondWith(
-    fetch(request).catch(() => {
+    fetch(request, { cache: 'no-cache' }).catch(() => {
       return caches.match(request);
     })
   );
