@@ -10,17 +10,13 @@
 
 let mixpanel = null;
 
-// Flags para evitar spam de warnings
-let mixpanelWarningShown = false;
-let ga4WarningShown = false;
-
 const initMixpanel = () => {
   const token = import.meta.env.VITE_MIXPANEL_TOKEN;
   
   if (!token) {
-    if (!mixpanelWarningShown) {
-      console.warn('Analytics: Mixpanel deshabilitado (token faltante)');
-      mixpanelWarningShown = true;
+    // Solo mostrar en desarrollo, no en producción
+    if (import.meta.env.MODE === 'development') {
+      console.log('Analytics: Mixpanel deshabilitado (token faltante)');
     }
     return;
   }
@@ -67,9 +63,9 @@ const initGA4 = () => {
   const measurementId = import.meta.env.VITE_GA4_MEASUREMENT_ID;
   
   if (!measurementId) {
-    if (!ga4WarningShown) {
-      console.warn('Analytics: GA4 deshabilitado (measurement ID faltante)');
-      ga4WarningShown = true;
+    // Solo mostrar en desarrollo, no en producción
+    if (import.meta.env.MODE === 'development') {
+      console.log('Analytics: GA4 deshabilitado (measurement ID faltante)');
     }
     return;
   }

@@ -36,12 +36,45 @@ const customSupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
 
 // Interceptor para manejar errores de token expirado
 customSupabaseClient.auth.onAuthStateChange((event, session) => {
-  if (event === 'TOKEN_REFRESHED') {
-    console.log('✅ Token refrescado exitosamente');
-  } else if (event === 'SIGNED_OUT') {
-    console.log('👋 Usuario cerró sesión');
+  // Solo loguear eventos importantes en desarrollo
+  if (import.meta.env.MODE === 'development') {
+    if (event === 'TOKEN_REFRESHED') {
+      console.log('✅ Token refrescado exitosamente');
+    } else if (event === 'SIGNED_OUT') {
+      console.log('👋 Usuario cerró sesión');
+    }
+  }
+  
+  // Manejar errores de refresh token silenciosamente
+  if (event === 'TOKEN_REFRESHED' && !session) {
+    // Token refresh falló, limpiar sesión
+    customSupabaseClient.auth.signOut().catch(() => {
+      // Ignorar errores al cerrar sesión
+    });
   }
 });
+
+// Interceptor global para suprimir errores esperados de refresh token en la consola
+if (typeof window !== 'undefined') {
+  const originalConsoleError = console.error;
+  console.error = function(...args) {
+    // Filtrar errores esperados de refresh token
+    const errorMessage = args[0]?.message || args[0]?.toString() || '';
+    const isInvalidRefreshTokenError = 
+      errorMessage.includes('Invalid Refresh Token') ||
+      errorMessage.includes('Refresh Token Not Found') ||
+      (args[0]?.name === 'AuthApiError' && errorMessage.includes('refresh'));
+    
+    // Solo suprimir en producción o si es un error esperado de refresh token
+    if (isInvalidRefreshTokenError && import.meta.env.MODE === 'production') {
+      // No mostrar el error en producción, es esperado cuando no hay sesión válida
+      return;
+    }
+    
+    // Mostrar otros errores normalmente
+    originalConsoleError.apply(console, args);
+  };
+}
 
 export default customSupabaseClient;
 

@@ -1,26 +1,20 @@
 import * as Sentry from "@sentry/react";
 
-// Prevenir inicialización múltiple
-if (!window.__SENTRY_INITIALIZED__ && import.meta.env.VITE_SENTRY_DSN) {
-  try {
-    Sentry.init({
-      dsn: import.meta.env.VITE_SENTRY_DSN,
-      sendDefaultPii: true,
-      tracesSampleRate: 1.0,   // performance
-      replaysSessionSampleRate: 0.1, 
-      replaysOnErrorSampleRate: 1.0,
-      integrations: [
-        Sentry.browserTracingIntegration(),
-        Sentry.replayIntegration(),
-        Sentry.consoleLoggingIntegration({
-          levels: ["error", "warn"],
-        }),
-      ],
-    });
-    window.__SENTRY_INITIALIZED__ = true;
-  } catch (error) {
-    console.error('[Sentry] Error inicializando Sentry:', error);
-  }
+if (import.meta.env.VITE_SENTRY_DSN) {
+  Sentry.init({
+    dsn: import.meta.env.VITE_SENTRY_DSN,
+    sendDefaultPii: true,
+    tracesSampleRate: 1.0,   // performance
+    replaysSessionSampleRate: 0.1, 
+    replaysOnErrorSampleRate: 1.0,
+    integrations: [
+      Sentry.browserTracingIntegration(),
+      Sentry.replayIntegration(),
+      Sentry.consoleLoggingIntegration({
+        levels: ["error", "warn"],
+      }),
+    ],
+  });
 }
 
 export const captureError = (error, extra = {}) => {

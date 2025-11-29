@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 
 import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
@@ -14,24 +14,50 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // Usar refs para evitar loops infinitos
+  const sessionRef = useRef(null);
+  const userRef = useRef(null);
+  const isInitializingRef = useRef(true);
 
-  const handleSession = useCallback(async (session) => {
-    setSession(session);
-    const currentUser = session?.user ?? null;
+  const handleSession = useCallback(async (newSession) => {
+    // Evitar actualizaciones innecesarias comparando con la sesión actual
+    const currentSessionId = sessionRef.current?.user?.id;
+    const newSessionId = newSession?.user?.id;
+    
+    // Si la sesión no ha cambiado realmente, no hacer nada
+    if (currentSessionId === newSessionId && sessionRef.current !== null && newSession === null) {
+      // Solo actualizar si realmente cambió de null a null (ya está manejado)
+      return;
+    }
+    
+    // Si ambos son null y ya procesamos la inicialización, no hacer nada
+    if (!currentSessionId && !newSessionId && !isInitializingRef.current) {
+      return;
+    }
+    
+    // Actualizar refs
+    sessionRef.current = newSession;
+    userRef.current = newSession?.user ?? null;
+    
+    setSession(newSession);
+    const currentUser = newSession?.user ?? null;
     setUser(currentUser);
     setLoading(false);
     
-    // Actualizar contexto de Sentry y Analytics
-    if (currentUser) {
+    // Actualizar contexto de Sentry y Analytics solo si cambió el usuario
+    if (currentUser && currentUser.id !== currentSessionId) {
       setSentryUser(currentUser);
       identifyUser(currentUser.id, {
         email: currentUser.email,
         name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0],
       });
-    } else {
+    } else if (!currentUser && currentSessionId) {
       setSentryUser(null);
       resetAnalyticsUser();
     }
+    
+    isInitializingRef.current = false;
   }, []);
 
   // Función para refrescar el token automáticamente
@@ -39,34 +65,69 @@ export const AuthProvider = ({ children }) => {
     try {
       const { data: { session }, error } = await supabase.auth.refreshSession();
       if (error) {
-        console.error('Error refreshing session:', error);
-        // Si el refresh falla, limpiar la sesión
-        if (error.message?.includes('exp') || error.message?.includes('Invalid')) {
+        // Solo loguear errores que no sean de token inválido (esperados)
+        const isInvalidTokenError = 
+          error.message?.includes('Invalid Refresh Token') ||
+          error.message?.includes('Refresh Token Not Found') ||
+          error.message?.includes('exp') ||
+          error.message?.includes('Invalid');
+        
+        if (!isInvalidTokenError) {
+          console.error('Error refreshing session:', error);
+        }
+        
+        // Si el refresh falla, limpiar la sesión silenciosamente
+        if (isInvalidTokenError) {
+          // Limpiar tokens inválidos sin mostrar error al usuario
           await supabase.auth.signOut();
           handleSession(null);
-          toast({
-            variant: "destructive",
-            title: "Sesión Expirada",
-            description: "Por favor, inicia sesión nuevamente.",
-          });
+          // Solo mostrar toast si el usuario estaba autenticado
+          if (userRef.current) {
+            toast({
+              variant: "destructive",
+              title: "Sesión Expirada",
+              description: "Por favor, inicia sesión nuevamente.",
+            });
+          }
         }
         return;
       }
       handleSession(session);
     } catch (err) {
-      console.error('Error in refreshSession:', err);
+      // Solo loguear errores inesperados
+      const isInvalidTokenError = 
+        err.message?.includes('Invalid Refresh Token') ||
+        err.message?.includes('Refresh Token Not Found');
+      
+      if (!isInvalidTokenError) {
+        console.error('Error in refreshSession:', err);
+      }
       handleSession(null);
     }
   }, [handleSession, toast]);
 
   useEffect(() => {
+    let mounted = true;
+    
     const getSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
+        if (!mounted) return;
+        
         if (error) {
-          console.error('Error getting session:', error);
+          // Solo loguear errores que no sean de token inválido (esperados)
+          const isInvalidTokenError = 
+            error.message?.includes('Invalid Refresh Token') ||
+            error.message?.includes('Refresh Token Not Found') ||
+            error.message?.includes('exp') ||
+            error.message?.includes('Invalid');
+          
+          if (!isInvalidTokenError) {
+            console.error('Error getting session:', error);
+          }
+          
           // Si el token está expirado, intentar refrescar
-          if (error.message?.includes('exp') || error.message?.includes('Invalid')) {
+          if (isInvalidTokenError) {
             await refreshSession();
             return;
           }
@@ -75,7 +136,16 @@ export const AuthProvider = ({ children }) => {
         }
         handleSession(session);
       } catch (err) {
-        console.error('Error in getSession:', err);
+        if (!mounted) return;
+        
+        // Solo loguear errores inesperados
+        const isInvalidTokenError = 
+          err.message?.includes('Invalid Refresh Token') ||
+          err.message?.includes('Refresh Token Not Found');
+        
+        if (!isInvalidTokenError) {
+          console.error('Error in getSession:', err);
+        }
         handleSession(null);
       }
     };
@@ -83,16 +153,23 @@ export const AuthProvider = ({ children }) => {
     getSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (event, newSession) => {
+        if (!mounted) return;
+        
         // Solo loguear eventos importantes, no INITIAL_SESSION
         if (event !== 'INITIAL_SESSION') {
-          console.log('Auth state changed:', event, session?.user?.email);
+          console.log('Auth state changed:', event, newSession?.user?.email);
+        }
+        
+        // Evitar procesar INITIAL_SESSION múltiples veces
+        if (event === 'INITIAL_SESSION' && !isInitializingRef.current) {
+          return;
         }
         
         // Manejar eventos específicos
         if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
           // USER_UPDATED se dispara cuando se actualiza el usuario con updateUser()
-          handleSession(session);
+          handleSession(newSession);
         } else if (event === 'SIGNED_OUT') {
           handleSession(null);
         } else if (event === 'SIGNED_IN') {
@@ -102,29 +179,31 @@ export const AuthProvider = ({ children }) => {
           }).catch((error) => {
             console.error('[Auth] Error limpiando caché:', error);
           });
-          handleSession(session);
+          handleSession(newSession);
         } else if (event === 'INITIAL_SESSION') {
-          // Manejar sesión inicial sin loguear
-          handleSession(session);
+          // Manejar sesión inicial solo una vez
+          isInitializingRef.current = true;
+          handleSession(newSession);
         } else {
           // Para cualquier otro evento, actualizar la sesión
-          handleSession(session);
+          handleSession(newSession);
         }
       }
     );
 
     // Configurar refresh automático del token cada 55 minutos (los tokens de Supabase duran 1 hora)
     const refreshInterval = setInterval(() => {
-      if (session) {
+      if (sessionRef.current) {
         refreshSession();
       }
     }, 55 * 60 * 1000); // 55 minutos
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
       clearInterval(refreshInterval);
     };
-  }, [handleSession, refreshSession]);
+  }, []); // Sin dependencias para evitar loops
 
   const signUp = useCallback(async (email, password, options) => {
     const { error } = await supabase.auth.signUp({

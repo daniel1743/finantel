@@ -69,16 +69,10 @@ self.addEventListener('activate', (event) => {
       // Notificar a todos los clientes sobre la nueva versión
       return self.clients.matchAll().then((clients) => {
         clients.forEach((client) => {
-          if (client && 'postMessage' in client) {
-            try {
-              client.postMessage({
-                type: 'SW_ACTIVATED',
-                version: APP_VERSION
-              });
-            } catch (error) {
-              console.warn('[SW] Error enviando mensaje a cliente:', error);
-            }
-          }
+          client.postMessage({
+            type: 'SW_ACTIVATED',
+            version: APP_VERSION
+          });
         });
       });
     })
@@ -102,29 +96,36 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Solo cachear respuestas exitosas
-          if (response.status === 200) {
+          // Solo cachear respuestas exitosas de peticiones GET
+          // No cachear POST, PUT, DELETE, etc.
+          if (response.status === 200 && request.method === 'GET') {
             const responseClone = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, responseClone);
+              cache.put(request, responseClone).catch((err) => {
+                // Ignorar errores de caché (puede fallar si el request no es cacheable)
+                console.warn('[SW] No se pudo cachear la respuesta:', err);
+              });
             });
           }
           return response;
         })
         .catch(() => {
-          // Fallback a caché si no hay red
-          return caches.match(request).then((cachedResponse) => {
-            if (cachedResponse) {
-              return cachedResponse;
-            }
-            return new Response(
-              JSON.stringify({ error: 'Sin conexión' }),
-              {
-                headers: { 'Content-Type': 'application/json' },
-                status: 503
+          // Fallback a caché solo para peticiones GET
+          if (request.method === 'GET') {
+            return caches.match(request).then((cachedResponse) => {
+              if (cachedResponse) {
+                return cachedResponse;
               }
-            );
-          });
+            });
+          }
+          // Para POST/PUT/DELETE, devolver error de conexión
+          return new Response(
+            JSON.stringify({ error: 'Sin conexión' }),
+            {
+              headers: { 'Content-Type': 'application/json' },
+              status: 503
+            }
+          );
         })
     );
     return;
@@ -217,34 +218,30 @@ self.addEventListener('message', (event) => {
             })
           );
         }).then(() => {
-          if (event.ports && event.ports[0] && 'postMessage' in event.ports[0]) {
-            try {
-              event.ports[0].postMessage({ success: true });
-            } catch (error) {
-              console.warn('[SW] Error enviando respuesta CLEAR_CACHE:', error);
-            }
+          // Verificar que hay un puerto antes de enviar mensaje
+          if (event.ports && event.ports[0]) {
+            event.ports[0].postMessage({ success: true });
           }
-        }).catch((error) => {
-          console.error('[SW] Error limpiando caché:', error);
-          if (event.ports && event.ports[0] && 'postMessage' in event.ports[0]) {
-            try {
-              event.ports[0].postMessage({ success: false, error: error.message });
-            } catch (e) {
-              console.warn('[SW] Error enviando error:', e);
-            }
-          }
+          // También notificar a todos los clientes
+          return self.clients.matchAll().then((clients) => {
+            clients.forEach((client) => {
+              try {
+                client.postMessage({
+                  type: 'CACHE_CLEARED',
+                  success: true
+                });
+              } catch (err) {
+                // Ignorar errores si el cliente ya no está disponible
+                console.warn('[SW] No se pudo notificar al cliente:', err);
+              }
+            });
+          });
         })
       );
       break;
 
     case 'GET_VERSION':
-      if (event.ports && event.ports[0] && 'postMessage' in event.ports[0]) {
-        try {
-          event.ports[0].postMessage({ version: APP_VERSION });
-        } catch (error) {
-          console.warn('[SW] Error enviando versión:', error);
-        }
-      }
+      event.ports[0].postMessage({ version: APP_VERSION });
       break;
 
     default:
@@ -298,20 +295,11 @@ self.addEventListener('notificationclick', (event) => {
         if (clientList.length > 0) {
           // Ya hay una ventana abierta, enfocarla y recargar
           return clientList[0].focus().then((client) => {
-            if (client && 'postMessage' in client) {
-              try {
-                client.postMessage({
-                  type: 'FORCE_RELOAD',
-                  version: event.notification.data?.version
-                });
-              } catch (error) {
-                console.warn('[SW] Error enviando FORCE_RELOAD:', error);
-              }
-            }
-            if (client && 'navigate' in client) {
-              return client.navigate(event.notification.data?.url || '/');
-            }
-            return client;
+            client.postMessage({
+              type: 'FORCE_RELOAD',
+              version: event.notification.data?.version
+            });
+            return client.navigate(event.notification.data?.url || '/');
           });
         } else {
           // Abrir nueva ventana

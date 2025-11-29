@@ -5,11 +5,16 @@ import { useDemoMode } from '@/contexts/DemoModeContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
-const DemoModeBanner = () => {
+// Componente interno que usa los hooks
+const DemoModeBannerContent = () => {
   const { isDemoMode, getFormattedTimeRemaining } = useDemoMode();
   const navigate = useNavigate();
 
   if (!isDemoMode) return null;
+
+  const handleSignup = () => {
+    navigate('/auth?mode=signup');
+  };
 
   return (
     <motion.div
@@ -45,7 +50,7 @@ const DemoModeBanner = () => {
 
           {/* Right side - CTA */}
           <Button
-            onClick={() => navigate('/auth?mode=signup')}
+            onClick={handleSignup}
             size="sm"
             className="bg-white text-[#1C8FA0] hover:bg-white/90 rounded-full shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
           >
@@ -65,6 +70,17 @@ const DemoModeBanner = () => {
       </div>
     </motion.div>
   );
+};
+
+// Wrapper que maneja errores si el contexto no está disponible
+const DemoModeBanner = () => {
+  try {
+    return <DemoModeBannerContent />;
+  } catch (err) {
+    // Si el contexto no está disponible, simplemente no mostrar el banner
+    // Esto puede pasar durante el renderizado inicial o en casos de error
+    return null;
+  }
 };
 
 export default DemoModeBanner;

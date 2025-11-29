@@ -48,159 +48,93 @@ OBJETIVO:
 Generar un análisis financiero profesional que el usuario pueda usar para tomar decisiones informadas, similar a lo que recibiría de un asesor financiero de banco o corredor de bolsa.`;
 
 /**
- * Clase principal para el servicio de IA de DeepFinance
+ * Genera insights profesionales usando IA
+ * @param {Object} analysis - Resultado del análisis del motor
+ * @param {Object} rawData - Datos originales recolectados
+ * @returns {Promise<Object>}
  */
-export class DeepFinanceAIService {
-  constructor() {
-    // Constructor vacío, no requiere inicialización
+export async function generateAIInsights(analysis, rawData) {
+  try {
+    // Construir contexto con datos REALES
+    const context = buildAnalysisContext(analysis, rawData);
+
+    // Construir prompt especializado
+    const prompt = buildAnalysisPrompt(context, analysis);
+
+    // Llamar a la IA
+    const insights = await callAI(prompt);
+
+    // Parsear respuesta estructurada
+    return parseAIResponse(insights, analysis);
+
+  } catch (error) {
+    console.error('[DeepFinance AI] Error generating insights:', error);
+    // Retornar insights básicos si falla la IA
+    return generateFallbackInsights(analysis);
   }
+}
 
-  /**
-   * Llama a la API de IA (DeepSeek primero, Qwen como fallback)
-   * @param {string} prompt
-   * @returns {Promise<string>}
-   */
-  async callAI(prompt) {
-    const messages = [
-      { role: 'system', content: DEEPFINANCE_SYSTEM_PROMPT },
-      { role: 'user', content: prompt }
-    ];
-
-    try {
-      // Intento 1: DeepSeek
-      const deepseekResponse = await fetch('https://api.deepseek.com/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: 'deepseek-chat',
-          messages: messages,
-          temperature: 0.7, // Más conservador para análisis financiero
-          stream: false
-        })
-      });
-
-      if (deepseekResponse.ok) {
-        const data = await deepseekResponse.json();
-        if (data.choices && data.choices[0] && data.choices[0].message) {
-          return data.choices[0].message.content;
-        }
-        throw new Error('DeepSeek API: Respuesta inválida');
-      }
-      
-      // Obtener detalles del error
-      const errorData = await deepseekResponse.json().catch(() => ({}));
-      const errorMessage = errorData.error?.message || `HTTP ${deepseekResponse.status}`;
-      throw new Error(`DeepSeek API failed: ${errorMessage}`);
-
-    } catch (error) {
-      console.warn('[DeepFinance AI] DeepSeek failed, trying Qwen:', error.message || error);
-      
-      // Verificar si hay API key de Qwen antes de intentar
-      if (!QWEN_API_KEY || QWEN_API_KEY === 'sk-e6343f5b0abc42d294d2ad7f977e48e8') {
-        console.warn('[DeepFinance AI] Qwen API key no configurada, usando fallback');
-        throw new Error(`DeepSeek falló y Qwen no está configurado: ${error.message}`);
-      }
-      
-      // Intento 2: Qwen (fallback)
-      try {
-        const qwenResponse = await fetch('https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${QWEN_API_KEY}`
-          },
-          body: JSON.stringify({
-            model: 'qwen-turbo',
-            messages: messages,
-            temperature: 0.7
-          })
-        });
-
-        if (qwenResponse.ok) {
-          const data = await qwenResponse.json();
-          if (data.choices && data.choices[0] && data.choices[0].message) {
-            return data.choices[0].message.content;
-          }
-          throw new Error('Qwen API: Respuesta inválida');
-        }
-        
-        // Obtener detalles del error
-        const errorData = await qwenResponse.json().catch(() => ({}));
-        const errorMessage = errorData.error?.message || `HTTP ${qwenResponse.status}`;
-        throw new Error(`Qwen API failed: ${errorMessage}`);
-
-      } catch (finalError) {
-        console.error('[DeepFinance AI] All AI services failed:', finalError.message || finalError);
-        const errorMsg = finalError.message || 'Error desconocido';
-        throw new Error(`No se pudo conectar con los servicios de IA: ${errorMsg}. Verifica tus API keys en .env`);
-      }
-    }
-  }
-
-  /**
-   * Construye el contexto con datos reales
-   * @param {Object} analysis
-   * @param {Object} rawData
-   * @returns {string}
-   */
-  buildAnalysisContext(analysis, rawData) {
-    const context = {
-      // Datos financieros básicos (REALES)
-      financial: {
-        totalIncome: analysis.totalIncome,
-        totalExpenses: analysis.totalExpenses,
-        netSavings: analysis.netSavings,
-        savingsRate: analysis.savingsRate,
-        totalTransactions: analysis.totalTransactions,
-        period: {
-          start: analysis.period.start,
-          end: analysis.period.end,
-          days: analysis.period.days,
-        },
+/**
+ * Construye el contexto con datos reales
+ * @param {Object} analysis
+ * @param {Object} rawData
+ * @returns {string}
+ */
+function buildAnalysisContext(analysis, rawData) {
+  const context = {
+    // Datos financieros básicos (REALES)
+    financial: {
+      totalIncome: analysis.totalIncome,
+      totalExpenses: analysis.totalExpenses,
+      netSavings: analysis.netSavings,
+      savingsRate: analysis.savingsRate,
+      totalTransactions: analysis.totalTransactions,
+      period: {
+        start: analysis.period.start,
+        end: analysis.period.end,
+        days: analysis.period.days,
       },
+    },
 
-      // Puntaje y componentes
-      score: {
-        global: analysis.score,
-        breakdown: analysis.scoreBreakdown,
-      },
+    // Puntaje y componentes
+    score: {
+      global: analysis.score,
+      breakdown: analysis.scoreBreakdown,
+    },
 
-      // Patrones detectados (solo los que existen)
-      patterns: analysis.patterns || [],
+    // Patrones detectados (solo los que existen)
+    patterns: analysis.patterns || [],
 
-      // Análisis emocional (solo si hay datos)
-      emotional: analysis.emotional || null,
+    // Análisis emocional (solo si hay datos)
+    emotional: analysis.emotional || null,
 
-      // Análisis de riesgo
-      risk: analysis.risk || null,
+    // Análisis de riesgo
+    risk: analysis.risk || null,
 
-      // Desglose por categoría (top 10)
-      topCategories: (analysis.categoryBreakdown || []).slice(0, 10),
+    // Desglose por categoría (top 10)
+    topCategories: (analysis.categoryBreakdown || []).slice(0, 10),
 
-      // Análisis mensual (últimos 6 meses)
-      monthlyTrend: (analysis.monthlyBreakdown || []).slice(-6),
+    // Análisis mensual (últimos 6 meses)
+    monthlyTrend: (analysis.monthlyBreakdown || []).slice(-6),
 
-      // Presupuestos (solo si existen)
-      budgets: analysis.budgets || [],
+    // Presupuestos (solo si existen)
+    budgets: analysis.budgets || [],
 
-      // Metas (solo si existen)
-      goals: rawData.goals || [],
-    };
+    // Metas (solo si existen)
+    goals: rawData.goals || [],
+  };
 
-    return JSON.stringify(context, null, 2);
-  }
+  return JSON.stringify(context, null, 2);
+}
 
-  /**
-   * Construye el prompt para la IA
-   * @param {string} context
-   * @param {Object} analysis
-   * @returns {string}
-   */
-  buildAnalysisPrompt(context, analysis) {
-    return `Analiza estos datos financieros REALES del usuario y genera un análisis profesional completo.
+/**
+ * Construye el prompt para la IA
+ * @param {string} context
+ * @param {Object} analysis
+ * @returns {string}
+ */
+function buildAnalysisPrompt(context, analysis) {
+  return `Analiza estos datos financieros REALES del usuario y genera un análisis profesional completo.
 
 DATOS DEL ANÁLISIS:
 ${context}
@@ -272,140 +206,163 @@ IMPORTANTE:
 - Si no hay datos en un área, di "No hay datos suficientes para analizar esta área"
 - NUNCA inventes números, montos o categorías
 - Sé honesto y profesional`;
-  }
+}
 
-  /**
-   * Parsea la respuesta de la IA
-   * @param {string} aiResponse
-   * @param {Object} analysis
-   * @returns {Object}
-   */
-  parseAIResponse(aiResponse, analysis) {
+/**
+ * Llama a la API de IA (DeepSeek primero, Qwen como fallback)
+ * @param {string} prompt
+ * @returns {Promise<string>}
+ */
+async function callAI(prompt) {
+  const messages = [
+    { role: 'system', content: DEEPFINANCE_SYSTEM_PROMPT },
+    { role: 'user', content: prompt }
+  ];
+
+  try {
+    // Intento 1: DeepSeek
+    const deepseekResponse = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: messages,
+        temperature: 0.7, // Más conservador para análisis financiero
+        stream: false
+      })
+    });
+
+    if (deepseekResponse.ok) {
+      const data = await deepseekResponse.json();
+      return data.choices[0].message.content;
+    }
+    
+    throw new Error('DeepSeek API failed');
+
+  } catch (error) {
+    console.warn('[DeepFinance AI] DeepSeek failed, trying Qwen:', error);
+    
+    // Intento 2: Qwen (fallback)
     try {
-      // Intentar extraer JSON de la respuesta
-      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        return {
-          ...parsed,
-          rawResponse: aiResponse,
-          generatedAt: new Date().toISOString(),
-        };
-      }
+      const qwenResponse = await fetch('https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${QWEN_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'qwen-turbo',
+          messages: messages,
+          temperature: 0.7
+        })
+      });
 
-      // Si no hay JSON, crear estructura básica con el texto
+      if (qwenResponse.ok) {
+        const data = await qwenResponse.json();
+        return data.choices[0].message.content;
+      }
+      
+      throw new Error('Qwen API also failed');
+
+    } catch (finalError) {
+      console.error('[DeepFinance AI] All AI services failed:', finalError);
+      throw new Error('No se pudo conectar con los servicios de IA. Por favor, intenta más tarde.');
+    }
+  }
+}
+
+/**
+ * Parsea la respuesta de la IA
+ * @param {string} aiResponse
+ * @param {Object} analysis
+ * @returns {Object}
+ */
+function parseAIResponse(aiResponse, analysis) {
+  try {
+    // Intentar extraer JSON de la respuesta
+    const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
       return {
-        summary: aiResponse.substring(0, 500),
-        diagnosis: {
-          strengths: [],
-          weaknesses: [],
-          byComponent: {},
-        },
-        patterns: '',
-        risks: [],
-        recommendations: [],
-        actionPlan: {
-          '7days': [],
-          '30days': [],
-          '90days': [],
-        },
+        ...parsed,
         rawResponse: aiResponse,
         generatedAt: new Date().toISOString(),
       };
-
-    } catch (error) {
-      console.error('[DeepFinance AI] Error parsing response:', error);
-      return this.generateFallbackInsights(analysis);
-    }
-  }
-
-  /**
-   * Genera insights básicos si falla la IA
-   * @param {Object} analysis
-   * @returns {Object}
-   */
-  generateFallbackInsights(analysis) {
-    const score = analysis.score;
-    let summary = '';
-    let healthStatus = '';
-
-    if (score >= 80) {
-      healthStatus = 'excelente';
-      summary = 'Tu salud financiera es excelente. Mantienes un buen equilibrio entre ingresos y gastos, y sigues tus presupuestos consistentemente.';
-    } else if (score >= 60) {
-      healthStatus = 'buena';
-      summary = 'Tu salud financiera es buena, pero hay oportunidades de mejora. Algunas áreas necesitan atención para optimizar tus finanzas.';
-    } else if (score >= 40) {
-      healthStatus = 'regular';
-      summary = 'Tu salud financiera necesita atención. Hay áreas importantes que requieren mejoras para alcanzar una situación financiera más estable.';
-    } else {
-      healthStatus = 'crítica';
-      summary = 'Tu salud financiera requiere acción inmediata. Es importante revisar tus hábitos de gasto y crear un plan de acción para mejorar.';
     }
 
+    // Si no hay JSON, crear estructura básica con el texto
     return {
-      summary,
-      healthStatus,
+      summary: aiResponse.substring(0, 500),
       diagnosis: {
         strengths: [],
         weaknesses: [],
         byComponent: {},
       },
-      patterns: analysis.patterns?.map(p => p.description).join('. ') || 'No se detectaron patrones significativos.',
-      risks: analysis.risk?.factors?.map(f => f.description) || [],
+      patterns: '',
+      risks: [],
       recommendations: [],
       actionPlan: {
-        '7days': ['Revisar tus gastos del mes', 'Identificar categorías con mayor gasto'],
-        '30days': ['Crear o ajustar presupuestos', 'Establecer metas de ahorro'],
-        '90days': ['Mejorar tasa de ahorro', 'Optimizar gastos recurrentes'],
+        '7days': [],
+        '30days': [],
+        '90days': [],
       },
-      rawResponse: null,
+      rawResponse: aiResponse,
       generatedAt: new Date().toISOString(),
-      isFallback: true,
     };
-  }
 
-  /**
-   * Genera insights profesionales usando IA
-   * @param {Object} analysis - Resultado del análisis del motor
-   * @param {Object} rawData - Datos originales recolectados
-   * @returns {Promise<Object>}
-   */
-  async generateAIInsights(analysis, rawData) {
-    try {
-      // Construir contexto con datos REALES
-      const context = this.buildAnalysisContext(analysis, rawData);
-
-      // Construir prompt especializado
-      const prompt = this.buildAnalysisPrompt(context, analysis);
-
-      // Llamar a la IA
-      const insights = await this.callAI(prompt);
-
-      // Parsear respuesta estructurada
-      return this.parseAIResponse(insights, analysis);
-
-    } catch (error) {
-      console.error('[DeepFinance AI] Error generating insights:', error);
-      // Retornar insights básicos si falla la IA
-      return this.generateFallbackInsights(analysis);
-    }
+  } catch (error) {
+    console.error('[DeepFinance AI] Error parsing response:', error);
+    return generateFallbackInsights(analysis);
   }
 }
 
-// =====================================================
-// FUNCIONES DE EXPORTACIÓN (compatibilidad)
-// =====================================================
-
 /**
- * Genera insights profesionales usando IA (función helper)
- * @param {Object} analysis - Resultado del análisis del motor
- * @param {Object} rawData - Datos originales recolectados
- * @returns {Promise<Object>}
+ * Genera insights básicos si falla la IA
+ * @param {Object} analysis
+ * @returns {Object}
  */
-export async function generateAIInsights(analysis, rawData) {
-  const service = new DeepFinanceAIService();
-  return service.generateAIInsights(analysis, rawData);
+function generateFallbackInsights(analysis) {
+  const score = analysis.score;
+  let summary = '';
+  let healthStatus = '';
+
+  if (score >= 80) {
+    healthStatus = 'excelente';
+    summary = 'Tu salud financiera es excelente. Mantienes un buen equilibrio entre ingresos y gastos, y sigues tus presupuestos consistentemente.';
+  } else if (score >= 60) {
+    healthStatus = 'buena';
+    summary = 'Tu salud financiera es buena, pero hay oportunidades de mejora. Algunas áreas necesitan atención para optimizar tus finanzas.';
+  } else if (score >= 40) {
+    healthStatus = 'regular';
+    summary = 'Tu salud financiera necesita atención. Hay áreas importantes que requieren mejoras para alcanzar una situación financiera más estable.';
+  } else {
+    healthStatus = 'crítica';
+    summary = 'Tu salud financiera requiere acción inmediata. Es importante revisar tus hábitos de gasto y crear un plan de acción para mejorar.';
+  }
+
+  return {
+    summary,
+    healthStatus,
+    diagnosis: {
+      strengths: [],
+      weaknesses: [],
+      byComponent: {},
+    },
+    patterns: analysis.patterns?.map(p => p.description).join('. ') || 'No se detectaron patrones significativos.',
+    risks: analysis.risk?.factors?.map(f => f.description) || [],
+    recommendations: [],
+    actionPlan: {
+      '7days': ['Revisar tus gastos del mes', 'Identificar categorías con mayor gasto'],
+      '30days': ['Crear o ajustar presupuestos', 'Establecer metas de ahorro'],
+      '90days': ['Mejorar tasa de ahorro', 'Optimizar gastos recurrentes'],
+    },
+    rawResponse: null,
+    generatedAt: new Date().toISOString(),
+    isFallback: true,
+  };
 }
 
 /**
@@ -478,5 +435,3 @@ export function generateRecommendations(analysis) {
   return recommendations;
 }
 
-// Exportación default
-export default DeepFinanceAIService;

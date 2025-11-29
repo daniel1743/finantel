@@ -173,14 +173,10 @@ class AppUpdateService {
         );
 
         // Enviar mensaje al Service Worker para limpiar
-        if (navigator.serviceWorker.controller && 'postMessage' in navigator.serviceWorker.controller) {
-          try {
-            navigator.serviceWorker.controller.postMessage({
-              type: 'CLEAR_CACHE'
-            });
-          } catch (error) {
-            console.warn('[AppUpdate] Error enviando mensaje CLEAR_CACHE:', error);
-          }
+        if (navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: 'CLEAR_CACHE'
+          });
         }
       }
 
@@ -237,12 +233,8 @@ class AppUpdateService {
       await this.clearCache();
 
       // Forzar actualización del Service Worker
-      if (this.registration.waiting && 'postMessage' in this.registration.waiting) {
-        try {
-          this.registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-        } catch (error) {
-          console.warn('[AppUpdate] Error enviando SKIP_WAITING:', error);
-        }
+      if (this.registration.waiting) {
+        this.registration.waiting.postMessage({ type: 'SKIP_WAITING' });
       }
 
       // Recargar la página

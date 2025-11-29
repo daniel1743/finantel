@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 
 const SeoHead = ({ 
   title = "Finantel - Gestión de Finanzas Personales con IA Gratis | Control Total de tu Dinero", 

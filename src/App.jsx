@@ -1,6 +1,6 @@
-
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from '@/contexts/SupabaseAuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ABTestProvider } from '@/contexts/ABTestContext';
@@ -57,22 +57,23 @@ const PageLoader = () => (
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider>
-        <AuthProvider>
-          <ABTestProvider>
-            <DemoModeProvider>
-              <Router
-                future={{
-                  v7_startTransition: true,
-                  v7_relativeSplatPath: true
-                }}
-              >
-                <SeoHead />
+      <HelmetProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <ABTestProvider>
+              <DemoModeProvider>
+                <Router
+                  future={{
+                    v7_startTransition: true,
+                    v7_relativeSplatPath: true
+                  }}
+                >
+                  <SeoHead />
                 <UpdateNotification />
                 <DemoModeBanner />
                 <DemoConversionModal />
                 <div className="min-h-screen bg-[#F5F7F9] dark:bg-[#0f0f11] font-sans selection:bg-[#1C8FA0]/20 selection:text-[#1C8FA0] transition-colors duration-300">
-                  <ErrorBoundary>
+                  <ErrorBoundary useRouterFallback={true}>
                     <Suspense fallback={<PageLoader />}>
                       <Routes>
                   <Route path="/" element={<LandingPage />} />
@@ -131,11 +132,12 @@ function App() {
                   </ErrorBoundary>
                   <Toaster />
                 </div>
-              </Router>
-            </DemoModeProvider>
-          </ABTestProvider>
-        </AuthProvider>
-      </ThemeProvider>
+                </Router>
+              </DemoModeProvider>
+            </ABTestProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </HelmetProvider>
     </ErrorBoundary>
   );
 }

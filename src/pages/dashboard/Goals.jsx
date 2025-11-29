@@ -11,13 +11,117 @@ import {
   X, 
   Sparkles,
   ArrowRight,
-  Loader2
+  Loader2,
+  Trash2,
+  // Iconos para metas
+  Plane,
+  Umbrella,
+  Cake,
+  UtensilsCrossed,
+  Tv,
+  Home,
+  Car,
+  Laptop,
+  Smartphone,
+  Camera,
+  Gamepad2,
+  Music,
+  BookOpen,
+  GraduationCap,
+  Heart,
+  Baby,
+  Ring,
+  ShoppingBag,
+  Wrench,
+  Building2,
+  Dumbbell,
+  Stethoscope,
+  Palette,
+  Gift,
+  Briefcase,
+  Wallet,
+  CreditCard,
+  PiggyBank,
+  Coins,
+  Landmark
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useFinance } from '@/hooks/useFinance';
 import { useToast } from '@/components/ui/use-toast';
+
+// Iconos elegantes para metas (más de 20 opciones)
+const goalIcons = [
+  // Viajes y vacaciones
+  { icon: Plane, name: 'Viaje', keywords: ['viaje', 'vacaciones', 'turismo', 'avión', 'japón', 'europa', 'viajar'] },
+  { icon: Umbrella, name: 'Playa', keywords: ['playa', 'mar', 'verano', 'vacaciones', 'resort', 'tropical'] },
+  
+  // Celebración y eventos
+  { icon: Cake, name: 'Cumpleaños', keywords: ['cumpleaños', 'fiesta', 'celebración', 'aniversario'] },
+  { icon: Gift, name: 'Regalo', keywords: ['regalo', 'obsequio', 'presente', 'navidad'] },
+  { icon: Ring, name: 'Boda', keywords: ['boda', 'matrimonio', 'compromiso', 'anillo'] },
+  
+  // Entretenimiento
+  { icon: Tv, name: 'TV', keywords: ['televisor', 'tv', 'pantalla', 'entretenimiento'] },
+  { icon: Gamepad2, name: 'Videojuegos', keywords: ['videojuegos', 'consola', 'gaming', 'playstation', 'xbox'] },
+  { icon: Music, name: 'Música', keywords: ['música', 'instrumento', 'guitarra', 'piano', 'spotify'] },
+  { icon: Camera, name: 'Fotografía', keywords: ['cámara', 'fotografía', 'fotos', 'lente'] },
+  
+  // Hogar y decoración
+  { icon: Home, name: 'Casa', keywords: ['casa', 'hogar', 'vivienda', 'departamento', 'propiedad'] },
+  { icon: Wrench, name: 'Reparación', keywords: ['reparación', 'renovación', 'cocina', 'baño', 'mejora'] },
+  { icon: Palette, name: 'Decoración', keywords: ['decoración', 'diseño', 'interior', 'muebles'] },
+  
+  // Tecnología
+  { icon: Laptop, name: 'Laptop', keywords: ['laptop', 'computadora', 'macbook', 'pc', 'portátil'] },
+  { icon: Smartphone, name: 'Celular', keywords: ['celular', 'teléfono', 'iphone', 'samsung', 'smartphone'] },
+  
+  // Transporte
+  { icon: Car, name: 'Auto', keywords: ['auto', 'carro', 'vehículo', 'coche', 'moto'] },
+  
+  // Educación y desarrollo
+  { icon: BookOpen, name: 'Educación', keywords: ['educación', 'curso', 'libros', 'estudio', 'universidad'] },
+  { icon: GraduationCap, name: 'Universidad', keywords: ['universidad', 'carrera', 'maestría', 'doctorado'] },
+  
+  // Salud y bienestar
+  { icon: Stethoscope, name: 'Salud', keywords: ['salud', 'médico', 'tratamiento', 'hospital'] },
+  { icon: Dumbbell, name: 'Gimnasio', keywords: ['gimnasio', 'fitness', 'ejercicio', 'deporte'] },
+  
+  // Compras y estilo
+  { icon: ShoppingBag, name: 'Compras', keywords: ['compras', 'ropa', 'zapatos', 'accesorios'] },
+  
+  // Familia
+  { icon: Baby, name: 'Bebé', keywords: ['bebé', 'niño', 'hijo', 'maternidad'] },
+  { icon: Heart, name: 'Familia', keywords: ['familia', 'amor', 'pareja'] },
+  
+  // Restaurantes y comida
+  { icon: UtensilsCrossed, name: 'Restaurante', keywords: ['restaurante', 'comida', 'cena', 'almuerzo', 'chef'] },
+  
+  // Finanzas
+  { icon: PiggyBank, name: 'Ahorro', keywords: ['ahorro', 'fondo', 'emergencia', 'reserva'] },
+  { icon: Wallet, name: 'Billetera', keywords: ['billetera', 'dinero', 'efectivo'] },
+  { icon: CreditCard, name: 'Tarjeta', keywords: ['tarjeta', 'crédito', 'débito'] },
+  { icon: Coins, name: 'Inversión', keywords: ['inversión', 'acciones', 'bolsa', 'ahorro'] },
+  { icon: Landmark, name: 'Banco', keywords: ['banco', 'préstamo', 'hipoteca'] },
+  
+  // Trabajo
+  { icon: Briefcase, name: 'Trabajo', keywords: ['trabajo', 'negocio', 'empresa', 'oficina'] },
+  
+  // Genérico
+  { icon: Target, name: 'Meta', keywords: ['meta', 'objetivo', 'propósito'] }
+];
+
+// Función para sugerir icono basado en el nombre de la meta
+const suggestIcon = (goalName) => {
+  const nameLower = goalName.toLowerCase();
+  for (const iconOption of goalIcons) {
+    if (iconOption.keywords.some(keyword => nameLower.includes(keyword))) {
+      return iconOption.icon;
+    }
+  }
+  return Target; // Icono por defecto
+};
 
 const goalsData = [
   { 
@@ -58,7 +162,26 @@ const goalsData = [
   }
 ];
 
-const GoalCard = ({ goal, index }) => {
+// Componente para meta de ejemplo (con estado local)
+const ExampleGoalCard = ({ goal, index, onDelete }) => {
+  const [isDeleted, setIsDeleted] = useState(false);
+
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    if (window.confirm('¿Estás seguro de que deseas eliminar esta meta de ejemplo?')) {
+      setIsDeleted(true);
+      if (onDelete) {
+        onDelete(goal.id);
+      }
+    }
+  };
+
+  if (isDeleted) return null;
+
+  return <GoalCard goal={goal} index={index} onDelete={handleDelete} />;
+};
+
+const GoalCard = ({ goal, index, onDelete }) => {
   const percentage = goal.target > 0 
     ? Math.min(100, Math.round((goal.saved / goal.target) * 100))
     : 0;
@@ -67,6 +190,24 @@ const GoalCard = ({ goal, index }) => {
   const monthlyNeeded = goal.monthlyNeeded !== null && goal.monthlyNeeded !== undefined 
     ? goal.monthlyNeeded 
     : (monthsLeft > 0 ? Math.ceil(remaining / monthsLeft) : null);
+
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    if (onDelete) {
+      onDelete(goal.id);
+    }
+  };
+
+  // Obtener el icono de la meta (si tiene icon_name, buscar el componente, sino usar sugerencia)
+  const getGoalIcon = () => {
+    if (goal.icon_name) {
+      const iconOption = goalIcons.find(opt => opt.name === goal.icon_name);
+      return iconOption ? iconOption.icon : suggestIcon(goal.name);
+    }
+    return goal.icon || suggestIcon(goal.name);
+  };
+
+  const GoalIcon = getGoalIcon();
 
   return (
     <motion.div
@@ -87,11 +228,22 @@ const GoalCard = ({ goal, index }) => {
       <div className="relative z-20 p-6 flex flex-col h-full">
         <div className="flex justify-between items-start mb-4">
           <div className={cn("w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg", goal.color)}>
-            <Target className="w-5 h-5" />
+            <GoalIcon className="w-5 h-5" />
           </div>
-          <span className="px-3 py-1 rounded-full bg-white/80 backdrop-blur-sm border border-gray-100 text-xs font-bold text-[#6E6E73]">
-            {goal.date}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-white/80 backdrop-blur-sm border border-gray-100 text-xs font-bold text-[#6E6E73]">
+              {goal.date}
+            </span>
+            {onDelete && (
+              <button
+                onClick={handleDelete}
+                className="p-2 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-500 hover:text-red-600 transition-all shadow-sm"
+                title="Eliminar meta"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
 
         <h3 className="text-xl font-bold text-[#1a1a1a] mb-1 font-['Inter_Tight']">{goal.name}</h3>
@@ -419,12 +571,41 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
 
 const Goals = () => {
   const { user } = useAuth();
-  const { goals, transactions, loading, refresh } = useFinance(user?.id);
+  const { goals, transactions, loading, refresh, deleteGoal } = useFinance(user?.id);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleGoalAdded = () => {
     refresh(); // Refrescar la lista de metas
+  };
+
+  const handleDeleteGoal = async (goalId) => {
+    // Si es una meta de ejemplo (id numérico), solo eliminarla del estado local
+    if (typeof goalId === 'number') {
+      toast({
+        title: "Meta eliminada",
+        description: "La meta de ejemplo ha sido eliminada.",
+      });
+      return;
+    }
+
+    // Confirmar eliminación
+    if (!window.confirm('¿Estás seguro de que deseas eliminar esta meta?')) {
+      return;
+    }
+
+    try {
+      await deleteGoal(goalId);
+      refresh(); // Refrescar la lista
+    } catch (error) {
+      console.error('Error deleting goal:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo eliminar la meta. Intenta de nuevo.",
+      });
+    }
   };
 
   // Formatear fecha para mostrar
@@ -683,17 +864,13 @@ const Goals = () => {
               monthlyNeeded
             };
             
-            return <GoalCard key={goal.id} goal={goalCardData} index={index} />;
+            return <GoalCard key={goal.id} goal={goalCardData} index={index} onDelete={handleDeleteGoal} />;
           })
         ) : null}
         
-        {/* Mostrar datos mock si no hay metas de Supabase */}
+        {/* Mostrar solo una meta de ejemplo si no hay metas de Supabase */}
         {(!goals || goals.length === 0) && !loading && (
-          <>
-            {goalsData.map((goal, index) => (
-              <GoalCard key={goal.id} goal={goal} index={index} />
-            ))}
-          </>
+          <ExampleGoalCard goal={goalsData[0]} index={0} onDelete={handleDeleteGoal} />
         )}
         
         {/* Add New Placeholder */}

@@ -296,6 +296,32 @@ export const useFinance = (userId) => {
     }
   };
 
+  const deleteGoal = async (id) => {
+    // Optimistic update
+    const prevGoal = goals.find(g => g.id === id);
+    setGoals(prev => prev.filter(goal => goal.id !== id));
+
+    try {
+      const { error } = await supabase
+        .from('goals')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      toastRef.current?.({ title: "Éxito", description: "Meta eliminada correctamente." });
+    } catch (error) {
+      // Revertir cambio optimista
+      if (prevGoal) {
+        setGoals(prev => [...prev, prevGoal].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
+      }
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error deleting goal:', error);
+      }
+      toastRef.current?.({ variant: "destructive", title: "Error", description: error.message || "No se pudo eliminar la meta." });
+      throw error;
+    }
+  };
+
   const addBudget = async (data) => {
     const budgetData = {
       ...data,
@@ -365,6 +391,7 @@ export const useFinance = (userId) => {
     addCategory,
     addGoal,
     updateGoalProgress,
+    deleteGoal,
     addBudget,
     updateBudget,
     refresh: fetchData
