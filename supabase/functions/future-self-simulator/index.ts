@@ -334,12 +334,14 @@ PROHIBIDO ABSOLUTAMENTE:
 - ❌ NO menciones "delivery", "comida rápida", "restaurantes", "suscripciones" u otras categorías si NO están en la lista
 - ❌ NO generes recomendaciones genéricas
 - ❌ NO uses ejemplos como "reducir delivery" o "menos comida rápida" a menos que estén en la lista de arriba
+- ❌ NO generes acciones con description que contenga "delivery", "8 veces", "veces/mes" a menos que esté en la lista
 - ❌ Si no hay recomendaciones personalizadas arriba, significa que el usuario NO tiene gastos significativos en esas categorías
 
 OBLIGATORIO:
 - ✅ Usa SOLO las recomendaciones de la lista de arriba en tu respuesta JSON
 - ✅ Si la lista está vacía, NO generes recomendaciones en el campo "actions"
 - ✅ El campo "actions" debe ser un array vacío [] si no hay recomendaciones arriba
+- ✅ Copia EXACTAMENTE las recomendaciones de arriba, NO las reescribas ni las modifiques
 ` : `
 ⚠️ IMPORTANTE: El usuario NO tiene suficientes transacciones para recomendaciones personalizadas.
 
@@ -610,13 +612,44 @@ serve(async (req) => {
       
       if (personalizedRecommendations.length > 0) {
         // Usar SOLO recomendaciones personalizadas basadas en datos reales de la BD
-        finalActions = personalizedRecommendations;
+        // FILTRAR cualquier acción que contenga texto genérico prohibido
+        finalActions = personalizedRecommendations.filter((action: any) => {
+          const desc = (action.description || "").toLowerCase();
+          const category = (action.category || "").toLowerCase();
+          // Eliminar acciones genéricas que no están basadas en datos reales
+          const hasGenericText = desc.includes("delivery") && !category.includes("delivery") ||
+                                 desc.includes("8 veces") ||
+                                 desc.includes("veces/mes") && !desc.includes("reducir gastos");
+          return !hasGenericText;
+        });
         console.log(`✅ Usando ${finalActions.length} recomendaciones personalizadas REALES para ${scenarioType}`);
+        if (personalizedRecommendations.length !== finalActions.length) {
+          console.warn(`⚠️ Se filtraron ${personalizedRecommendations.length - finalActions.length} recomendaciones genéricas`);
+        }
       } else {
         // NO hay datos suficientes para recomendaciones personalizadas
         // En lugar de consejos genéricos, mostrar mensaje claro y neutro
         finalActions = [];
         console.log(`⚠️ Sin datos suficientes para ${scenarioType}. No se mostrarán recomendaciones genéricas.`);
+      }
+      
+      // FILTRAR acciones que vengan de la IA pero contengan texto genérico
+      if (actions && Array.isArray(actions) && actions.length > 0) {
+        const filteredAIActions = actions.filter((action: any) => {
+          const desc = (action.description || "").toLowerCase();
+          // Si la acción de la IA contiene texto genérico prohibido, ignorarla
+          return !desc.includes("delivery") && 
+                 !desc.includes("8 veces") && 
+                 !desc.includes("veces/mes");
+        });
+        
+        // Si hay acciones de IA válidas Y no hay recomendaciones personalizadas, usarlas
+        if (filteredAIActions.length > 0 && finalActions.length === 0) {
+          finalActions = filteredAIActions;
+          console.log(`✅ Usando ${finalActions.length} acciones de IA válidas para ${scenarioType}`);
+        } else if (filteredAIActions.length < actions.length) {
+          console.warn(`⚠️ Se filtraron ${actions.length - filteredAIActions.length} acciones genéricas de la IA`);
+        }
       }
 
       // Guardar en BD

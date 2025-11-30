@@ -183,6 +183,9 @@ export async function checkIPRisk(
   reason: string;
   requires_verification: boolean;
   action_taken: string;
+  event_id?: string;
+  ip_address?: string;
+  device_fingerprint?: string;
 }> {
   try {
     // Recolectar fingerprint

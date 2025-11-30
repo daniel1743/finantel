@@ -781,6 +781,5 @@ export class ReportGenerator {
   }
 }
 
-export { ReportGenerator };
 export default ReportGenerator;
 

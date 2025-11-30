@@ -86,9 +86,9 @@ BEGIN
       -- GARANTÍA: Si por alguna razón el mejorado queda más bajo, ajustar automáticamente
       IF improved_patrimonio <= actual_patrimonio THEN
         -- Asegurar que el mejorado sea al menos 10% mejor que el actual
-        -- Si actual es negativo, mejoramos reduciendo la deuda
+        -- Si actual es negativo, mejoramos SUMANDO (reduciendo la deuda negativa)
         IF actual_patrimonio < 0 THEN
-          improved_patrimonio := actual_patrimonio - ABS(actual_patrimonio * 0.1);
+          improved_patrimonio := actual_patrimonio + ABS(actual_patrimonio * 0.1);
         ELSE
           improved_patrimonio := actual_patrimonio + ABS(actual_patrimonio * 0.1);
         END IF;
@@ -125,9 +125,9 @@ BEGIN
       -- GARANTÍA: Si por alguna razón el desafiante queda mejor, ajustar automáticamente
       IF worst_case_patrimonio >= actual_patrimonio THEN
         -- Asegurar que el desafiante sea al menos 10% peor que el actual
-        -- Si actual es negativo, empeoramos aumentando la deuda
+        -- Si actual es negativo, empeoramos RESTANDO (aumentando la deuda negativa)
         IF actual_patrimonio < 0 THEN
-          worst_case_patrimonio := actual_patrimonio + ABS(actual_patrimonio * 0.1);
+          worst_case_patrimonio := actual_patrimonio - ABS(actual_patrimonio * 0.1);
         ELSE
           worst_case_patrimonio := actual_patrimonio - ABS(actual_patrimonio * 0.1);
         END IF;

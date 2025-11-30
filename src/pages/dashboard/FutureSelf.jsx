@@ -179,12 +179,24 @@ const ScenarioCard = ({ scenario, config, currency, delay = 0 }) => {
 // HELPER: Formatear moneda
 // ============================================================================
 function formatCurrency(amount, currency = 'CLP') {
+  // Validar que amount sea un número válido
+  if (amount === undefined || amount === null || isNaN(amount)) {
+    return currency === 'CLP' ? '$0' : '$0.00';
+  }
+  
+  // Convertir a número si es string
+  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+  
+  if (isNaN(numAmount)) {
+    return currency === 'CLP' ? '$0' : '$0.00';
+  }
+  
   if (currency === 'CLP') {
     // CLP sin decimales para números enteros
-    if (Number.isInteger(amount)) {
-      return `$${amount.toLocaleString('es-CL')}`;
+    if (Number.isInteger(numAmount)) {
+      return `$${numAmount.toLocaleString('es-CL')}`;
     }
-    return `$${amount.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+    return `$${numAmount.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
   } else {
     // USD, EUR, etc. con 2 decimales
     return new Intl.NumberFormat('en-US', {
@@ -192,7 +204,7 @@ function formatCurrency(amount, currency = 'CLP') {
       currency: currency,
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(amount);
+    }).format(numAmount);
   }
 }
 
