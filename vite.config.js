@@ -124,6 +124,17 @@ window.fetch = function(...args) {
 					const responseClone = response.clone();
 					const errorFromRes = await responseClone.text();
 					const requestUrl = response.url;
+					
+					// Silenciar errores 503 repetidos de Edge Functions no desplegadas para evitar spam en consola
+					const is503Error = response.status === 503;
+					const isEdgeFunction = requestUrl.includes('/functions/v1/');
+					
+					if (is503Error && isEdgeFunction) {
+						// No loguear errores 503 repetidos de Edge Functions (indican que no están desplegadas)
+						// Los hooks ya manejan estos errores con mensajes más claros
+						return;
+					}
+					
 					console.error(\`Fetch error from \${requestUrl}: \${errorFromRes}\`);
 			}
 

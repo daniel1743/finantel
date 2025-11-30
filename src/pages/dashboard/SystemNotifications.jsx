@@ -14,7 +14,8 @@ import {
   RefreshCw,
   Trash2,
   Eye,
-  EyeOff
+  EyeOff,
+  XCircle
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -32,7 +33,7 @@ const SystemNotifications = () => {
 
   // Filtros
   const [filterType, setFilterType] = useState('all');
-  const [filterSeverity, setFilterSeverity] = useState('all');
+  const [filterSource, setFilterSource] = useState('all');
   const [showOnlyUnread, setShowOnlyUnread] = useState(false);
 
   // =====================================================
@@ -82,7 +83,7 @@ const SystemNotifications = () => {
 
     try {
       let query = supabase
-        .from('system_notifications')
+        .from('admin_notifications')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(100);
@@ -92,8 +93,8 @@ const SystemNotifications = () => {
         query = query.eq('type', filterType);
       }
 
-      if (filterSeverity !== 'all') {
-        query = query.eq('severity', filterSeverity);
+      if (filterSource !== 'all') {
+        query = query.eq('source', filterSource);
       }
 
       if (showOnlyUnread) {
@@ -125,7 +126,7 @@ const SystemNotifications = () => {
   // =====================================================
   const loadStats = async () => {
     try {
-      const { data, error } = await supabase.rpc('get_notification_stats');
+      const { data, error } = await supabase.rpc('get_admin_notification_stats');
 
       if (error) {
         throw error;
@@ -155,13 +156,13 @@ const SystemNotifications = () => {
 
     // Suscripción en tiempo real
     const subscription = supabase
-      .channel('system_notifications_changes')
+      .channel('admin_notifications_changes')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'system_notifications',
+          table: 'admin_notifications',
         },
         (payload) => {
           console.log('Nueva notificación recibida:', payload);
@@ -178,15 +179,17 @@ const SystemNotifications = () => {
 
   // Recargar cuando cambien los filtros
   useEffect(() => {
-    loadNotifications();
-  }, [filterType, filterSeverity, showOnlyUnread]);
+    if (isAdmin) {
+      loadNotifications();
+    }
+  }, [filterType, showOnlyUnread, isAdmin]);
 
   // =====================================================
   // Marcar como leída
   // =====================================================
   const markAsRead = async (notificationId) => {
     try {
-      const { error } = await supabase.rpc('mark_notification_read', {
+      const { error } = await supabase.rpc('mark_admin_notification_read', {
         p_notification_id: notificationId,
       });
 
@@ -213,7 +216,7 @@ const SystemNotifications = () => {
   const markAllAsRead = async () => {
     try {
       const { error } = await supabase
-        .from('system_notifications')
+        .from('admin_notifications')
         .update({ is_read: true })
         .eq('is_read', false);
 
@@ -252,36 +255,38 @@ const SystemNotifications = () => {
   // =====================================================
   const getTypeIcon = (type) => {
     const icons = {
-      error: AlertCircle,
-      warning: AlertTriangle,
-      info: Info,
-      usage: Activity,
+      payment_success: CheckCircle2,
+      payment_error: XCircle,
+      subscription: Activity,
+      webhook_error: AlertCircle,
+      system_alert: AlertTriangle,
+      ticket_created: Info,
     };
     return icons[type] || Bell;
   };
 
-  const getTypeColor = (type, severity) => {
-    if (severity === 'critical') {
-      return 'text-red-600 bg-red-50 dark:bg-red-900/20';
-    }
-
+  const getTypeColor = (type) => {
     const colors = {
-      error: 'text-red-500 bg-red-50 dark:bg-red-900/20',
-      warning: 'text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20',
-      info: 'text-blue-500 bg-blue-50 dark:bg-blue-900/20',
-      usage: 'text-green-500 bg-green-50 dark:bg-green-900/20',
+      payment_success: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20',
+      payment_error: 'text-red-500 bg-red-50 dark:bg-red-900/20',
+      subscription: 'text-blue-500 bg-blue-50 dark:bg-blue-900/20',
+      webhook_error: 'text-red-600 bg-red-50 dark:bg-red-900/20',
+      system_alert: 'text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20',
+      ticket_created: 'text-blue-500 bg-blue-50 dark:bg-blue-900/20',
     };
     return colors[type] || 'text-gray-500 bg-gray-50 dark:bg-gray-900/20';
   };
 
-  const getSeverityBadge = (severity) => {
-    const badges = {
-      low: { label: 'Bajo', className: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' },
-      medium: { label: 'Medio', className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
-      high: { label: 'Alto', className: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
-      critical: { label: 'CRÍTICO', className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 font-bold' },
+  const getTypeLabel = (type) => {
+    const labels = {
+      payment_success: 'Pago Exitoso',
+      payment_error: 'Pago Fallido',
+      subscription: 'Suscripción',
+      webhook_error: 'Error Webhook',
+      system_alert: 'Alerta Sistema',
+      ticket_created: 'Ticket Creado',
     };
-    return badges[severity] || badges.low;
+    return labels[type] || type;
   };
 
   // Verificando si es admin
@@ -337,10 +342,10 @@ const SystemNotifications = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-[#1a1a1a] dark:text-white">
-            Sistema de Notificaciones
+            Notificaciones del Sistema
           </h1>
           <p className="text-[#6E6E73] mt-1">
-            Monitoreo en tiempo real de eventos, errores y uso del sistema
+            Notificaciones administrativas: pagos, tickets, webhooks y eventos del sistema
           </p>
         </div>
         <div className="flex gap-2">
@@ -430,23 +435,24 @@ const SystemNotifications = () => {
             className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-sm"
           >
             <option value="all">Todos los tipos</option>
-            <option value="error">Errores</option>
-            <option value="warning">Advertencias</option>
-            <option value="info">Información</option>
-            <option value="usage">Uso</option>
+            <option value="payment_success">Pago Exitoso</option>
+            <option value="payment_error">Pago Fallido</option>
+            <option value="subscription">Suscripción</option>
+            <option value="webhook_error">Error Webhook</option>
+            <option value="system_alert">Alerta Sistema</option>
+            <option value="ticket_created">Ticket Creado</option>
           </select>
 
-          {/* Filtro por severidad */}
+          {/* Filtro por fuente */}
           <select
-            value={filterSeverity}
-            onChange={(e) => setFilterSeverity(e.target.value)}
+            value={filterSource}
+            onChange={(e) => setFilterSource(e.target.value)}
             className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-sm"
           >
-            <option value="all">Todas las severidades</option>
-            <option value="low">Baja</option>
-            <option value="medium">Media</option>
-            <option value="high">Alta</option>
-            <option value="critical">Crítica</option>
+            <option value="all">Todas las fuentes</option>
+            <option value="mercadopago">Mercado Pago</option>
+            <option value="finantel">Finantel</option>
+            <option value="system">Sistema</option>
           </select>
 
           {/* Mostrar solo no leídas */}
@@ -473,7 +479,6 @@ const SystemNotifications = () => {
           ) : (
             notifications.map((notification) => {
               const Icon = getTypeIcon(notification.type);
-              const severityBadge = getSeverityBadge(notification.severity);
 
               return (
                 <motion.div
@@ -493,7 +498,7 @@ const SystemNotifications = () => {
                 >
                   <div className="flex gap-4">
                     {/* Icono */}
-                    <div className={`flex-shrink-0 w-12 h-12 rounded-full ${getTypeColor(notification.type, notification.severity)} flex items-center justify-center`}>
+                    <div className={`flex-shrink-0 w-12 h-12 rounded-full ${getTypeColor(notification.type)} flex items-center justify-center`}>
                       <Icon className="w-6 h-6" />
                     </div>
 
@@ -502,27 +507,27 @@ const SystemNotifications = () => {
                       <div className="flex items-start justify-between gap-4 mb-2">
                         <div className="flex-1">
                           <h3 className="font-bold text-[#1a1a1a] dark:text-white mb-1">
-                            {notification.count > 1 && (
-                              <span className="inline-block mr-2 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-bold">
-                                {notification.count}x
-                              </span>
-                            )}
                             {notification.title}
                           </h3>
                           <p className="text-sm text-[#6E6E73] mb-2">{notification.message}</p>
                           <div className="flex items-center gap-2 text-xs text-[#6E6E73]">
-                            <span className="font-mono bg-gray-100 dark:bg-white/5 px-2 py-1 rounded">
-                              {notification.origin}
-                            </span>
-                            <span>•</span>
+                            {notification.source && (
+                              <>
+                                <span className="font-mono bg-gray-100 dark:bg-white/5 px-2 py-1 rounded">
+                                  {notification.source}
+                                </span>
+                                <span>•</span>
+                              </>
+                            )}
                             <span>{new Date(notification.created_at).toLocaleString('es-ES')}</span>
+                            <span>•</span>
+                            <span className="px-2 py-1 rounded-full bg-gray-100 dark:bg-white/5 text-xs">
+                              {getTypeLabel(notification.type)}
+                            </span>
                           </div>
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${severityBadge.className}`}>
-                            {severityBadge.label}
-                          </span>
                           {!notification.is_read && (
                             <Button
                               onClick={() => markAsRead(notification.id)}
@@ -536,14 +541,14 @@ const SystemNotifications = () => {
                         </div>
                       </div>
 
-                      {/* Payload (JSON) */}
-                      {notification.payload && Object.keys(notification.payload).length > 0 && (
+                      {/* Metadata (JSON) */}
+                      {notification.metadata && Object.keys(notification.metadata).length > 0 && (
                         <details className="mt-3">
                           <summary className="cursor-pointer text-xs text-[#1C8FA0] font-medium">
                             Ver detalles técnicos
                           </summary>
                           <pre className="mt-2 p-3 bg-gray-50 dark:bg-white/5 rounded-lg text-xs overflow-x-auto">
-                            {JSON.stringify(notification.payload, null, 2)}
+                            {JSON.stringify(notification.metadata, null, 2)}
                           </pre>
                         </details>
                       )}

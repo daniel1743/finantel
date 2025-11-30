@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
-  
+
   // Usar refs para evitar loops infinitos
   const sessionRef = useRef(null);
   const userRef = useRef(null);
@@ -73,7 +73,7 @@ export const AuthProvider = ({ children }) => {
           error.message?.includes('Invalid');
         
         if (!isInvalidTokenError) {
-          console.error('Error refreshing session:', error);
+        console.error('Error refreshing session:', error);
         }
         
         // Si el refresh falla, limpiar la sesión silenciosamente
@@ -83,11 +83,11 @@ export const AuthProvider = ({ children }) => {
           handleSession(null);
           // Solo mostrar toast si el usuario estaba autenticado
           if (userRef.current) {
-            toast({
-              variant: "destructive",
-              title: "Sesión Expirada",
-              description: "Por favor, inicia sesión nuevamente.",
-            });
+          toast({
+            variant: "destructive",
+            title: "Sesión Expirada",
+            description: "Por favor, inicia sesión nuevamente.",
+          });
           }
         }
         return;
@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }) => {
         err.message?.includes('Refresh Token Not Found');
       
       if (!isInvalidTokenError) {
-        console.error('Error in refreshSession:', err);
+      console.error('Error in refreshSession:', err);
       }
       handleSession(null);
     }
@@ -123,7 +123,7 @@ export const AuthProvider = ({ children }) => {
             error.message?.includes('Invalid');
           
           if (!isInvalidTokenError) {
-            console.error('Error getting session:', error);
+          console.error('Error getting session:', error);
           }
           
           // Si el token está expirado, intentar refrescar
@@ -144,7 +144,7 @@ export const AuthProvider = ({ children }) => {
           err.message?.includes('Refresh Token Not Found');
         
         if (!isInvalidTokenError) {
-          console.error('Error in getSession:', err);
+        console.error('Error in getSession:', err);
         }
         handleSession(null);
       }

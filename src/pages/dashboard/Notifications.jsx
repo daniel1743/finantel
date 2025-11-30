@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Bell, 
@@ -16,19 +16,38 @@ import {
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/use-toast';
+import { useNotifications } from '@/hooks/useNotifications';
 
-const NotificationItem = ({ notification, index, onMarkAsRead, onViewDetails }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: index * 0.05 }}
-    className={cn(
-      "flex items-start gap-4 p-4 rounded-xl border transition-all hover:shadow-md cursor-pointer group",
-      notification.read 
-        ? "bg-white dark:bg-[#1a1a1a] border-gray-100 dark:border-white/5" 
-        : "bg-[#1C8FA0]/5 border-[#1C8FA0]/20"
-    )}
-  >
+const NotificationItem = ({ notification, index, onMarkAsRead, onViewDetails }) => {
+  // Formatear fecha relativa
+  const formatTime = (dateString) => {
+    if (!dateString) return 'Ahora';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Ahora';
+    if (diffMins < 60) return `Hace ${diffMins} min`;
+    if (diffHours < 24) return `Hace ${diffHours} h`;
+    if (diffDays < 7) return `Hace ${diffDays} días`;
+    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      className={cn(
+        "flex items-start gap-4 p-4 rounded-xl border transition-all hover:shadow-md cursor-pointer group",
+        notification.is_read 
+          ? "bg-white dark:bg-[#1a1a1a] border-gray-100 dark:border-white/5" 
+          : "bg-[#1C8FA0]/5 border-[#1C8FA0]/20"
+      )}
+    >
     <div className={cn(
       "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
       notification.type === 'alert' ? "bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400" :
@@ -46,40 +65,47 @@ const NotificationItem = ({ notification, index, onMarkAsRead, onViewDetails }) 
       )}
     </div>
     
-    <div className="flex-1">
-      <div className="flex justify-between items-start">
-        <h4 className={cn("font-bold text-sm", notification.read ? "text-[#1a1a1a] dark:text-white" : "text-[#1C8FA0]")}>
-          {notification.title}
-        </h4>
-        <span className="text-xs text-[#6E6E73] dark:text-gray-400 whitespace-nowrap ml-2">{notification.time}</span>
+      <div className="flex-1">
+        <div className="flex justify-between items-start">
+          <h4 className={cn("font-bold text-sm", notification.is_read ? "text-[#1a1a1a] dark:text-white" : "text-[#1C8FA0]")}>
+            {notification.title}
+          </h4>
+          <span className="text-xs text-[#6E6E73] dark:text-gray-400 whitespace-nowrap ml-2">
+            {formatTime(notification.created_at || notification.time)}
+          </span>
+        </div>
+        <p className="text-sm text-[#6E6E73] dark:text-gray-400 mt-1 leading-relaxed">
+          {notification.message || notification.desc}
+        </p>
+        
+        <div className="flex gap-3 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+          {(notification.recommendation || notification.details) && (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewDetails(notification);
+              }}
+              className="text-xs font-bold text-[#1C8FA0] hover:underline"
+            >
+              Ver detalles
+            </button>
+          )}
+          {!notification.is_read && !notification.read && (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onMarkAsRead(notification.id);
+              }}
+              className="text-xs font-medium text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white"
+            >
+              Marcar como leída
+            </button>
+          )}
+        </div>
       </div>
-      <p className="text-sm text-[#6E6E73] dark:text-gray-400 mt-1 leading-relaxed">{notification.desc}</p>
-      
-      <div className="flex gap-3 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            onViewDetails(notification);
-          }}
-          className="text-xs font-bold text-[#1C8FA0] hover:underline"
-        >
-          Ver detalles
-        </button>
-        {!notification.read && (
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              onMarkAsRead(notification.id);
-            }}
-            className="text-xs font-medium text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white"
-          >
-            Marcar como leída
-          </button>
-        )}
-      </div>
-    </div>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
 
 const Notifications = () => {
   const [activeTab, setActiveTab] = useState('all');
@@ -91,71 +117,52 @@ const Notifications = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const { toast } = useToast();
   
-  const [notifications, setNotifications] = useState([
-    { 
-      id: 1, 
-      title: "¡Bienvenido a Finantel!", 
-      desc: "Estamos emocionados de tenerte aquí. Comienza agregando tus primeras transacciones para tener un control completo de tus finanzas.", 
-      type: "success", 
-      time: "Ahora", 
-      read: false,
-      icon: Sparkles,
-      details: {
-        fullDescription: "¡Bienvenido a Finantel! Tu plataforma de gestión financiera personal. Aquí podrás:\n\n• Registrar tus ingresos y gastos de forma sencilla\n• Crear presupuestos por categoría\n• Establecer metas de ahorro\n• Analizar tus patrones de gasto\n• Recibir recomendaciones inteligentes\n\nComienza agregando tu primera transacción para ver cómo Finantel te ayuda a tomar el control de tus finanzas.",
-        tips: [
-          "Usa la función de voz para registrar gastos rápidamente",
-          "Crea presupuestos para categorías importantes",
-          "Establece metas realistas y alcanzables",
-          "Revisa tus análisis semanales para identificar patrones"
-        ]
-      }
-    },
-    { 
-      id: 2, 
-      title: "Tus datos están seguros", 
-      desc: "En Finantel nunca solicitamos datos bancarios, números de tarjeta, contraseñas ni información confidencial. Solo registramos tus movimientos financieros que tú mismo ingresas. Tu privacidad es nuestra prioridad.", 
-      type: "info", 
-      time: "Ahora", 
-      read: false,
-      icon: ShieldCheck,
-      details: {
-        fullDescription: "En Finantel, tu seguridad y privacidad son fundamentales. Queremos que sepas exactamente cómo protegemos tu información:\n\n🔒 Lo que NUNCA pedimos:\n• Números de tarjeta de crédito o débito\n• Datos bancarios (cuentas, claves, tokens)\n• Contraseñas de servicios externos\n• Información confidencial de terceros\n• Acceso a tus cuentas bancarias\n\n✅ Lo que SÍ hacemos:\n• Solo registramos los movimientos que TÚ ingresas manualmente\n• Tus datos están encriptados y protegidos\n• Cumplimos con estándares internacionales de seguridad\n• Nunca compartimos tu información con terceros\n• Puedes eliminar todos tus datos cuando quieras\n\nTu privacidad es nuestra prioridad absoluta.",
-        tips: [
-          "Solo tú tienes acceso a tus datos financieros",
-          "Puedes exportar o eliminar tu información en cualquier momento",
-          "Usamos encriptación de extremo a extremo",
-          "Nunca vendemos ni compartimos tus datos"
-        ]
-      }
-    },
-  ]);
+  // Usar el hook de notificaciones
+  const { notifications, loading, markAsRead, markAllAsRead } = useNotifications();
 
-  const handleMarkAsRead = (id) => {
-    setNotifications(prev => 
-      prev.map(n => n.id === id ? { ...n, read: true } : n)
-    );
-    toast({
-      title: "Notificación marcada como leída",
-      description: "La notificación ha sido actualizada",
-    });
+  // Mapear tipo de alerta a icono
+  const getIconForType = (type) => {
+    switch (type) {
+      case 'critical':
+      case 'warning':
+        return AlertTriangle;
+      case 'opportunity':
+      case 'trend':
+        return TrendingUp;
+      case 'info':
+      default:
+        return Bell;
+    }
+  };
+
+  const handleMarkAsRead = async (id) => {
+    const success = await markAsRead(id);
+    if (success) {
+      toast({
+        title: "Notificación marcada como leída",
+        description: "La notificación ha sido actualizada",
+      });
+    }
   };
 
   const handleViewDetails = (notification) => {
     setSelectedNotification(notification);
     setIsDetailModalOpen(true);
     // Marcar como leída automáticamente al ver detalles
-    if (!notification.read) {
+    if (!notification.is_read) {
       handleMarkAsRead(notification.id);
     }
   };
 
-  const filteredNotifications = notifications.filter(n => {
-    if (activeTab === 'todos' || activeTab === 'all') return true;
-    if (activeTab === 'no leídos') return !n.read;
-    if (activeTab === 'alertas') return n.type === 'alert';
-    if (activeTab === 'sistema') return n.type === 'info' || n.type === 'success';
-    return true;
-  });
+  const filteredNotifications = useMemo(() => {
+    return notifications.filter(n => {
+      if (activeTab === 'todos' || activeTab === 'all') return true;
+      if (activeTab === 'no leídos') return !n.is_read;
+      if (activeTab === 'alertas') return n.type === 'critical' || n.type === 'warning';
+      if (activeTab === 'sistema') return n.type === 'info' || n.type === 'opportunity' || n.type === 'trend';
+      return true;
+    });
+  }, [notifications, activeTab]);
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12">
@@ -193,11 +200,27 @@ const Notifications = () => {
           </div>
 
           <div className="space-y-4">
-            {filteredNotifications.length > 0 ? (
+            {loading ? (
+              <div className="text-center py-12 text-[#6E6E73] dark:text-gray-400">
+                <Bell className="w-12 h-12 mx-auto mb-4 opacity-50 animate-pulse" />
+                <p>Cargando notificaciones...</p>
+              </div>
+            ) : filteredNotifications.length > 0 ? (
               filteredNotifications.map((n, i) => (
                 <NotificationItem 
                   key={n.id} 
-                  notification={n} 
+                  notification={{
+                    ...n,
+                    read: n.is_read,
+                    desc: n.message,
+                    type: n.type === 'critical' || n.type === 'warning' ? 'alert' : n.type === 'opportunity' || n.type === 'trend' ? 'success' : 'info',
+                    icon: getIconForType(n.type),
+                    time: n.created_at,
+                    details: n.recommendation ? {
+                      fullDescription: n.message + (n.recommendation ? `\n\n${n.recommendation}` : ''),
+                      tips: []
+                    } : null
+                  }}
                   index={i}
                   onMarkAsRead={handleMarkAsRead}
                   onViewDetails={handleViewDetails}
@@ -304,7 +327,15 @@ const Notifications = () => {
                     {selectedNotification.title}
                   </h2>
                   <span className="text-xs text-[#6E6E73] dark:text-gray-400">
-                    {selectedNotification.time}
+                    {selectedNotification.created_at 
+                      ? new Date(selectedNotification.created_at).toLocaleDateString('es-ES', { 
+                          day: 'numeric', 
+                          month: 'long', 
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })
+                      : 'Ahora'}
                   </span>
                 </div>
               </div>
@@ -313,24 +344,19 @@ const Notifications = () => {
               <div className="space-y-6">
                 <div className="prose prose-sm dark:prose-invert max-w-none">
                   <p className="text-[#1a1a1a] dark:text-white leading-relaxed whitespace-pre-line">
-                    {selectedNotification.details?.fullDescription || selectedNotification.desc}
+                    {selectedNotification.message}
                   </p>
                 </div>
 
-                {/* Tips/Consejos */}
-                {selectedNotification.details?.tips && (
+                {/* Recomendación */}
+                {selectedNotification.recommendation && (
                   <div className="bg-[#1C8FA0]/5 dark:bg-[#1C8FA0]/10 rounded-xl p-4 border border-[#1C8FA0]/20">
                     <h3 className="text-sm font-bold text-[#1C8FA0] dark:text-[#1C8FA0] mb-3">
-                      💡 Consejos útiles:
+                      💡 Recomendación:
                     </h3>
-                    <ul className="space-y-2">
-                      {selectedNotification.details.tips.map((tip, i) => (
-                        <li key={i} className="text-sm text-[#1a1a1a] dark:text-white flex items-start gap-2">
-                          <span className="text-[#1C8FA0] mt-1">•</span>
-                          <span>{tip}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    <p className="text-sm text-[#1a1a1a] dark:text-white">
+                      {selectedNotification.recommendation}
+                    </p>
                   </div>
                 )}
               </div>

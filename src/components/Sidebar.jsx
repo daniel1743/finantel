@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
@@ -26,28 +26,19 @@ import {
   Download,
   Shield,
   Zap,
-  TrendingUp
+  TrendingUp,
+  ChevronDown,
+  ChevronRight,
+  Wrench,
+  Home,
+  Inbox
 } from 'lucide-react';
 
-const MenuSection = ({ title, items, isCollapsed, currentPath, setIsMobileOpen, hasFamilyPlan, handleBlockedClick }) => (
-  <div className="mb-6">
-    {title && (
-      <h3 className={cn(
-        "text-xs font-bold text-[#6E6E73]/60 dark:text-gray-500 uppercase tracking-wider mb-3 px-4 transition-all duration-300",
-        isCollapsed ? "opacity-0 h-0 mb-0 overflow-hidden" : "opacity-100"
-      )}>
-        {title}
-      </h3>
-    )}
-    <div className="space-y-1">
-      {items.map((item) => {
-        const isActive = currentPath === item.path;
+const MenuItem = ({ item, isActive, isBlocked, setIsMobileOpen, handleBlockedClick, isCollapsed }) => {
         const Icon = item.icon;
-        const isFamilyFeature = item.requiresFamilyPlan;
-        const isBlocked = isFamilyFeature && !hasFamilyPlan;
         
         return (
-          <div key={item.name} className="relative group/item">
+    <div className="relative group/item">
             {isBlocked && (
               <>
                 <div className="absolute -top-1 -right-1 z-10">
@@ -94,11 +85,106 @@ const MenuSection = ({ title, items, isCollapsed, currentPath, setIsMobileOpen, 
             </span>
           </Link>
           </div>
+  );
+};
+
+const MenuSection = ({ title, items, isCollapsed, currentPath, setIsMobileOpen, hasFamilyPlan, handleBlockedClick }) => (
+  <div className="mb-6">
+    {title && (
+      <h3 className={cn(
+        "text-xs font-bold text-[#6E6E73]/60 dark:text-gray-500 uppercase tracking-wider mb-3 px-4 transition-all duration-300",
+        isCollapsed ? "opacity-0 h-0 mb-0 overflow-hidden" : "opacity-100"
+      )}>
+        {title}
+      </h3>
+    )}
+    <div className="space-y-1">
+      {items.map((item) => {
+        const isActive = currentPath === item.path;
+        const isFamilyFeature = item.requiresFamilyPlan;
+        const isBlocked = isFamilyFeature && !hasFamilyPlan;
+        
+        return (
+          <MenuItem
+            key={item.name}
+            item={item}
+            isActive={isActive}
+            isBlocked={isBlocked}
+            setIsMobileOpen={setIsMobileOpen}
+            handleBlockedClick={handleBlockedClick}
+            isCollapsed={isCollapsed}
+          />
         );
       })}
     </div>
   </div>
 );
+
+const CollapsibleMenuSection = ({ title, icon: SectionIcon, items, currentPath, setIsMobileOpen, hasFamilyPlan, handleBlockedClick, defaultOpen = false }) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  
+  // Auto-abrir si alguna ruta está activa
+  useEffect(() => {
+    const hasActiveItem = items.some(item => currentPath === item.path);
+    if (hasActiveItem) {
+      setIsOpen(true);
+    }
+  }, [currentPath, items]);
+
+  const hasActiveItem = items.some(item => currentPath === item.path);
+
+  return (
+    <div className="mb-6">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+          "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 mb-1 group",
+          hasActiveItem
+            ? "bg-[#1C8FA0]/10 text-[#1C8FA0]"
+            : "text-[#6E6E73] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-[#1a1a1a] dark:hover:text-white"
+        )}
+      >
+        {SectionIcon && (
+          <SectionIcon className={cn(
+            "w-5 h-5 transition-all duration-300",
+            hasActiveItem && "text-[#1C8FA0] drop-shadow-[0_0_8px_rgba(28,143,160,0.5)]"
+          )} />
+        )}
+        <span className="font-semibold text-sm flex-1 text-left">{title}</span>
+        <div className={cn(
+          "transition-transform duration-300",
+          isOpen ? "rotate-0" : "-rotate-90"
+        )}>
+          <ChevronDown className="w-4 h-4" />
+        </div>
+      </button>
+      
+      <div className={cn(
+        "space-y-1 overflow-hidden transition-all duration-300 ease-in-out",
+        isOpen ? "max-h-[1000px] opacity-100 mt-1" : "max-h-0 opacity-0"
+      )}>
+        {items.map((item) => {
+          const isActive = currentPath === item.path;
+          const isFamilyFeature = item.requiresFamilyPlan;
+          const isBlocked = isFamilyFeature && !hasFamilyPlan;
+          
+          return (
+            <div key={item.name} className="pl-4">
+              <MenuItem
+                item={item}
+                isActive={isActive}
+                isBlocked={isBlocked}
+                setIsMobileOpen={setIsMobileOpen}
+                handleBlockedClick={handleBlockedClick}
+                isCollapsed={false}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
 
 const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
   const location = useLocation();
@@ -134,13 +220,22 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
         { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
         { name: "Visión General", icon: Compass, path: "/dashboard/overview" },
         { name: "Transacciones", icon: CreditCard, path: "/dashboard/transactions" },
-        { name: "Categorías", icon: Layers, path: "/dashboard/categories" },
         { name: "Metas y Ahorros", icon: Target, path: "/dashboard/goals" },
+      ]
+    },
+    {
+      type: "collapsible",
+      title: "Servicios y Presupuestos",
+      icon: Wrench,
+      items: [
+        { name: "Servicios", icon: Layers, path: "/dashboard/categories" },
         { name: "Presupuestos", icon: Receipt, path: "/dashboard/budgets" },
       ]
     },
     {
-      title: "Inteligencia",
+      type: "collapsible",
+      title: "IA Financiera",
+      icon: Bot,
       items: [
         { name: "Asistente IA", icon: Bot, path: "/dashboard/ai-assistant" },
         { name: "Planificador IA", icon: Zap, path: "/dashboard/ai-planner" },
@@ -151,7 +246,9 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
       ]
     },
     {
-      title: "Familia",
+      type: "collapsible",
+      title: "Centro Familiar",
+      icon: Home,
       items: [
         { name: "Mi Familia", icon: Users, path: "/dashboard/family", requiresFamilyPlan: true },
         { name: "Gastos Compartidos", icon: Share2, path: "/dashboard/shared", requiresFamilyPlan: true },
@@ -159,7 +256,7 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
       ]
     },
     {
-      title: "Configuración",
+      title: "Herramientas",
       items: [
         { name: "Exportar Datos", icon: Download, path: "/dashboard/export" },
         { name: "Centro de Ayuda", icon: Bell, path: "/dashboard/support" },
@@ -173,16 +270,8 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
       title: "Administración",
       items: [
         { name: "Panel de Soporte", icon: Shield, path: "/dashboard/admin/support" },
-      ]
-    });
-  }
-
-  // Agregar sección de administración solo si es staff
-  if (!checkingStaff && isStaff) {
-    menuStructure.push({
-      title: "Administración",
-      items: [
-        { name: "Panel de Soporte", icon: Shield, path: "/dashboard/admin/support" },
+        { name: "Webhook Inbox", icon: Inbox, path: "/dashboard/admin/webhooks" },
+        { name: "Notificaciones", icon: Bell, path: "/dashboard/admin/system-notifications" },
       ]
     });
   }
@@ -224,7 +313,22 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
 
         {/* Scrollable Menu */}
         <div className="flex-1 overflow-y-auto py-8 px-4 space-y-8 scrollbar-hide">
-          {menuStructure.map((section, idx) => (
+          {menuStructure.map((section, idx) => {
+            if (section.type === "collapsible") {
+              return (
+                <CollapsibleMenuSection
+                  key={idx}
+                  title={section.title}
+                  icon={section.icon}
+                  items={section.items}
+                  currentPath={currentPath}
+                  setIsMobileOpen={setIsMobileOpen}
+                  hasFamilyPlan={hasFamilyPlan}
+                  handleBlockedClick={handleBlockedClick}
+                />
+              );
+            }
+            return (
             <MenuSection 
               key={idx} 
               title={section.title} 
@@ -235,7 +339,8 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
               hasFamilyPlan={hasFamilyPlan}
               handleBlockedClick={handleBlockedClick}
             />
-          ))}
+            );
+          })}
         </div>
 
         {/* Bottom Actions */}

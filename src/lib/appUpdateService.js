@@ -154,7 +154,7 @@ class AppUpdateService {
       case 'FORCE_RELOAD':
         // Solo recargar si no hemos intentado ya
         if (!this.reloadAttempted) {
-          console.log('[AppUpdate] Forzando recarga...');
+        console.log('[AppUpdate] Forzando recarga...');
           this.reloadAttempted = true;
           setTimeout(() => this.forceReload(), 100);
         }
@@ -201,7 +201,7 @@ class AppUpdateService {
       });
     } else {
       // Recargar con bypass de caché
-      window.location.reload(true);
+    window.location.reload(true);
     }
   }
 

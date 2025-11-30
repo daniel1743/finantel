@@ -4,8 +4,9 @@
 // Muestra simulaciones financieras futuras del usuario
 // ============================================================================
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 import {
   TrendingUp,
   TrendingDown,
@@ -70,7 +71,9 @@ const HORIZON_OPTIONS = [
 // ============================================================================
 const ScenarioCard = ({ scenario, config, currency, delay = 0 }) => {
   const Icon = config.icon;
-  const isPositive = scenario.projected_net_worth >= 0;
+  // Obtener el valor del patrimonio neto de la estructura correcta
+  const netWorth = scenario.projection?.projected_net_worth ?? scenario.projected_net_worth ?? 0;
+  const isPositive = netWorth >= 0;
 
   return (
     <motion.div
@@ -111,7 +114,7 @@ const ScenarioCard = ({ scenario, config, currency, delay = 0 }) => {
               : 'text-red-600 dark:text-red-400'
           }`}
         >
-          {formatCurrency(scenario.projected_net_worth, currency)}
+          {formatCurrency(scenario.projection?.projected_net_worth ?? scenario.projected_net_worth, currency)}
         </p>
       </div>
 
@@ -120,14 +123,14 @@ const ScenarioCard = ({ scenario, config, currency, delay = 0 }) => {
         <div className="flex justify-between text-sm">
           <span className="text-[#6E6E73] dark:text-gray-400">Ahorros proyectados</span>
           <span className="font-medium text-[#1a1a1a] dark:text-white">
-            {formatCurrency(scenario.projected_savings, currency)}
+            {formatCurrency(scenario.projection?.projected_savings ?? scenario.projected_savings, currency)}
           </span>
         </div>
-        {scenario.projected_debt > 0 && (
+        {((scenario.projection?.projected_debt ?? scenario.projected_debt ?? 0) > 0) && (
           <div className="flex justify-between text-sm">
             <span className="text-[#6E6E73] dark:text-gray-400">Deuda proyectada</span>
             <span className="font-medium text-red-600 dark:text-red-400">
-              {formatCurrency(scenario.projected_debt, currency)}
+              {formatCurrency(scenario.projection?.projected_debt ?? scenario.projected_debt, currency)}
             </span>
           </div>
         )}
@@ -146,10 +149,10 @@ const ScenarioCard = ({ scenario, config, currency, delay = 0 }) => {
       )}
 
       {/* Acciones sugeridas */}
-      {scenario.suggested_actions && scenario.suggested_actions.length > 0 && (
+      {scenario.suggested_actions && scenario.suggested_actions.length > 0 ? (
         <div className="space-y-2">
           <p className="text-xs font-bold text-[#6E6E73] dark:text-gray-400 uppercase tracking-wider">
-            Acciones Sugeridas
+            Recomendaciones Personalizadas
           </p>
           {scenario.suggested_actions.slice(0, 3).map((action, idx) => (
             <div
@@ -161,7 +164,7 @@ const ScenarioCard = ({ scenario, config, currency, delay = 0 }) => {
                 <p className="text-xs font-medium text-[#1a1a1a] dark:text-white">
                   {action.description}
                 </p>
-                {action.impact && (
+                {action.impact && action.impact > 0 && (
                   <p className="text-xs text-green-600 dark:text-green-400">
                     Ahorro estimado: {formatCurrency(action.impact, currency)}/mes
                   </p>
@@ -170,6 +173,19 @@ const ScenarioCard = ({ scenario, config, currency, delay = 0 }) => {
             </div>
           ))}
         </div>
+      ) : (
+        scenario.scenario_type === 'improved' && (
+          <div className="space-y-2">
+            <p className="text-xs font-bold text-[#6E6E73] dark:text-gray-400 uppercase tracking-wider">
+              Recomendaciones Personalizadas
+            </p>
+            <div className="bg-white/30 dark:bg-black/10 rounded-lg p-3">
+              <p className="text-xs text-[#6E6E73] dark:text-gray-400 italic">
+                Tus finanzas están equilibradas. No se detectaron oportunidades claras de reducción en este período. Agrega más transacciones para recibir recomendaciones personalizadas basadas en tus gastos reales.
+              </p>
+            </div>
+          </div>
+        )
       )}
     </motion.div>
   );
@@ -179,12 +195,23 @@ const ScenarioCard = ({ scenario, config, currency, delay = 0 }) => {
 // HELPER: Formatear moneda
 // ============================================================================
 function formatCurrency(amount, currency = 'CLP') {
+  // Validar que amount sea un número válido
+  if (amount === null || amount === undefined || isNaN(amount)) {
+    return '$0';
+  }
+
+  const numAmount = Number(amount);
+  
+  if (isNaN(numAmount)) {
+    return '$0';
+  }
+
   if (currency === 'CLP') {
     // CLP sin decimales para números enteros
-    if (Number.isInteger(amount)) {
-      return `$${amount.toLocaleString('es-CL')}`;
+    if (Number.isInteger(numAmount)) {
+      return `$${numAmount.toLocaleString('es-CL')}`;
     }
-    return `$${amount.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+    return `$${numAmount.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
   } else {
     // USD, EUR, etc. con 2 decimales
     return new Intl.NumberFormat('en-US', {
@@ -192,7 +219,7 @@ function formatCurrency(amount, currency = 'CLP') {
       currency: currency,
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(amount);
+    }).format(numAmount);
   }
 }
 
@@ -200,16 +227,33 @@ function formatCurrency(amount, currency = 'CLP') {
 // COMPONENTE PRINCIPAL
 // ============================================================================
 export default function FutureSelfView() {
-  const [horizonMonths, setHorizonMonths] = useState(12);
+  const location = useLocation();
+  // Obtener horizonte desde el estado de navegación si existe
+  const initialHorizon = location.state?.horizon || 12;
+  const [horizonMonths, setHorizonMonths] = useState(initialHorizon);
   const { scenarios, currentMetrics, loading, error, refresh } = useFutureSelf(horizonMonths);
+  
+  // Actualizar horizonte si viene desde navegación
+  useEffect(() => {
+    if (location.state?.horizon && location.state.horizon !== horizonMonths) {
+      setHorizonMonths(location.state.horizon);
+    }
+  }, [location.state, horizonMonths]);
   const { currency } = useUserCurrency();
   const { toast } = useToast();
 
   const handleRefresh = async () => {
+    // Limpiar cache y forzar recálculo con datos reales
+    toast({
+      title: 'Recalculando escenarios',
+      description: 'Analizando tus transacciones reales para generar consejos personalizados...',
+    });
+    
     await refresh();
+    
     toast({
       title: 'Escenarios actualizados',
-      description: 'Se han recalculado los escenarios futuros',
+      description: 'Se han recalculado los escenarios con tus datos reales. Los consejos son 100% personalizados.',
     });
   };
 
@@ -271,10 +315,17 @@ export default function FutureSelfView() {
 
       {/* Error */}
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-[22px] p-6">
-          <div className="flex items-center gap-3 text-red-600 dark:text-red-400">
-            <AlertCircle className="w-5 h-5" />
-            <span>{error}</span>
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-[22px] p-6">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-amber-800 dark:text-amber-200 font-medium mb-1">
+                {error}
+              </p>
+              <p className="text-sm text-amber-700 dark:text-amber-300">
+                Puedes intentar recalculando más tarde o contactar al soporte si el problema persiste.
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -294,7 +345,7 @@ export default function FutureSelfView() {
                     Ingresos Mensuales
                   </p>
                   <p className="text-lg font-bold text-[#1a1a1a] dark:text-white">
-                    {formatCurrency(currentMetrics.current_monthly_income, currency)}
+                    {formatCurrency(currentMetrics?.current_monthly_income ?? 0, currency)}
                   </p>
                 </div>
                 <div>
@@ -302,7 +353,7 @@ export default function FutureSelfView() {
                     Gastos Mensuales
                   </p>
                   <p className="text-lg font-bold text-[#1a1a1a] dark:text-white">
-                    {formatCurrency(currentMetrics.current_monthly_expenses, currency)}
+                    {formatCurrency(currentMetrics?.current_monthly_expenses ?? 0, currency)}
                   </p>
                 </div>
                 <div>
@@ -310,7 +361,7 @@ export default function FutureSelfView() {
                     Ahorros Actuales
                   </p>
                   <p className="text-lg font-bold text-green-600 dark:text-green-400">
-                    {formatCurrency(currentMetrics.current_savings, currency)}
+                    {formatCurrency(currentMetrics?.current_savings ?? 0, currency)}
                   </p>
                 </div>
                 <div>

@@ -1,6 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { 
   Calendar, 
   TrendingUp, 
@@ -12,12 +13,16 @@ import {
   Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { useFinance } from '@/hooks/useFinance';
+import { useToast } from '@/components/ui/use-toast';
 
-const ScenarioCard = ({ title, description, impact, type, delay }) => (
+const ScenarioCard = ({ title, description, impact, type, delay, onClick }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay }}
+    onClick={onClick}
     className="bg-white p-6 rounded-[22px] border border-gray-100 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] transition-all duration-300 group cursor-pointer h-full flex flex-col"
   >
     <div className="flex items-start justify-between mb-4">
@@ -47,7 +52,231 @@ const ScenarioCard = ({ title, description, impact, type, delay }) => (
 );
 
 const Predictions = () => {
+  const { user } = useAuth();
+  const { transactions, budgets, goals, loading: financeLoading } = useFinance(user?.id);
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [timeHorizon, setTimeHorizon] = useState('90d');
+
+  // Calcular métricas financieras
+  const financialMetrics = useMemo(() => {
+    if (!transactions || transactions.length === 0) return null;
+
+    const now = new Date();
+    const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
+    // Filtrar transacciones del mes actual y anterior
+    const currentMonthTx = transactions.filter(t => {
+      const txDate = new Date(t.date);
+      return txDate >= currentMonth;
+    });
+
+    const lastMonthTx = transactions.filter(t => {
+      const txDate = new Date(t.date);
+      return txDate >= lastMonth && txDate <= lastMonthEnd;
+    });
+
+    // Calcular ingresos y gastos
+    const currentIncome = currentMonthTx
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+    
+    const currentExpenses = currentMonthTx
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+
+    const lastMonthExpenses = lastMonthTx
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+
+    // Calcular gastos por categoría
+    const categoryExpenses = {};
+    currentMonthTx
+      .filter(t => t.type === 'expense')
+      .forEach(t => {
+        const catName = t.categories?.name || 'Sin categoría';
+        categoryExpenses[catName] = (categoryExpenses[catName] || 0) + (parseFloat(t.amount) || 0);
+      });
+
+    // Encontrar categoría con mayor gasto
+    const topCategory = Object.entries(categoryExpenses)
+      .sort(([, a], [, b]) => b - a)[0];
+
+    // Calcular ahorro mensual
+    const monthlySavings = currentIncome - currentExpenses;
+    const monthlyFlow = monthlySavings;
+
+    // Calcular proyección anual
+    const monthsUntilYearEnd = 12 - now.getMonth();
+    const projectedYearEnd = monthlySavings * monthsUntilYearEnd;
+
+    // Encontrar meta más cercana
+    const activeGoal = goals?.find(g => {
+      const goalDate = new Date(g.target_date);
+      return goalDate >= now && g.status === 'active';
+    });
+
+    return {
+      currentIncome,
+      currentExpenses,
+      lastMonthExpenses,
+      monthlySavings,
+      monthlyFlow,
+      projectedYearEnd,
+      topCategory,
+      categoryExpenses,
+      activeGoal,
+      expenseChange: lastMonthExpenses > 0 
+        ? ((currentExpenses - lastMonthExpenses) / lastMonthExpenses) * 100 
+        : 0,
+    };
+  }, [transactions, goals]);
+
+  // Generar escenarios basados en datos reales
+  const scenarios = useMemo(() => {
+    if (!financialMetrics) return [];
+
+    const scenariosList = [];
+
+    // Escenario 1: Mantener ritmo actual
+    if (financialMetrics.monthlySavings > 0 && financialMetrics.activeGoal) {
+      const monthsToGoal = Math.ceil(
+        (new Date(financialMetrics.activeGoal.target_date) - new Date()) / (1000 * 60 * 60 * 24 * 30)
+      );
+      const projectedSavings = financialMetrics.monthlySavings * monthsToGoal;
+      const goalProgress = (projectedSavings / financialMetrics.activeGoal.target) * 100;
+      
+      scenariosList.push({
+        id: 'current_pace',
+        title: 'Si mantienes este ritmo...',
+        description: `Llegarás a fin de año con un excedente de $${financialMetrics.projectedYearEnd.toLocaleString('es-CL')}, suficiente para cubrir el ${Math.min(100, Math.round(goalProgress))}% de tu meta '${financialMetrics.activeGoal.name}'.`,
+        impact: `+${Math.round((financialMetrics.monthlySavings / financialMetrics.currentIncome) * 100)}% Ahorro`,
+        type: 'default',
+      });
+    }
+
+    // Escenario 2: Reducir categoría principal
+    if (financialMetrics.topCategory && financialMetrics.categoryExpenses[financialMetrics.topCategory[0]] > 0) {
+      const categoryName = financialMetrics.topCategory[0];
+      const categoryAmount = financialMetrics.topCategory[1];
+      const reduction = categoryAmount * 0.2; // 20% de reducción
+      const annualSavings = reduction * 12;
+      
+      scenariosList.push({
+        id: 'reduce_category',
+        title: `Si reduces ${categoryName} en 20%...`,
+        description: `Podrías redirigir $${Math.round(reduction).toLocaleString('es-CL')} mensuales a tu fondo de inversión, generando $${Math.round(annualSavings).toLocaleString('es-CL')} extra al año.`,
+        impact: `+$${Math.round(annualSavings).toLocaleString('es-CL')}/año`,
+        type: 'positive',
+        category: categoryName,
+      });
+    }
+
+    // Escenario 3: Alerta de suscripciones/gastos crecientes
+    if (financialMetrics.expenseChange > 5) {
+      // Detectar si el aumento es en suscripciones o gastos fijos
+      const subscriptions = financialMetrics.categoryExpenses['Suscripciones'] || 
+                           financialMetrics.categoryExpenses['Servicios'] || 0;
+      const isSubscriptionAlert = subscriptions > 0 && 
+                                 (subscriptions / financialMetrics.currentExpenses) > 0.15;
+      
+      scenariosList.push({
+        id: 'expense_alert',
+        title: isSubscriptionAlert ? 'Alerta de Suscripciones' : 'Alerta de Gastos Crecientes',
+        description: isSubscriptionAlert
+          ? `Tus gastos fijos han subido un ${Math.round(financialMetrics.expenseChange)}% este mes. Si sigue así, podrías comprometer tu meta de ahorro.`
+          : `Tus gastos han subido un ${Math.round(financialMetrics.expenseChange)}% este mes. Si sigue así, podrías comprometer tu meta de ahorro.`,
+        impact: 'Riesgo Medio',
+        type: 'warning',
+      });
+    }
+
+    return scenariosList;
+  }, [financialMetrics]);
+
+  // Detectar riesgos
+  const detectedRisk = useMemo(() => {
+    if (!financialMetrics) return null;
+
+    // Detectar si hay riesgo de flujo negativo
+    const daysUntilNegative = financialMetrics.monthlyFlow < 0 
+      ? Math.ceil(Math.abs(financialMetrics.monthlyFlow / (financialMetrics.currentExpenses / 30)))
+      : null;
+
+    // Detectar patrones estacionales (simplificado)
+    const currentMonth = new Date().getMonth();
+    const isDecember = currentMonth === 11; // Diciembre es mes 11
+
+    if (daysUntilNegative && daysUntilNegative <= 45) {
+      return {
+        title: 'Probabilidad de flujo negativo en 45 días',
+        description: `Hemos detectado que tus gastos en "${financialMetrics.topCategory?.[0] || 'varias categorías'}" están aumentando. Con tu saldo actual, podrías quedar en descubierto si no reservas $${Math.abs(Math.round(financialMetrics.monthlyFlow)).toLocaleString('es-CL')} extra.`,
+        category: financialMetrics.topCategory?.[0] || 'gastos generales',
+        amount: Math.abs(Math.round(financialMetrics.monthlyFlow)),
+      };
+    }
+
+    // Detectar patrones estacionales mejorados
+    if (isDecember && financialMetrics.topCategory) {
+      const categoryName = financialMetrics.topCategory[0];
+      const categoryAmount = financialMetrics.topCategory[1];
+      // Calcular un monto más preciso basado en el gasto actual
+      const estimatedIncrease = categoryAmount * 0.3; // 30% de aumento estimado en diciembre
+      const recommendedReserve = Math.max(500, Math.round(estimatedIncrease));
+      
+      return {
+        title: 'Probabilidad de flujo negativo en 45 días',
+        description: `Hemos detectado que tus gastos en "${categoryName}" suelen dispararse en Diciembre. Con tu saldo actual, podrías quedar en descubierto si no reservas $${recommendedReserve.toLocaleString('es-CL')} extra.`,
+        category: categoryName,
+        amount: recommendedReserve,
+      };
+    }
+    
+    // Detectar riesgo de flujo negativo basado en tendencia
+    if (financialMetrics.monthlyFlow < 0 && financialMetrics.currentExpenses > 0) {
+      const daysUntilNegative = Math.ceil(
+        Math.abs(financialMetrics.monthlyFlow / (financialMetrics.currentExpenses / 30))
+      );
+      
+      if (daysUntilNegative <= 60) {
+        return {
+          title: 'Probabilidad de flujo negativo en 45 días',
+          description: `Con tu ritmo actual de gastos, podrías quedar en descubierto en aproximadamente ${daysUntilNegative} días. Te recomendamos revisar tus gastos en "${financialMetrics.topCategory?.[0] || 'varias categorías'}" y considerar reservar $${Math.abs(Math.round(financialMetrics.monthlyFlow)).toLocaleString('es-CL')} extra.`,
+          category: financialMetrics.topCategory?.[0] || 'gastos generales',
+          amount: Math.abs(Math.round(financialMetrics.monthlyFlow)),
+        };
+      }
+    }
+
+    return null;
+  }, [financialMetrics]);
+
+  // Manejar clic en "Simular escenario"
+  const handleSimulateScenario = (scenarioId) => {
+    navigate('/dashboard/future-self', { 
+      state: { 
+        scenario: scenarioId,
+        horizon: timeHorizon === '30d' ? 1 : timeHorizon === '90d' ? 3 : 12 
+      } 
+    });
+  };
+
+  // Manejar clic en "Hablar con la IA"
+  const handleTalkToAI = () => {
+    if (detectedRisk) {
+      const message = `Tengo un riesgo financiero detectado: ${detectedRisk.title}. ${detectedRisk.description} ¿Qué puedo hacer para evitarlo?`;
+      navigate('/dashboard/ai-assistant', { 
+        state: { 
+          initialMessage: message,
+          context: 'risk_alert'
+        } 
+      });
+    } else {
+      navigate('/dashboard/ai-assistant');
+    }
+  };
 
   return (
     <div className="space-y-8 pb-12">
@@ -174,56 +403,65 @@ const Predictions = () => {
       </motion.div>
 
       {/* Scenarios Grid */}
-      <div className="grid md:grid-cols-3 gap-6">
-        <ScenarioCard 
-          title="Si mantienes este ritmo..."
-          description="Llegarás a fin de año con un excedente de $2,400, suficiente para cubrir el 50% de tu meta 'Viaje a Japón'."
-          impact="+12% Ahorro"
-          type="default"
-          delay={0.2}
-        />
-        <ScenarioCard 
-          title="Si reduces Ocio en 20%..."
-          description="Podrías redirigir $150 mensuales a tu fondo de inversión, generando $1,800 extra al año."
-          impact="+$1,800/año"
-          type="positive"
-          delay={0.3}
-        />
-        <ScenarioCard 
-          title="Alerta de Suscripciones"
-          description="Tus gastos fijos han subido un 5% este mes. Si sigue así, podrías comprometer tu meta de ahorro."
-          impact="Riesgo Medio"
-          type="warning"
-          delay={0.4}
-        />
-      </div>
+      {scenarios.length > 0 ? (
+        <div className="grid md:grid-cols-3 gap-6">
+          {scenarios.map((scenario, index) => (
+            <ScenarioCard 
+              key={scenario.id}
+              title={scenario.title}
+              description={scenario.description}
+              impact={scenario.impact}
+              type={scenario.type}
+              delay={0.2 + (index * 0.1)}
+              onClick={() => handleSimulateScenario(scenario.id)}
+            />
+          ))}
+        </div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-[22px] p-8 border border-gray-100 text-center"
+        >
+          <p className="text-[#6E6E73]">
+            {financeLoading 
+              ? 'Cargando escenarios...' 
+              : 'Agrega transacciones para ver escenarios personalizados'}
+          </p>
+        </motion.div>
+      )}
 
       {/* Risk Analysis Section */}
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
-        className="bg-red-50 rounded-[26px] p-8 border border-red-100 relative overflow-hidden"
-      >
-        <div className="absolute top-0 right-0 w-64 h-64 bg-red-100 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
-        
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-red-600 text-sm font-bold uppercase tracking-wider">
-              <AlertTriangle className="w-4 h-4" />
-              Riesgos Detectados
+      {detectedRisk && (
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+          className="bg-red-50 rounded-[26px] p-8 border border-red-100 relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-64 h-64 bg-red-100 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+          
+          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-red-600 text-sm font-bold uppercase tracking-wider">
+                <AlertTriangle className="w-4 h-4" />
+                Riesgos Detectados
+              </div>
+              <h3 className="text-2xl font-bold text-[#1a1a1a]">{detectedRisk.title}</h3>
+              <p className="text-[#6E6E73] max-w-xl">
+                {detectedRisk.description}
+              </p>
             </div>
-            <h3 className="text-2xl font-bold text-[#1a1a1a]">Probabilidad de flujo negativo en 45 días</h3>
-            <p className="text-[#6E6E73] max-w-xl">
-              Hemos detectado que tus gastos en "Hogar" suelen dispararse en Diciembre. Con tu saldo actual, podrías quedar en descubierto si no reservas $500 extra.
-            </p>
+            <Button 
+              onClick={handleTalkToAI}
+              className="bg-white text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-300 shadow-sm h-12 px-6 rounded-xl font-bold transition-all"
+            >
+              <Zap className="w-4 h-4 mr-2" />
+              Hablar con la IA sobre esto
+            </Button>
           </div>
-          <Button className="bg-white text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-300 shadow-sm h-12 px-6 rounded-xl font-bold transition-all">
-            <Zap className="w-4 h-4 mr-2" />
-            Hablar con la IA sobre esto
-          </Button>
-        </div>
-      </motion.div>
+        </motion.div>
+      )}
     </div>
   );
 };

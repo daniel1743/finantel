@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { 
   Send, 
   Sparkles, 
@@ -80,12 +80,16 @@ const MessageBubble = ({ message }) => {
 
 const AIAssistant = () => {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const topic = searchParams.get('topic');
   const { user } = useAuth();
   const { tickets, loading: ticketsLoading } = useSupportTickets(user?.id);
   const { transactions, categories, budgets, goals, loading: financeLoading } = useFinance(user?.id);
   const isSupportMode = topic === 'support';
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Obtener mensaje inicial desde el estado de navegación (si existe)
+  const initialMessageFromState = location.state?.initialMessage;
   
   // Construir mensaje inicial basado en el contexto
   const getInitialMessage = (ticketsData) => {
@@ -104,23 +108,43 @@ const AIAssistant = () => {
     return "Hola, qué gusto verte por aquí. Cuéntame cómo te has sentido últimamente con tus gastos. Estoy contigo para ordenar todo sin estrés y ayudarte a planear lo que necesites.";
   };
 
-  const [messages, setMessages] = useState([
-    { role: 'assistant', content: isSupportMode ? "Cargando contexto de soporte..." : getInitialMessage([]) }
-  ]);
+  const [messages, setMessages] = useState(() => {
+    // Si hay un mensaje inicial desde el estado, usarlo
+    if (initialMessageFromState) {
+      return [
+        { role: 'assistant', content: "Entiendo tu preocupación. Déjame ayudarte con eso." },
+        { role: 'user', content: initialMessageFromState }
+      ];
+    }
+    return [
+      { role: 'assistant', content: isSupportMode ? "Cargando contexto de soporte..." : getInitialMessage([]) }
+    ];
+  });
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Actualizar mensaje inicial cuando se carga el contexto de soporte
+  // Actualizar mensaje inicial cuando se carga el contexto de soporte o hay mensaje inicial
   useEffect(() => {
-    if (isSupportMode && !ticketsLoading && !isInitialized) {
+    if (initialMessageFromState && !isInitialized) {
+      // Si hay mensaje inicial, ya está configurado en el estado inicial
+      setIsInitialized(true);
+    } else if (isSupportMode && !ticketsLoading && !isInitialized) {
       const newMessage = getInitialMessage(tickets);
       setMessages([{ role: 'assistant', content: newMessage }]);
       setIsInitialized(true);
     } else if (!isSupportMode && !isInitialized) {
       setIsInitialized(true);
     }
-  }, [tickets, ticketsLoading, isSupportMode, isInitialized]);
+  }, [tickets, ticketsLoading, isSupportMode, isInitialized, initialMessageFromState]);
+  
+  // Si hay mensaje inicial, enviarlo automáticamente al cargar
+  useEffect(() => {
+    if (initialMessageFromState && isInitialized && messages.length === 2 && messages[1].role === 'user') {
+      // El mensaje ya está en el estado, solo necesitamos procesarlo
+      // El efecto de handleSend se encargará si es necesario
+    }
+  }, [initialMessageFromState, isInitialized, messages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

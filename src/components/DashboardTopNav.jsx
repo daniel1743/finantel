@@ -17,6 +17,7 @@ import ReactCountryFlag from 'react-country-flag';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useUserCurrency } from '@/hooks/useUserCurrency';
+import { useNotifications } from '@/hooks/useNotifications';
 import { Link, useNavigate } from 'react-router-dom';
 
 const DashboardTopNav = ({ onMenuClick }) => {
@@ -24,6 +25,7 @@ const DashboardTopNav = ({ onMenuClick }) => {
   const { user, signOut, refreshUser } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { countryCode, currency } = useUserCurrency();
+  const { unreadCount } = useNotifications();
   const navigate = useNavigate();
   const menuContainerRef = useRef(null);
   const buttonRef = useRef(null);
@@ -105,7 +107,10 @@ const DashboardTopNav = ({ onMenuClick }) => {
             className="relative p-2 rounded-full bg-white dark:bg-white/5 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 group border border-gray-100 dark:border-white/5"
           >
             <Bell className="w-5 h-5 text-[#6E6E73] dark:text-gray-400 group-hover:text-[#1a1a1a] dark:group-hover:text-white transition-colors" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-[#E47B45] rounded-full border-2 border-white dark:border-[#1a1a1a]" />
+            {/* Mostrar punto rojo solo si hay notificaciones no leídas */}
+            {unreadCount > 0 && (
+              <span className="absolute top-2 right-2 w-2 h-2 bg-[#E47B45] rounded-full border-2 border-white dark:border-[#1a1a1a]" />
+            )}
           </button>
           
           <div className="relative" ref={menuContainerRef}>

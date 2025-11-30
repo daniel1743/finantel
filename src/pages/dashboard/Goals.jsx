@@ -232,9 +232,9 @@ const GoalCard = ({ goal, index, onDelete }) => {
             <GoalIcon className="w-5 h-5" />
           </div>
           <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full bg-white/80 backdrop-blur-sm border border-gray-100 text-xs font-bold text-[#6E6E73]">
-              {goal.date}
-            </span>
+          <span className="px-3 py-1 rounded-full bg-white/80 backdrop-blur-sm border border-gray-100 text-xs font-bold text-[#6E6E73]">
+            {goal.date}
+          </span>
             {onDelete && (
               <button
                 onClick={handleDelete}
@@ -966,7 +966,7 @@ const Goals = () => {
             } else {
               goalIcon = suggestIcon(goal.name);
             }
-
+            
             const goalCardData = {
               id: goal.id,
               name: goal.name,

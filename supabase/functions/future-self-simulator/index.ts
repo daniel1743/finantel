@@ -97,13 +97,155 @@ async function calculateProjection(
 }
 
 // ============================================================================
+// HELPER: Obtener insights de gastos reales desde la base de datos
+// ============================================================================
+async function getSpendingInsights(
+  supabase: any,
+  userId: string,
+  monthsBack: number = 3
+): Promise<any> {
+  try {
+    const { data, error } = await supabase.rpc("get_spending_insights", {
+      p_user_id: userId,
+      p_months_back: monthsBack,
+    });
+
+    if (error) {
+      console.error("⚠️ Error obteniendo spending insights:", error);
+      return null;
+    }
+
+    return data;
+  } catch (err) {
+    console.error("⚠️ Excepción obteniendo spending insights:", err);
+    return null;
+  }
+}
+
+// ============================================================================
+// HELPER: Generar recomendaciones personalizadas basadas en insights reales
+// ============================================================================
+function generatePersonalizedRecommendations(
+  insights: any,
+  monthlyIncome: number
+): any[] {
+  if (!insights) {
+    console.log("⚠️ No hay insights disponibles para generar recomendaciones");
+    return [];
+  }
+
+  if (monthlyIncome === 0 || isNaN(monthlyIncome) || monthlyIncome < 100) {
+    console.log(`⚠️ Ingresos mensuales inválidos: ${monthlyIncome}`);
+    return [];
+  }
+
+  const recommendations: any[] = [];
+
+  // 1. Usar oportunidades de ahorro (las más relevantes)
+  const savingOpportunities = insights.saving_opportunities || [];
+  savingOpportunities.forEach((opp: any) => {
+    if (!opp.category || opp.category === "Sin categoría") return;
+    
+    const categoryName = opp.category;
+    const currentMonthly = Number(opp.current_monthly) || 0;
+    const reduction = Number(opp.recommended_reduction) || 0.1;
+    const estimatedSaving = Number(opp.estimated_saving) || 0;
+    const impactLevel = opp.impact_level || "medio";
+
+    if (currentMonthly < 100 || estimatedSaving < 100) return;
+
+    const percentage = (currentMonthly / monthlyIncome) * 100;
+
+    // Solo incluir si es significativo (>3% de ingresos)
+    if (percentage < 3) return;
+
+    let description = "";
+    if (impactLevel === "alto" && reduction >= 0.20) {
+      description = `Reducir gastos en ${categoryName} en un ${Math.round(reduction * 100)}% podría ahorrarte ${formatCurrency(estimatedSaving)}/mes. Actualmente gastas ${formatCurrency(currentMonthly)} mensuales en esta categoría.`;
+    } else if (impactLevel === "medio" && reduction >= 0.15) {
+      description = `Optimizar tus compras de ${categoryName} (reducción del ${Math.round(reduction * 100)}%) puede liberar ${formatCurrency(estimatedSaving)} al mes.`;
+    } else {
+      description = `Revisa tus gastos en ${categoryName}. Un ajuste moderado puede ahorrarte aproximadamente ${formatCurrency(estimatedSaving)} mensuales.`;
+    }
+
+    recommendations.push({
+      action: `optimize_${categoryName.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "")}`,
+      impact: Math.round(estimatedSaving),
+      description: description,
+      category: categoryName,
+      impact_level: impactLevel,
+      current_monthly: Math.round(currentMonthly),
+      reduction_percentage: Math.round(reduction * 100),
+    });
+  });
+
+  // 2. Si hay top categorías muy altas, agregar recomendaciones adicionales
+  const topCategories = insights.top_categories || [];
+  const processedCategories = new Set(
+    savingOpportunities.map((opp: any) => opp.category)
+  );
+
+  topCategories.forEach((cat: any) => {
+    const categoryName = cat.category;
+    if (
+      !categoryName ||
+      categoryName === "Sin categoría" ||
+      processedCategories.has(categoryName)
+    )
+      return;
+
+    const monthlyAvg = Number(cat.monthly_average) || 0;
+    const percentage = Number(cat.percentage_of_expenses) || 0;
+
+    // Solo incluir si es >15% de gastos totales y no está ya en oportunidades
+    if (percentage > 15 && monthlyAvg > 0) {
+      const savings15 = Math.round(monthlyAvg * 0.15);
+      recommendations.push({
+        action: `review_${categoryName.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "")}`,
+        impact: savings15,
+        description: `Tu categoría más alta esta semana es ${categoryName}: ${formatCurrency(monthlyAvg)}/mes (${percentage.toFixed(1)}% de tus gastos). Considera revisar esta área para identificar oportunidades de ahorro.`,
+        category: categoryName,
+        impact_level: "medio",
+        current_monthly: Math.round(monthlyAvg),
+        reduction_percentage: 15,
+      });
+    }
+  });
+
+  // Ordenar por impacto y limitar a 5
+  const sorted = recommendations
+    .sort((a, b) => b.impact - a.impact)
+    .slice(0, 5);
+
+  console.log(`💡 Generadas ${sorted.length} recomendaciones personalizadas basadas en datos reales`);
+  if (sorted.length > 0) {
+    console.log(
+      `📝 Recomendaciones:`,
+      sorted.map((r) => `${r.category}: ${r.description}`)
+    );
+  }
+
+  return sorted;
+}
+
+// ============================================================================
+// HELPER: Formatear moneda (función auxiliar)
+// ============================================================================
+function formatCurrency(amount: number): string {
+  const num = Math.round(amount || 0);
+  return `$${num.toLocaleString("es-CL")}`;
+}
+
+// ============================================================================
 // HELPER: Generar resumen con IA
 // ============================================================================
 async function generateAISummary(
   metrics: FinancialMetrics,
   projection: ScenarioProjection,
   scenarioType: string,
-  horizonMonths: number
+  horizonMonths: number,
+  personalizedAdvice: any[] = [],
+  insights?: any
 ): Promise<{ summary: string; actions: any[] }> {
   const scenarioNames: { [key: string]: string } = {
     current_trend: "continuar con tus hábitos actuales",
@@ -114,20 +256,20 @@ async function generateAISummary(
   const scenarioName = scenarioNames[scenarioType] || scenarioType;
 
   // Construir prompt para IA
-  const prompt = buildAIPrompt(metrics, projection, scenarioType, horizonMonths);
+  const prompt = buildAIPrompt(metrics, projection, scenarioType, horizonMonths, personalizedAdvice);
 
   // Intentar llamar a IA con fallback
   try {
     const aiResponse = await callAIWithFallback(prompt);
     return {
-      summary: aiResponse.summary || generateDefaultSummary(metrics, projection, scenarioType, horizonMonths),
+      summary: aiResponse.summary || generateDefaultSummary(metrics, projection, scenarioType, horizonMonths, insights),
       actions: aiResponse.actions || [],
     };
   } catch (error) {
     console.error("Error calling AI:", error);
     return {
-      summary: generateDefaultSummary(metrics, projection, scenarioType, horizonMonths),
-      actions: [],
+      summary: generateDefaultSummary(metrics, projection, scenarioType, horizonMonths, insights),
+      actions: personalizedAdvice.length > 0 ? personalizedAdvice : [],
     };
   }
 }
@@ -139,7 +281,8 @@ function buildAIPrompt(
   metrics: FinancialMetrics,
   projection: ScenarioProjection,
   scenarioType: string,
-  horizonMonths: number
+  horizonMonths: number,
+  personalizedAdvice: any[] = []
 ): string {
   const scenarioDescriptions: { [key: string]: string } = {
     current_trend:
@@ -173,12 +316,52 @@ Genera un texto motivacional de 2-3 frases que:
 3. Incluya sugerencias concretas si es el escenario "improved"
 4. Use un tono positivo pero realista
 
+${personalizedAdvice.length > 0 ? `
+RECOMENDACIONES PERSONALIZADAS BASADAS EN GASTOS REALES DEL USUARIO:
+${personalizedAdvice.map(a => `- ${a.description}`).join('\n')}
+
+Usa SOLO estas recomendaciones en tu respuesta JSON. NO inventes recomendaciones sobre categorías que no aparecen arriba.
+` : ''}
+
+${personalizedAdvice.length > 0 ? `
+⚠️ REGLA CRÍTICA ABSOLUTA: El usuario tiene transacciones reales. DEBES usar SOLO estas recomendaciones:
+
+RECOMENDACIONES PERSONALIZADAS (BASADAS EN GASTOS REALES DEL USUARIO):
+${personalizedAdvice.map(a => `- ${a.description}`).join('\n')}
+
+PROHIBIDO ABSOLUTAMENTE:
+- ❌ NO inventes recomendaciones sobre categorías que NO aparecen arriba
+- ❌ NO menciones "delivery", "comida rápida", "restaurantes", "suscripciones" u otras categorías si NO están en la lista
+- ❌ NO generes recomendaciones genéricas
+- ❌ NO uses ejemplos como "reducir delivery" o "menos comida rápida" a menos que estén en la lista de arriba
+- ❌ Si no hay recomendaciones personalizadas arriba, significa que el usuario NO tiene gastos significativos en esas categorías
+
+OBLIGATORIO:
+- ✅ Usa SOLO las recomendaciones de la lista de arriba en tu respuesta JSON
+- ✅ Si la lista está vacía, NO generes recomendaciones en el campo "actions"
+- ✅ El campo "actions" debe ser un array vacío [] si no hay recomendaciones arriba
+` : `
+⚠️ IMPORTANTE: El usuario NO tiene suficientes transacciones para recomendaciones personalizadas.
+
+PROHIBIDO ABSOLUTAMENTE:
+- ❌ NO generes recomendaciones genéricas sobre "delivery", "comida rápida", "restaurantes", "suscripciones" u otras categorías
+- ❌ NO inventes categorías específicas
+- ❌ NO generes recomendaciones si no hay datos reales que los respalden
+- ❌ NO uses ejemplos de categorías comunes como "delivery" o "comida rápida"
+
+OBLIGATORIO:
+- ✅ En el campo "actions" del JSON, devuelve un array vacío []
+- ✅ El sistema mostrará un mensaje informativo al usuario si es necesario
+- ✅ Solo menciona que necesita agregar más transacciones para obtener recomendaciones personalizadas
+`}
+
 Formato de respuesta JSON:
 {
   "summary": "Texto motivacional aquí...",
-  "actions": [
-    {"action": "reduce_delivery", "impact": 50000, "description": "Reducir delivery a 8 veces/mes ahorraría $50,000/mes"}
-  ]
+  "actions": ${personalizedAdvice.length > 0 
+    ? `[\n    ${personalizedAdvice.map(a => JSON.stringify(a)).join(',\n    ')}\n  ]`
+    : '[]'
+  }
 }
 `.trim();
 }
@@ -235,18 +418,34 @@ async function callAIWithFallback(prompt: string): Promise<any> {
 }
 
 // ============================================================================
-// HELPER: Generar resumen por defecto (sin IA)
+// HELPER: Generar resumen por defecto (sin IA) basado en datos reales
 // ============================================================================
 function generateDefaultSummary(
   metrics: FinancialMetrics,
   projection: ScenarioProjection,
   scenarioType: string,
-  horizonMonths: number
+  horizonMonths: number,
+  insights?: any
 ): string {
+  const netWorth = projection.projected_net_worth || 0;
+  const savings = projection.projected_savings || 0;
+  const isPositive = netWorth >= 0;
+  
+  // Obtener top categoría si hay insights
+  const topCategory = insights?.top_categories?.[0];
+  const topCategoryName = topCategory?.category || null;
+  const topCategoryPercentage = topCategory?.percentage_of_expenses || 0;
+
   const scenarioTexts: { [key: string]: string } = {
-    current_trend: `Si continúas con tus hábitos actuales, en ${horizonMonths} meses podrías tener aproximadamente $${projection.projected_net_worth.toLocaleString()} en patrimonio neto.`,
-    improved: `Si mejoras tus hábitos financieros reduciendo gastos no esenciales, en ${horizonMonths} meses podrías alcanzar aproximadamente $${projection.projected_net_worth.toLocaleString()} en patrimonio neto.`,
-    worst_case: `En un escenario más desafiante, en ${horizonMonths} meses tu patrimonio neto podría ser de aproximadamente $${projection.projected_net_worth.toLocaleString()}.`,
+    current_trend: topCategoryName && topCategoryPercentage > 15
+      ? `Si continúas con tus hábitos actuales, en ${horizonMonths} meses podrías tener aproximadamente $${netWorth.toLocaleString()} en patrimonio neto. Actualmente, ${topCategoryName} representa el ${topCategoryPercentage.toFixed(1)}% de tus gastos.`
+      : `Si continúas con tus hábitos actuales, en ${horizonMonths} meses podrías tener aproximadamente $${netWorth.toLocaleString()} en patrimonio neto.`,
+    
+    improved: topCategoryName && topCategoryPercentage > 10
+      ? `Si optimizas tus gastos y mejoras tus hábitos financieros, especialmente en categorías como ${topCategoryName}, en ${horizonMonths} meses podrías alcanzar aproximadamente $${netWorth.toLocaleString()} en patrimonio neto.`
+      : `Si mejoras tus hábitos financieros reduciendo gastos no esenciales, en ${horizonMonths} meses podrías alcanzar aproximadamente $${netWorth.toLocaleString()} en patrimonio neto.`,
+    
+    worst_case: `En un escenario más desafiante donde tus gastos aumentan o ingresos disminuyen, en ${horizonMonths} meses tu patrimonio neto podría ser de aproximadamente $${netWorth.toLocaleString()}.`,
   };
 
   return scenarioTexts[scenarioType] || scenarioTexts.current_trend;
@@ -289,13 +488,51 @@ serve(async (req) => {
     const metrics = await getUserMetrics(supabase, user_id, 6);
     console.log("📊 User metrics:", metrics);
 
+    // 1.5. Obtener insights de gastos reales desde la base de datos
+    // IMPORTANTE: Usar la función SQL get_spending_insights para obtener datos reales y personalizados
+    console.log("📊 Obteniendo insights de gastos reales desde la BD...");
+    const spendingInsights = await getSpendingInsights(supabase, user_id, 3);
+    
+    if (spendingInsights) {
+      console.log(`✅ Insights obtenidos:`);
+      console.log(`   - Top categorías: ${spendingInsights.top_categories?.length || 0}`);
+      console.log(`   - Oportunidades de ahorro: ${spendingInsights.saving_opportunities?.length || 0}`);
+      console.log(`   - Servicios recurrentes: ${spendingInsights.recurring_services?.length || 0}`);
+    } else {
+      console.warn("⚠️ No se pudieron obtener insights de gastos. Se usarán datos mínimos.");
+    }
+
     // 2. Calcular los 3 escenarios
     const scenarios: ScenarioResult[] = [];
     const scenarioTypes = ["current_trend", "improved", "worst_case"];
 
+    // Generar recomendaciones personalizadas UNA VEZ para todos los escenarios
+    // Esto asegura que se basen en datos reales de la BD, no en textos genéricos
+    const personalizedRecommendations = generatePersonalizedRecommendations(
+      spendingInsights,
+      metrics.current_monthly_income
+    );
+    console.log(`💡 Recomendaciones personalizadas generadas: ${personalizedRecommendations.length}`);
+    if (personalizedRecommendations.length > 0) {
+      console.log("📝 Recomendaciones:", personalizedRecommendations.map(r => r.description));
+    } else {
+      console.warn("⚠️ No se generaron recomendaciones personalizadas. El usuario puede no tener suficientes gastos categorizados.");
+    }
+
     for (const scenarioType of scenarioTypes) {
-      // Verificar si ya existe (y no forzar recálculo)
-      if (!force_recalculate) {
+      // SIEMPRE recalcular si force_recalculate = true (botón "Recalcular")
+      // Eliminar cache existente para forzar regeneración con datos reales
+      if (force_recalculate) {
+        console.log(`🗑️ Limpiando cache para ${scenarioType} (force_recalculate = true)`);
+        // Eliminar escenarios existentes para forzar recálculo
+        await supabase
+          .from("future_self_scenarios")
+          .delete()
+          .eq("user_id", user_id)
+          .eq("horizon_months", horizon_months)
+          .eq("scenario_type", scenarioType);
+      } else {
+        // Solo usar cache si NO se fuerza recálculo Y hay cache válido
         const { data: existing } = await supabase
           .from("future_self_scenarios")
           .select("*")
@@ -305,23 +542,50 @@ serve(async (req) => {
           .single();
 
         if (existing) {
-          console.log(`✅ Using cached scenario: ${scenarioType}`);
-          scenarios.push({
-            scenario_type: scenarioType,
-            horizon_months: horizon_months,
-            projection: {
-              projected_income: existing.projected_income,
-              projected_expenses: existing.projected_expenses,
-              projected_savings: existing.projected_savings,
-              projected_debt: existing.projected_debt,
-              projected_net_worth: existing.projected_net_worth,
-              monthly_income: existing.projected_income / horizon_months,
-              monthly_expenses: existing.projected_expenses / horizon_months,
-            },
-            summary_text: existing.summary_text,
-            suggested_actions: existing.suggested_actions || [],
+          // Solo usar cache si tiene recomendaciones personalizadas válidas (basadas en datos reales)
+          // Verificar que NO sean consejos genéricos
+          const hasValidPersonalizedRecommendations = 
+            existing.suggested_actions && 
+            Array.isArray(existing.suggested_actions) &&
+            existing.suggested_actions.length > 0 &&
+            existing.suggested_actions.some((a: any) => a.category && a.impact_level && !a.requires_data);
+          
+          // Verificar que NO contenga textos genéricos prohibidos
+          const hasGenericText = existing.suggested_actions?.some((a: any) => {
+            const desc = (a.description || "").toLowerCase();
+            return desc.includes("delivery") || 
+                   desc.includes("comida rápida") || 
+                   (a.category && a.category.toLowerCase().includes("delivery"));
           });
-          continue;
+
+          if (hasValidPersonalizedRecommendations && !hasGenericText) {
+            console.log(`✅ Using cached scenario with personalized recommendations: ${scenarioType}`);
+            scenarios.push({
+              scenario_type: scenarioType,
+              horizon_months: horizon_months,
+              projection: {
+                projected_income: existing.projected_income,
+                projected_expenses: existing.projected_expenses,
+                projected_savings: existing.projected_savings,
+                projected_debt: existing.projected_debt,
+                projected_net_worth: existing.projected_net_worth,
+                monthly_income: existing.projected_income / horizon_months,
+                monthly_expenses: existing.projected_expenses / horizon_months,
+              },
+              summary_text: existing.summary_text,
+              suggested_actions: existing.suggested_actions || [],
+            });
+            continue;
+          } else {
+            console.log(`🔄 Cache inválido (consejos genéricos o sin datos reales), regenerando: ${scenarioType}`);
+            // Eliminar cache inválido
+            await supabase
+              .from("future_self_scenarios")
+              .delete()
+              .eq("user_id", user_id)
+              .eq("horizon_months", horizon_months)
+              .eq("scenario_type", scenarioType);
+          }
         }
       }
 
@@ -329,8 +593,31 @@ serve(async (req) => {
       const projection = await calculateProjection(supabase, metrics, horizon_months, scenarioType);
       console.log(`📈 Projection for ${scenarioType}:`, projection);
 
-      // Generar resumen con IA
-      const { summary, actions } = await generateAISummary(metrics, projection, scenarioType, horizon_months);
+      // Generar resumen con IA (usando recomendaciones personalizadas si existen)
+      // IMPORTANTE: Si hay recomendaciones personalizadas, la IA NO debe generar consejos genéricos
+      const { summary, actions } = await generateAISummary(
+        metrics, 
+        projection, 
+        scenarioType, 
+        horizon_months,
+        personalizedRecommendations,
+        spendingInsights
+      );
+      
+      // POLÍTICA ESTRICTA: SOLO recomendaciones personalizadas basadas en datos reales
+      // NUNCA mostrar consejos genéricos como "delivery", "comida rápida", etc.
+      let finalActions: any[] = [];
+      
+      if (personalizedRecommendations.length > 0) {
+        // Usar SOLO recomendaciones personalizadas basadas en datos reales de la BD
+        finalActions = personalizedRecommendations;
+        console.log(`✅ Usando ${finalActions.length} recomendaciones personalizadas REALES para ${scenarioType}`);
+      } else {
+        // NO hay datos suficientes para recomendaciones personalizadas
+        // En lugar de consejos genéricos, mostrar mensaje claro y neutro
+        finalActions = [];
+        console.log(`⚠️ Sin datos suficientes para ${scenarioType}. No se mostrarán recomendaciones genéricas.`);
+      }
 
       // Guardar en BD
       const { data: saved, error: saveError } = await supabase
@@ -345,7 +632,7 @@ serve(async (req) => {
           projected_expenses: projection.projected_expenses,
           projected_net_worth: projection.projected_net_worth,
           summary_text: summary,
-          suggested_actions: actions,
+          suggested_actions: finalActions,
           input_metrics: metrics,
           calculated_at: new Date().toISOString(),
         })
@@ -361,7 +648,7 @@ serve(async (req) => {
         horizon_months: horizon_months,
         projection,
         summary_text: summary,
-        suggested_actions: actions,
+        suggested_actions: finalActions,
       });
     }
 
@@ -392,4 +679,5 @@ serve(async (req) => {
     );
   }
 });
+
 

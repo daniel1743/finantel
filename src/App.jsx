@@ -42,6 +42,7 @@ const AdminSupport = lazy(() => import('@/pages/dashboard/AdminSupport'));
 const SharedExpenses = lazy(() => import('@/pages/dashboard/SharedExpenses'));
 const Notifications = lazy(() => import('@/pages/dashboard/Notifications'));
 const SystemNotifications = lazy(() => import('@/pages/dashboard/SystemNotifications'));
+const WebhookInbox = lazy(() => import('@/pages/dashboard/WebhookInbox'));
 const Export = lazy(() => import('@/pages/dashboard/Export'));
 const EmailPreferences = lazy(() => import('@/pages/dashboard/EmailPreferences'));
 const ABTesting = lazy(() => import('@/pages/dashboard/ABTesting'));
@@ -59,17 +60,17 @@ function App() {
   return (
     <ErrorBoundary>
       <HelmetProvider>
-        <ThemeProvider>
-          <AuthProvider>
-            <ABTestProvider>
-              <DemoModeProvider>
-                <Router
-                  future={{
-                    v7_startTransition: true,
-                    v7_relativeSplatPath: true
-                  }}
-                >
-                  <SeoHead />
+      <ThemeProvider>
+        <AuthProvider>
+          <ABTestProvider>
+            <DemoModeProvider>
+              <Router
+                future={{
+                  v7_startTransition: true,
+                  v7_relativeSplatPath: true
+                }}
+              >
+                <SeoHead />
                 <UpdateNotification />
                 <DemoModeBanner />
                 <DemoConversionModal />
@@ -127,6 +128,7 @@ function App() {
                     <Route path="support/:ticketId" element={<SupportTicketDetail />} />
                     <Route path="admin/support" element={<AdminSupport />} />
                     <Route path="admin/system-notifications" element={<SystemNotifications />} />
+                    <Route path="admin/webhooks" element={<WebhookInbox />} />
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                   </Route>
                       </Routes>
@@ -134,11 +136,11 @@ function App() {
                   </ErrorBoundary>
                   <Toaster />
                 </div>
-                </Router>
-              </DemoModeProvider>
-            </ABTestProvider>
-          </AuthProvider>
-        </ThemeProvider>
+              </Router>
+            </DemoModeProvider>
+          </ABTestProvider>
+        </AuthProvider>
+      </ThemeProvider>
       </HelmetProvider>
     </ErrorBoundary>
   );

@@ -39,11 +39,11 @@ const customSupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
 customSupabaseClient.auth.onAuthStateChange((event, session) => {
   // Solo loguear eventos importantes en desarrollo
   if (import.meta.env.MODE === 'development') {
-    if (event === 'TOKEN_REFRESHED') {
-      console.log('✅ Token refrescado exitosamente');
-    } else if (event === 'SIGNED_OUT') {
-      console.log('👋 Usuario cerró sesión');
-    }
+  if (event === 'TOKEN_REFRESHED') {
+    console.log('✅ Token refrescado exitosamente');
+  } else if (event === 'SIGNED_OUT') {
+    console.log('👋 Usuario cerró sesión');
+  }
   }
   
   // Manejar errores de refresh token silenciosamente

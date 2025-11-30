@@ -1,3 +1,5 @@
+// POPUP_STYLES será inyectado por el plugin de Vite
+// Esta línea será reemplazada automáticamente
 import { POPUP_STYLES } from "./plugins/visual-editor/visual-editor-config.js";
 
 const PLUGIN_APPLY_EDIT_API_URL = "/api/apply-edit";

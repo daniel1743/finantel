@@ -41,18 +41,28 @@ export const useAIPlanner = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        // Manejar errores 503 (función no desplegada) de forma más clara
+        if (response.status === 503) {
+          throw new Error('El planificador de IA no está disponible. Por favor, contacta al soporte o verifica que la función esté desplegada.');
+        }
+        
+        const errorData = await response.json().catch(() => ({ error: 'Error en la solicitud' }));
         throw new Error(errorData.error || 'Error en la solicitud');
       }
 
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error(`Error in ${action}:`, error);
+      // Solo loguear errores no relacionados con funciones no desplegadas
+      const is503Error = error.message?.includes('503') || error.message?.includes('no está disponible');
+      if (!is503Error) {
+        console.error(`Error in ${action}:`, error);
+      }
+      
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: error.message || 'Ocurrió un error al procesar la solicitud',
+        title: 'Error en Planificador IA',
+        description: error.message || 'El planificador de IA no está disponible. Verifica que la función esté desplegada en Supabase.',
       });
       return null;
     }
