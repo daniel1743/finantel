@@ -83,6 +83,7 @@ function App() {
                   <Route path="/pricing" element={<PricingPage />} />
                           <Route path="/legal/transparencia" element={<Transparency />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/login" element={<Navigate to="/auth" replace />} />
                   <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route path="/onboarding" element={<Onboarding />} />
                   

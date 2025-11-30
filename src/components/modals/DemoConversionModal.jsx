@@ -18,14 +18,15 @@ const DemoConversionModal = () => {
   const handleClose = () => {
     exitDemoMode();
     setShowConversionModal(false);
-    navigate('/');
+    // OBLIGATORIO: Siempre redirigir al landing page
+    navigate('/', { replace: true });
   };
 
   return (
     <AnimatePresence>
       {showConversionModal && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop - OBLIGATORIO: Al hacer clic redirige al landing page */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -48,12 +49,17 @@ const DemoConversionModal = () => {
               <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#1C8FA0] via-[#E47B45] to-[#1C8FA0]" />
               <div className="absolute top-0 right-0 w-64 h-64 bg-[#1C8FA0]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
 
-              {/* Close button */}
+              {/* Close button - OBLIGATORIO: Redirige al landing page */}
               <button
-                onClick={handleClose}
-                className="absolute top-6 right-6 w-10 h-10 rounded-full bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 flex items-center justify-center transition-colors z-10"
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevenir que se propague al backdrop
+                  handleClose(); // OBLIGATORIO: Redirige al landing page
+                }}
+                className="absolute top-4 right-4 w-12 h-12 rounded-full bg-white dark:bg-[#1a1a1a] border-2 border-gray-200 dark:border-white/20 hover:bg-gray-50 dark:hover:bg-white/10 hover:border-[#1C8FA0] dark:hover:border-[#1C8FA0] flex items-center justify-center transition-all shadow-lg hover:shadow-xl z-[102] group"
+                aria-label="Cerrar y volver al inicio"
+                title="Cerrar y volver al inicio"
               >
-                <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                <X className="w-6 h-6 text-gray-700 dark:text-gray-200 group-hover:text-[#1C8FA0] dark:group-hover:text-[#1C8FA0] transition-colors font-bold" strokeWidth={2.5} />
               </button>
 
               {/* Content */}

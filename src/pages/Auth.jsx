@@ -15,7 +15,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Eye,
-  EyeOff
+  EyeOff,
+  X
 } from 'lucide-react';
 
 const Auth = () => {
@@ -39,8 +40,9 @@ const Auth = () => {
     fullName: '',
     confirmPassword: ''
   });
-  
+
   const from = location.state?.from?.pathname || "/dashboard";
+  const handleExitToLanding = () => navigate('/', { replace: true });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -90,6 +92,15 @@ const Auth = () => {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md bg-white/80 backdrop-blur-xl rounded-[32px] shadow-[0_40px_80px_-12px_rgba(0,0,0,0.12)] border border-white p-8 relative z-10"
       >
+        <button
+          type="button"
+          onClick={handleExitToLanding}
+          className="absolute right-4 top-4 p-2 text-[#6E6E73] hover:text-[#1a1a1a] hover:bg-gray-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1C8FA0]/30"
+          aria-label="Cerrar y volver a la landing"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
         <div className="text-center mb-8">
           <img
             src="/finantel-logo.png"
