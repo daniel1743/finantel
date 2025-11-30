@@ -242,6 +242,7 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
         { name: "Simulador de Futuro", icon: TrendingUp, path: "/dashboard/future-self" },
         { name: "Predicciones", icon: Sparkles, path: "/dashboard/predictions" },
         { name: "Análisis Profundo", icon: BarChart3, path: "/dashboard/analysis" },
+        { name: "DeepFinance™", icon: Sparkles, path: "/dashboard/deepfinance" },
         { name: "Alertas", icon: Bell, path: "/dashboard/alerts" },
       ]
     },

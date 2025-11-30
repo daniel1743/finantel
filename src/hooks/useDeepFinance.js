@@ -45,8 +45,8 @@ export const useDeepFinance = (userId) => {
       // 4. Guardar en base de datos
       const savedAnalysis = await saveAnalysis(userId, result);
 
-      // 5. Descontar crédito o actualizar límites
-      await updateCreditsAfterAnalysis(userId, canAnalyze);
+      // 5. Los créditos ya se deducen automáticamente en el engine
+      // (El CreditManager se encarga de esto internamente)
 
       // 6. Actualizar estado
       setAnalysis(savedAnalysis);
@@ -181,8 +181,9 @@ async function saveAnalysis(userId, analysis) {
         period_days: analysis.period.days,
         summary: analysis.summary,
         patterns: analysis.patterns || [],
-        recommendations: [], // Fase 1: vacío, se llenará en Fase 3
-        savings_potential: {}, // Fase 1: vacío, se llenará en Fase 3
+        recommendations: analysis.recommendations || [], // Fase 2: básicas implementadas
+        savings_potential: analysis.savingsProjections || {}, // Fase 2.3: proyecciones implementadas
+        leakages: analysis.leakages || [], // Fase 2.3: fugas para cálculos
         total_income: analysis.totalIncome,
         total_expenses: analysis.totalExpenses,
         net_savings: analysis.netSavings,

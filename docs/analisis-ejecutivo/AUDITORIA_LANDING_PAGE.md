@@ -696,5 +696,3 @@ El landing page de Finantel es **excelente en diseño y UX**, pero necesita mejo
 
 
 
-
-

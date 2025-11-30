@@ -14,10 +14,7 @@ const initMixpanel = () => {
   const token = import.meta.env.VITE_MIXPANEL_TOKEN;
   
   if (!token) {
-    // Solo mostrar en desarrollo, no en producción
-    if (import.meta.env.MODE === 'development') {
-      console.log('Analytics: Mixpanel deshabilitado (token faltante)');
-    }
+    console.log('Mixpanel no configurado (token faltante)');
     return;
   }
 
@@ -63,10 +60,7 @@ const initGA4 = () => {
   const measurementId = import.meta.env.VITE_GA4_MEASUREMENT_ID;
   
   if (!measurementId) {
-    // Solo mostrar en desarrollo, no en producción
-    if (import.meta.env.MODE === 'development') {
-      console.log('Analytics: GA4 deshabilitado (measurement ID faltante)');
-    }
+    console.log('GA4 no configurado (measurement ID faltante)');
     return;
   }
 

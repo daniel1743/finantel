@@ -331,5 +331,3 @@ console.log('Persist session:', supabase.auth.persistSession);
 
 
 
-
-

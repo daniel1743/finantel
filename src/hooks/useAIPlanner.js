@@ -3,6 +3,11 @@ import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 
+// Cache para evitar spam de errores
+let edgeFunctionUnavailable = false;
+let lastErrorTime = 0;
+const ERROR_COOLDOWN = 60000; // 1 minuto entre errores mostrados
+
 export const useAIPlanner = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -10,15 +15,23 @@ export const useAIPlanner = () => {
   const [plans, setPlans] = useState([]);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [analysis, setAnalysis] = useState(null);
+  const [functionAvailable, setFunctionAvailable] = useState(true);
 
   // Llamar a la Edge Function
-  const callAIPlanner = useCallback(async (action, params = {}) => {
+  const callAIPlanner = useCallback(async (action, params = {}, silent = false) => {
     if (!user) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Debes iniciar sesión para usar el planificador IA',
-      });
+      if (!silent) {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Debes iniciar sesión para usar el planificador IA',
+        });
+      }
+      return null;
+    }
+
+    // Si la función está marcada como no disponible, no intentar
+    if (edgeFunctionUnavailable && !params.forceRetry) {
       return null;
     }
 
@@ -40,46 +53,81 @@ export const useAIPlanner = () => {
         }),
       });
 
-      if (!response.ok) {
-        // Manejar errores 503 (función no desplegada) de forma más clara
-        if (response.status === 503) {
-          throw new Error('El planificador de IA no está disponible. Por favor, contacta al soporte o verifica que la función esté desplegada.');
-        }
+      // Si la función devuelve 503 o 502, marcar como no disponible
+      if (response.status === 503 || response.status === 502 || response.status === 504) {
+        edgeFunctionUnavailable = true;
+        setFunctionAvailable(false);
         
-        const errorData = await response.json().catch(() => ({ error: 'Error en la solicitud' }));
+        // Solo mostrar error si pasó el cooldown
+        const now = Date.now();
+        if (!silent && (now - lastErrorTime) > ERROR_COOLDOWN) {
+          lastErrorTime = now;
+          toast({
+            variant: 'destructive',
+            title: 'Servicio temporalmente no disponible',
+            description: 'El planificador IA no está disponible en este momento. Intenta más tarde.',
+          });
+        }
+        return null;
+      }
+
+      // Si la función funciona, resetear el flag
+      if (edgeFunctionUnavailable) {
+        edgeFunctionUnavailable = false;
+        setFunctionAvailable(true);
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || 'Error en la solicitud');
       }
 
       const data = await response.json();
       return data;
     } catch (error) {
-      // Solo loguear errores no relacionados con funciones no desplegadas
-      const is503Error = error.message?.includes('503') || error.message?.includes('no está disponible');
-      if (!is503Error) {
+      // Solo loguear errores de red/otros, no errores esperados
+      if (!error.message.includes('503') && !error.message.includes('502') && !error.message.includes('504')) {
         console.error(`Error in ${action}:`, error);
       }
       
-      toast({
-        variant: 'destructive',
-        title: 'Error en Planificador IA',
-        description: error.message || 'El planificador de IA no está disponible. Verifica que la función esté desplegada en Supabase.',
-      });
+      // Si es un error de red/CORS relacionado con función no disponible
+      if (error.message.includes('fetch') || error.message.includes('CORS')) {
+        edgeFunctionUnavailable = true;
+        setFunctionAvailable(false);
+      }
+
+      if (!silent) {
+        const now = Date.now();
+        if ((now - lastErrorTime) > ERROR_COOLDOWN) {
+          lastErrorTime = now;
+          toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: error.message || 'Ocurrió un error al procesar la solicitud',
+          });
+        }
+      }
       return null;
     }
   }, [user, toast]);
 
   // Detectar eventos próximos
   const detectEvents = useCallback(async (daysAhead = 30) => {
+    if (edgeFunctionUnavailable) return [];
+    
     setLoading(true);
     try {
-      const result = await callAIPlanner('detect_events', { days_ahead: daysAhead });
+      const result = await callAIPlanner('detect_events', { days_ahead: daysAhead }, true); // Silent mode
       if (result?.success) {
         setUpcomingEvents(result.events || []);
         return result.events;
       }
       return [];
     } catch (error) {
-      console.error('Error detecting events:', error);
+      // Silenciar errores esperados
+      if (!error.message.includes('503') && !error.message.includes('502')) {
+        console.error('Error detecting events:', error);
+      }
       return [];
     } finally {
       setLoading(false);
@@ -173,17 +221,21 @@ export const useAIPlanner = () => {
 
   // Obtener planes del usuario
   const fetchPlans = useCallback(async () => {
-    if (!user) return;
+    if (!user || edgeFunctionUnavailable) return [];
+    
     setLoading(true);
     try {
-      const result = await callAIPlanner('get_user_plans');
+      const result = await callAIPlanner('get_user_plans', {}, true); // Silent mode
       if (result?.success) {
         setPlans(result.plans || []);
         return result.plans;
       }
       return [];
     } catch (error) {
-      console.error('Error fetching plans:', error);
+      // Silenciar errores esperados
+      if (!error.message.includes('503') && !error.message.includes('502')) {
+        console.error('Error fetching plans:', error);
+      }
       return [];
     } finally {
       setLoading(false);
@@ -241,13 +293,13 @@ export const useAIPlanner = () => {
     }
   }, [fetchPlans]);
 
-  // Cargar planes al montar
+  // Cargar planes al montar (solo si la función está disponible)
   useEffect(() => {
-    if (user) {
+    if (user && functionAvailable) {
       fetchPlans();
       detectEvents();
     }
-  }, [user, fetchPlans, detectEvents]);
+  }, [user, functionAvailable, fetchPlans, detectEvents]);
 
   return {
     loading,

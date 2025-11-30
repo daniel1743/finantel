@@ -21,30 +21,26 @@ const STATIC_ASSETS = [
 self.addEventListener('install', (event) => {
   console.log('[SW] Instalando Service Worker versión', APP_VERSION);
   
-  // Forzar activación inmediata sin esperar a que se cierren las pestañas
-  self.skipWaiting();
-  
   event.waitUntil(
     Promise.all([
-      // Limpiar TODAS las cachés antiguas primero
+      // Cachear assets estáticos
+      caches.open(STATIC_CACHE_NAME).then((cache) => {
+        return cache.addAll(STATIC_ASSETS);
+      }),
+      // Limpiar cachés antiguos
       caches.keys().then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
-            console.log('[SW] Eliminando caché antigua:', cacheName);
-            return caches.delete(cacheName);
+            if (cacheName !== CACHE_NAME && cacheName !== STATIC_CACHE_NAME) {
+              console.log('[SW] Eliminando caché antigua:', cacheName);
+              return caches.delete(cacheName);
+            }
           })
         );
-      }),
-      // Cachear assets estáticos solo después de limpiar
-      caches.open(STATIC_CACHE_NAME).then((cache) => {
-        return cache.addAll(STATIC_ASSETS).catch((err) => {
-          console.warn('[SW] Error cacheando assets estáticos:', err);
-        });
       })
     ]).then(() => {
       console.log('[SW] Service Worker instalado correctamente');
-      // Forzar activación inmediata
-      return self.skipWaiting();
+      return self.skipWaiting(); // Activar inmediatamente
     })
   );
 });
@@ -55,7 +51,7 @@ self.addEventListener('activate', (event) => {
   
   event.waitUntil(
     Promise.all([
-      // Limpiar TODAS las cachés que no sean la versión actual
+      // Limpiar todos los cachés que no sean la versión actual
       caches.keys().then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
@@ -66,21 +62,22 @@ self.addEventListener('activate', (event) => {
           })
         );
       }),
-      // Tomar control inmediato de todas las páginas
+      // Tomar control de todas las páginas
       self.clients.claim()
     ]).then(() => {
       console.log('[SW] Service Worker activado');
-      // Notificar a todos los clientes sobre la nueva versión (SIN forzar recarga)
-      return self.clients.matchAll({ includeUncontrolled: true }).then((clients) => {
+      // Notificar a todos los clientes sobre la nueva versión
+      return self.clients.matchAll().then((clients) => {
         clients.forEach((client) => {
-          try {
-            client.postMessage({
-              type: 'SW_ACTIVATED',
-              version: APP_VERSION
-              // NO forzar recarga automáticamente para evitar bucles
-            });
-          } catch (err) {
-            console.warn('[SW] Error notificando cliente:', err);
+          if (client && 'postMessage' in client) {
+            try {
+              client.postMessage({
+                type: 'SW_ACTIVATED',
+                version: APP_VERSION
+              });
+            } catch (err) {
+              console.error('[SW] Error enviando mensaje a cliente:', err);
+            }
           }
         });
       });
@@ -98,6 +95,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Ignorar archivos que no existen (evitar errores 404)
+  if (url.pathname.includes('visual-editor-config.js')) {
+    return;
+  }
+
   // Para APIs: Network First (siempre obtener datos frescos)
   if (url.pathname.includes('/rest/v1/') || 
       url.pathname.includes('/functions/v1/') ||
@@ -105,90 +107,95 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Solo cachear respuestas exitosas de peticiones GET
-          // No cachear POST, PUT, DELETE, etc.
+          // Solo cachear respuestas exitosas GET (no cachear POST, PUT, DELETE)
           if (response.status === 200 && request.method === 'GET') {
             const responseClone = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(request, responseClone).catch((err) => {
-                // Ignorar errores de caché (puede fallar si el request no es cacheable)
-                console.warn('[SW] No se pudo cachear la respuesta:', err);
+                console.error('[SW] Error cacheando request:', err);
               });
             });
           }
           return response;
         })
         .catch(() => {
-          // Fallback a caché solo para peticiones GET
-          if (request.method === 'GET') {
-            return caches.match(request).then((cachedResponse) => {
-              if (cachedResponse) {
-                return cachedResponse;
-              }
-            });
-          }
-          // Para POST/PUT/DELETE, devolver error de conexión
-          return new Response(
-            JSON.stringify({ error: 'Sin conexión' }),
-            {
-              headers: { 'Content-Type': 'application/json' },
-              status: 503
-            }
-          );
-        })
-    );
-    return;
-  }
-
-  // Para assets estáticos: Network First (siempre obtener la versión más reciente)
-  if (request.destination === 'script' || 
-      request.destination === 'style' ||
-      request.destination === 'image' ||
-      request.destination === 'font') {
-    event.respondWith(
-      fetch(request, { cache: 'no-cache' }) // Forzar obtener de red
-        .then((response) => {
-          // Solo cachear si la respuesta es exitosa
-          if (response.status === 200) {
-            const responseClone = response.clone();
-            caches.open(STATIC_CACHE_NAME).then((cache) => {
-              cache.put(request, responseClone).catch((err) => {
-                console.warn('[SW] Error cacheando asset:', err);
-              });
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          // Solo usar caché si no hay red
+          // Fallback a caché si no hay red
           return caches.match(request).then((cachedResponse) => {
             if (cachedResponse) {
               return cachedResponse;
             }
-            // Si no hay caché ni red, devolver error
-            return new Response('Recurso no disponible', { status: 503 });
+            return new Response(
+              JSON.stringify({ error: 'Sin conexión' }),
+              {
+                headers: { 'Content-Type': 'application/json' },
+                status: 503
+              }
+            );
           });
         })
     );
     return;
   }
 
-  // Para HTML: Network First (siempre obtener la última versión, sin caché)
+  // Para assets estáticos: Cache First con validación
+  if (request.destination === 'script' || 
+      request.destination === 'style' ||
+      request.destination === 'image' ||
+      request.destination === 'font') {
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
+        if (cachedResponse) {
+          // Verificar si hay actualización en background
+          if (request.method === 'GET') {
+            fetch(request).then((networkResponse) => {
+              if (networkResponse.status === 200) {
+                caches.open(STATIC_CACHE_NAME).then((cache) => {
+                  cache.put(request, networkResponse.clone()).catch((err) => {
+                    console.error('[SW] Error actualizando caché:', err);
+                  });
+                });
+              }
+            }).catch(() => {
+              // Sin red, usar caché
+            });
+          }
+          return cachedResponse;
+        }
+        // No está en caché, obtener de red
+        return fetch(request).then((response) => {
+          if (response.status === 200 && request.method === 'GET') {
+            const responseClone = response.clone();
+            caches.open(STATIC_CACHE_NAME).then((cache) => {
+              cache.put(request, responseClone).catch((err) => {
+                console.error('[SW] Error cacheando asset:', err);
+              });
+            });
+          }
+          return response;
+        });
+      })
+    );
+    return;
+  }
+
+  // Para HTML: Network First (siempre obtener la última versión)
   if (request.destination === 'document' || request.mode === 'navigate') {
     event.respondWith(
-      fetch(request, { 
-        cache: 'no-store', // No usar caché del navegador
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache'
-        }
-      })
+      fetch(request)
         .then((response) => {
-          // No cachear HTML para forzar siempre la última versión
+          // Cachear HTML solo si es exitoso y es GET
+          if (response.status === 200 && request.method === 'GET') {
+            const responseClone = response.clone();
+            caches.open(STATIC_CACHE_NAME).then((cache) => {
+              cache.put(request, responseClone).catch((err) => {
+                console.error('[SW] Error cacheando HTML:', err);
+              });
+            });
+          }
           return response;
         })
         .catch(() => {
-          // Fallback a caché solo si no hay red
+          // Fallback a caché si no hay red
           return caches.match(request).then((cachedResponse) => {
             return cachedResponse || new Response('Sin conexión', { status: 503 });
           });
@@ -197,9 +204,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Default: Network First (sin caché)
+  // Default: Network First
   event.respondWith(
-    fetch(request, { cache: 'no-cache' }).catch(() => {
+    fetch(request).catch(() => {
       return caches.match(request);
     })
   );
@@ -225,30 +232,25 @@ self.addEventListener('message', (event) => {
             })
           );
         }).then(() => {
-          // Verificar que hay un puerto antes de enviar mensaje
-          if (event.ports && event.ports[0]) {
-            event.ports[0].postMessage({ success: true });
+          if (event.ports && event.ports[0] && 'postMessage' in event.ports[0]) {
+            try {
+              event.ports[0].postMessage({ success: true });
+            } catch (err) {
+              console.error('[SW] Error enviando mensaje de limpieza:', err);
+            }
           }
-          // También notificar a todos los clientes
-          return self.clients.matchAll().then((clients) => {
-            clients.forEach((client) => {
-              try {
-                client.postMessage({
-                  type: 'CACHE_CLEARED',
-                  success: true
-                });
-              } catch (err) {
-                // Ignorar errores si el cliente ya no está disponible
-                console.warn('[SW] No se pudo notificar al cliente:', err);
-              }
-            });
-          });
         })
       );
       break;
 
     case 'GET_VERSION':
-      event.ports[0].postMessage({ version: APP_VERSION });
+      if (event.ports && event.ports[0] && 'postMessage' in event.ports[0]) {
+        try {
+          event.ports[0].postMessage({ version: APP_VERSION });
+        } catch (err) {
+          console.error('[SW] Error enviando versión:', err);
+        }
+      }
       break;
 
     default:
@@ -301,12 +303,22 @@ self.addEventListener('notificationclick', (event) => {
       clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
         if (clientList.length > 0) {
           // Ya hay una ventana abierta, enfocarla y recargar
-          return clientList[0].focus().then((client) => {
-            client.postMessage({
-              type: 'FORCE_RELOAD',
-              version: event.notification.data?.version
-            });
-            return client.navigate(event.notification.data?.url || '/');
+          const client = clientList[0];
+          if (client && 'postMessage' in client) {
+            try {
+              client.postMessage({
+                type: 'FORCE_RELOAD',
+                version: event.notification.data?.version
+              });
+            } catch (err) {
+              console.error('[SW] Error enviando mensaje de recarga:', err);
+            }
+          }
+          return client.focus().then(() => {
+            if (client && 'navigate' in client) {
+              return client.navigate(event.notification.data?.url || '/');
+            }
+            return Promise.resolve();
           });
         } else {
           // Abrir nueva ventana

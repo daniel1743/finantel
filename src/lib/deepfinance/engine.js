@@ -6,7 +6,10 @@
 
 import { DataCollector } from './dataCollector';
 import { ScoreCalculator } from './calculators/scoreCalculator';
+import { SavingsCalculator } from './calculators/savingsCalculator';
+import { ProjectionCalculator } from './calculators/projectionCalculator';
 import { TransactionAnalyzer } from './analyzers/transactionAnalyzer';
+import { CreditManager } from './creditManager';
 import { generateAIInsights, generateRecommendations } from './aiService';
 
 export class DeepFinanceEngine {
@@ -14,6 +17,9 @@ export class DeepFinanceEngine {
     this.userId = userId;
     this.dataCollector = new DataCollector(userId);
     this.scoreCalculator = new ScoreCalculator();
+    this.savingsCalculator = new SavingsCalculator();
+    this.projectionCalculator = new ProjectionCalculator();
+    this.creditManager = new CreditManager(userId);
     this.rawData = null;
   }
 
@@ -24,6 +30,13 @@ export class DeepFinanceEngine {
    */
   async analyze(period = '90days') {
     try {
+      // 0. VALIDAR CRÉDITOS ANTES DE INICIAR
+      console.log('[DeepFinance] Validando créditos...');
+      const creditCheck = await this.creditManager.checkCanAnalyze();
+      if (!creditCheck.can) {
+        throw new Error(`CREDIT_LIMIT: ${creditCheck.reason}`);
+      }
+
       // 1. RECOLECTAR DATOS REALES
       console.log('[DeepFinance] Recolectando datos...');
       this.rawData = await this.dataCollector.collectAllData(period);
@@ -154,8 +167,45 @@ export class DeepFinanceEngine {
         summary: aiInsights?.summary || this.generateBasicSummary(score, totalIncome, totalExpenses, savingsRate),
       };
 
+      // 12.5. CALCULAR PROYECCIONES DE AHORRO
+      console.log('[DeepFinance] Calculando proyecciones de ahorro...');
+      try {
+        analysis.savingsProjections = this.savingsCalculator.calculatePotentialSavings({
+          ...analysis,
+          leakages: analysis.leakages || [],
+          emotional,
+          rawTransactions: this.rawData.transactions,
+        });
+      } catch (error) {
+        console.error('[DeepFinance] Error calculando proyecciones:', error);
+        analysis.savingsProjections = this.savingsCalculator.getEmptyScenarios();
+      }
+
+      // 12.6. CALCULAR PROYECCIONES FUTURAS
+      console.log('[DeepFinance] Calculando proyecciones futuras...');
+      try {
+        analysis.futureProjections = this.projectionCalculator.calculateProjections(analysis, {
+          monthsAhead: 12,
+          includeOptimistic: true,
+          includePessimistic: true,
+          includeRealistic: true,
+        });
+      } catch (error) {
+        console.error('[DeepFinance] Error calculando proyecciones futuras:', error);
+        analysis.futureProjections = this.projectionCalculator.getEmptyProjections();
+      }
+
       // 13. VALIDAR RESULTADO
       this.validateAnalysis(analysis);
+
+      // 14. DEDUCIR CRÉDITO O ACTUALIZAR LÍMITES
+      console.log('[DeepFinance] Actualizando créditos...');
+      try {
+        await this.creditManager.deductCredit();
+      } catch (creditError) {
+        console.error('[DeepFinance] Error al actualizar créditos:', creditError);
+        // No lanzar error, solo loguear - el análisis ya está completo
+      }
 
       console.log('[DeepFinance] Análisis completado. Puntaje:', score);
       return analysis;

@@ -49,6 +49,7 @@ const ABTesting = lazy(() => import('@/pages/dashboard/ABTesting'));
 const Billing = lazy(() => import('@/pages/dashboard/Billing'));
 const AIPlanner = lazy(() => import('@/pages/dashboard/AIPlanner'));
 const FutureSelf = lazy(() => import('@/pages/dashboard/FutureSelf'));
+const DeepFinance = lazy(() => import('@/pages/dashboard/DeepFinance'));
 
 const PageLoader = () => (
   <div className="h-screen w-full flex items-center justify-center bg-[#F5F7F9] dark:bg-[#0f0f11]">
@@ -110,6 +111,7 @@ function App() {
                       </ProtectedFamilyRoute>
                     } />
                     <Route path="analysis" element={<Analysis />} />
+                    <Route path="deepfinance" element={<DeepFinance />} />
                     <Route path="shared" element={
                       <ProtectedFamilyRoute featureName="Gastos Compartidos">
                         <SharedExpenses />

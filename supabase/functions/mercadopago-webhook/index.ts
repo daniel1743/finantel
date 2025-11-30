@@ -280,176 +280,11 @@ async function updateSubscriptionFromPayment(
   }
 }
 
-// Función para guardar webhook en external_webhooks
-async function saveWebhook(
-  supabase: any,
-  source: string,
-  eventType: string,
-  payload: any,
-  ipAddress: string | null,
-  signature: string | null
-): Promise<string> {
-  const { data, error } = await supabase
-    .from('external_webhooks')
-    .insert({
-      source,
-      event_type: eventType,
-      payload,
-      status: 'received',
-      ip_address: ipAddress,
-      signature,
-    })
-    .select('id')
-    .single();
-
-  if (error) {
-    console.error('Error saving webhook:', error);
-    throw error;
-  }
-
-  return data.id;
-}
-
-// Función para crear notificación administrativa
-async function createAdminNotification(
-  supabase: any,
-  title: string,
-  message: string,
-  type: string,
-  source: string,
-  metadata: Record<string, any>
-): Promise<void> {
-  const { error } = await supabase
-    .from('admin_notifications')
-    .insert({
-      title,
-      message,
-      type,
-      source,
-      metadata,
-    });
-
-  if (error) {
-    console.error('Error creating admin notification:', error);
-    // No lanzamos error aquí porque no queremos que falle el webhook
-  }
-}
-
-// Función para procesar y crear notificaciones según el evento
-async function processWebhookAndCreateNotifications(
-  supabase: any,
-  notification: MercadoPagoNotification,
-  payment: MercadoPagoPayment | null,
-  webhookId: string
-): Promise<void> {
-  const eventType = notification.type === 'payment' 
-    ? `payment.${payment?.status || 'unknown'}` 
-    : `${notification.type}.${notification.action || 'unknown'}`;
-
-  try {
-    // Procesar el pago si es de tipo payment
-    if (notification.type === 'payment' && payment) {
-      await processPaymentNotification(supabase, payment);
-      
-      // Crear notificaciones según el estado del pago
-      if (payment.status === 'approved') {
-        await createAdminNotification(
-          supabase,
-          'Pago recibido',
-          `Pago de $${payment.transaction_amount} ${payment.currency_id} recibido del usuario ${payment.payer.email || 'desconocido'}`,
-          'payment_success',
-          'mercadopago',
-          {
-            payment_id: payment.id,
-            amount: payment.transaction_amount,
-            currency: payment.currency_id,
-            payer_email: payment.payer.email,
-            webhook_id: webhookId,
-          }
-        );
-
-        // Marcar webhook como procesado
-        await supabase
-          .from('external_webhooks')
-          .update({ status: 'processed', processed_at: new Date().toISOString() })
-          .eq('id', webhookId);
-      } else if (payment.status === 'rejected' || payment.status === 'cancelled') {
-        await createAdminNotification(
-          supabase,
-          'Pago fallido',
-          `Error en pago de ${payment.payer.email || 'usuario desconocido'}. Estado: ${payment.status} (${payment.status_detail})`,
-          'payment_error',
-          'mercadopago',
-          {
-            payment_id: payment.id,
-            amount: payment.transaction_amount,
-            currency: payment.currency_id,
-            status: payment.status,
-            status_detail: payment.status_detail,
-            payer_email: payment.payer.email,
-            webhook_id: webhookId,
-          }
-        );
-
-        // Marcar webhook como procesado
-        await supabase
-          .from('external_webhooks')
-          .update({ status: 'processed', processed_at: new Date().toISOString() })
-          .eq('id', webhookId);
-      }
-    } else if (notification.type === 'subscription') {
-      // Notificación de suscripción
-      await createAdminNotification(
-        supabase,
-        'Notificación de suscripción',
-        `Evento de suscripción recibido: ${notification.action || 'desconocido'}`,
-        'subscription',
-        'mercadopago',
-        {
-          subscription_id: notification.data.id,
-          action: notification.action,
-          webhook_id: webhookId,
-        }
-      );
-    }
-  } catch (error) {
-    console.error('Error processing webhook:', error);
-    
-    // Crear notificación de error
-    await createAdminNotification(
-      supabase,
-      'Error en webhook de Mercado Pago',
-      `Error al procesar webhook: ${error.message || 'Error desconocido'}`,
-      'webhook_error',
-      'mercadopago',
-      {
-        webhook_id: webhookId,
-        error: error.message,
-        event_type: eventType,
-      }
-    );
-
-    // Marcar webhook con error
-    await supabase
-      .from('external_webhooks')
-      .update({ 
-        status: 'error', 
-        error_message: error.message || 'Error desconocido',
-        processed_at: new Date().toISOString()
-      })
-      .eq('id', webhookId);
-
-    throw error;
-  }
-}
-
 serve(async (req) => {
   // Manejar CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
-
-  let webhookId: string | null = null;
 
   try {
     // 1. Validar que es una petición POST
@@ -460,14 +295,10 @@ serve(async (req) => {
       );
     }
 
-    // 2. Obtener payload y headers
-    const signature = req.headers.get('X-Signature') || req.headers.get('x-signature');
-    const ipAddress = req.headers.get('X-Forwarded-For') || 
-                     req.headers.get('x-forwarded-for') || 
-                     'unknown';
+    // 2. Validar firma del webhook (opcional)
+    const signature = req.headers.get('X-Signature');
     const payload = await req.text();
-
-    // 3. Validar firma del webhook (opcional)
+    
     if (!validateWebhookSignature(signature, payload)) {
       return new Response(
         JSON.stringify({ error: 'Invalid signature' }),
@@ -475,111 +306,60 @@ serve(async (req) => {
       );
     }
 
-    // 4. Parsear notificación
+    // 3. Parsear notificación
     const notification: MercadoPagoNotification = JSON.parse(payload);
 
-    // 5. Crear cliente Supabase con service_role para bypass RLS
+    // 4. Crear cliente Supabase con service_role para bypass RLS
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // 6. Guardar webhook en external_webhooks
-    const eventType = notification.type === 'payment' 
-      ? `payment.${notification.action || 'updated'}`
-      : `${notification.type}.${notification.action || 'updated'}`;
-    
-    webhookId = await saveWebhook(
-      supabase,
-      'mercadopago',
-      eventType,
-      notification,
-      ipAddress,
-      signature
-    );
-
-    // 7. Procesar según el tipo de notificación
-    let payment: MercadoPagoPayment | null = null;
-
+    // 5. Procesar según el tipo de notificación
     if (notification.type === 'payment') {
       // Obtener información completa del pago desde Mercado Pago
       const paymentId = notification.data.id;
-      payment = await getPaymentFromMercadoPago(paymentId);
+      const payment = await getPaymentFromMercadoPago(paymentId);
 
       if (!payment) {
-        // Marcar webhook con error
-        await supabase
-          .from('external_webhooks')
-          .update({ 
-            status: 'error', 
-            error_message: 'Payment not found in Mercado Pago',
-            processed_at: new Date().toISOString()
-          })
-          .eq('id', webhookId);
-
-        await createAdminNotification(
-          supabase,
-          'Error en webhook de Mercado Pago',
-          `Pago ${paymentId} no encontrado en Mercado Pago`,
-          'webhook_error',
-          'mercadopago',
-          {
-            webhook_id: webhookId,
-            payment_id: paymentId,
-          }
-        );
-
         return new Response(
           JSON.stringify({ error: 'Payment not found in Mercado Pago' }),
           { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
+
+      // Procesar notificación de pago
+      await processPaymentNotification(supabase, payment);
+
+      // Si es un pago de créditos DeepFinance, procesarlo
+      if (payment.metadata?.type === 'deepfinance_credits' && payment.status === 'approved') {
+        await processDeepFinanceCredits(supabase, payment);
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, message: 'Payment processed' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    // 8. Procesar webhook y crear notificaciones
-    await processWebhookAndCreateNotifications(supabase, notification, payment, webhookId);
+    // Otros tipos de notificaciones (subscription, etc.)
+    if (notification.type === 'subscription') {
+      // Implementar lógica de suscripciones si es necesario
+      console.log('Subscription notification received:', notification);
+      return new Response(
+        JSON.stringify({ success: true, message: 'Subscription notification received' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
+    // Tipo de notificación no manejado
     return new Response(
-      JSON.stringify({ success: true, message: 'Webhook processed successfully', webhook_id: webhookId }),
+      JSON.stringify({ success: true, message: 'Notification received but not processed' }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('Error in mercadopago-webhook:', error);
-    
-    // Si tenemos el webhook guardado, marcar como error
-    if (webhookId) {
-      try {
-        const supabase = createClient(
-          Deno.env.get('SUPABASE_URL') ?? '',
-          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-        );
-        
-        await supabase
-          .from('external_webhooks')
-          .update({ 
-            status: 'error', 
-            error_message: error.message || 'Internal server error',
-            processed_at: new Date().toISOString()
-          })
-          .eq('id', webhookId);
-
-        await createAdminNotification(
-          supabase,
-          'Error en webhook de Mercado Pago',
-          `Error crítico al procesar webhook: ${error.message || 'Error desconocido'}`,
-          'webhook_error',
-          'mercadopago',
-          {
-            webhook_id: webhookId,
-            error: error.message,
-          }
-        );
-      } catch (innerError) {
-        console.error('Error updating webhook status:', innerError);
-      }
-    }
-
     return new Response(
       JSON.stringify({ error: error.message || 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
