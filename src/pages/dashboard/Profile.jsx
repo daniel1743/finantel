@@ -14,7 +14,8 @@ import {
   ChevronRight,
   Trash2,
   Pause,
-  Play
+  Play,
+  RotateCcw
 } from 'lucide-react';
 import NotificationsModal from '@/components/modals/NotificationsModal';
 import CurrencyModal from '@/components/modals/CurrencyModal';
@@ -22,6 +23,7 @@ import TwoFactorAuthModal from '@/components/modals/TwoFactorAuthModal';
 import EditProfileModal from '@/components/modals/EditProfileModal';
 import DeleteAccountModal from '@/components/modals/DeleteAccountModal';
 import PauseAccountModal from '@/components/modals/PauseAccountModal';
+import RestoreDataModal from '@/components/modals/RestoreDataModal';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useBilling } from '@/hooks/useBilling';
 
@@ -75,6 +77,7 @@ const Profile = () => {
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [pauseAccountOpen, setPauseAccountOpen] = useState(false);
+  const [restoreDataOpen, setRestoreDataOpen] = useState(false);
   const [currency, setCurrency] = useState('USD');
   const [currencyName, setCurrencyName] = useState('Dólar Estadounidense');
   const [avatarUrl, setAvatarUrl] = useState(null);
@@ -375,6 +378,24 @@ const Profile = () => {
         <ProfileSection title="Gestión de Cuenta">
           <div className="space-y-1">
             <button 
+              onClick={() => setRestoreDataOpen(true)}
+              className="w-full flex items-center justify-between p-4 hover:bg-[#1C8FA0]/5 dark:hover:bg-[#1C8FA0]/10 rounded-xl transition-colors group border border-transparent hover:border-[#1C8FA0]/20 dark:hover:border-[#1C8FA0]/30"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-[#1C8FA0]/10 dark:bg-[#1C8FA0]/20 group-hover:bg-[#1C8FA0]/20 dark:group-hover:bg-[#1C8FA0]/30 flex items-center justify-center text-[#1C8FA0] transition-colors">
+                  <RotateCcw className="w-5 h-5" />
+                </div>
+                <div className="text-left">
+                  <p className="font-bold text-[#1a1a1a] dark:text-white text-sm">Restaurar Datos</p>
+                  <p className="text-xs text-[#6E6E73] dark:text-gray-400">
+                    Restaura transacciones del mes anterior en tu ciclo actual
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-[#1C8FA0] transition-colors" />
+            </button>
+
+            <button 
               onClick={() => setPauseAccountOpen(true)}
               className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors group"
             >
@@ -472,6 +493,14 @@ const Profile = () => {
           onUpdate={() => {
             checkAccountStatus();
             // Recargar usuario para obtener datos actualizados
+            window.location.reload();
+          }}
+        />
+        <RestoreDataModal
+          isOpen={restoreDataOpen}
+          onClose={() => setRestoreDataOpen(false)}
+          onRestoreSuccess={() => {
+            // Recargar la página para actualizar el dashboard
             window.location.reload();
           }}
         />

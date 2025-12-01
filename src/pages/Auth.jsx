@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 
 const Auth = () => {
+  // Los hooks deben ser llamados incondicionalmente
+  // Si hay un error, React mostrará el error boundary
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();

@@ -91,3 +91,4 @@ const Caracteristicas = () => {
 
 export default Caracteristicas;
 
+

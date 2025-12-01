@@ -584,3 +584,4 @@ Este valor refleja:
 
 *Este análisis de valuación es una estimación basada en metodologías estándar de la industria. El valor real puede variar según condiciones de mercado, negociación y contexto específico.*
 
+

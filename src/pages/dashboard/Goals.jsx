@@ -44,7 +44,7 @@ import {
   Coins,
   Landmark
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, getLocalDateString } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useFinance } from '@/hooks/useFinance';
@@ -389,8 +389,8 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
           setIsLoading(false);
           return;
         }
-        // Asegurar que la fecha sea válida y esté en formato ISO
-        deadlineDate = date.toISOString().split('T')[0];
+        // Asegurar que la fecha sea válida y esté en formato local (YYYY-MM-DD)
+        deadlineDate = getLocalDateString(date);
       }
 
       // Encontrar el nombre del icono seleccionado
@@ -610,7 +610,7 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
                 value={formData.deadline}
                 onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
                 disabled={isLoading}
-                min={new Date().toISOString().split('T')[0]}
+                min={getLocalDateString()}
                 className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all text-[#6E6E73] dark:text-gray-400 disabled:opacity-50"
               />
             </div>

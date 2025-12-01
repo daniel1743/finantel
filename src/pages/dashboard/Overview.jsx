@@ -15,6 +15,7 @@ import { Link } from 'react-router-dom';
 import CustomizeDashboardModal from '@/components/modals/CustomizeDashboardModal';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useFinance } from '@/hooks/useFinance';
+import { parseLocalDate } from '@/lib/utils';
 import {
   PieChart,
   Pie,
@@ -105,8 +106,21 @@ const Overview = () => {
     const currentYear = now.getFullYear();
 
     // Filtrar transacciones del mes actual
+    // INCLUYE transacciones restauradas del mes anterior (últimos 7 días)
     const currentMonthTransactions = transactions.filter(tx => {
-      const txDate = new Date(tx.date);
+      if (!tx.date) return false;
+      
+      // Si es una transacción restaurada, incluirla siempre (viene del mes anterior)
+      if (tx.restored_from_previous_cycle === true) {
+        return true;
+      }
+      
+      // Parsear fecha usando función helper que evita problemas de zona horaria
+      const txDate = parseLocalDate(tx.date);
+      if (!txDate || isNaN(txDate.getTime())) {
+        return false;
+      }
+      
       return txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear;
     });
 

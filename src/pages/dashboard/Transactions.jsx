@@ -22,7 +22,7 @@ import {
   Calendar,
   DollarSign
 } from 'lucide-react';
-import { cn, formatCurrency } from '@/lib/utils';
+import { cn, formatCurrency, getLocalDateString } from '@/lib/utils';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useFinance } from '@/hooks/useFinance';
 import { useToast } from '@/components/ui/use-toast';
@@ -189,7 +189,7 @@ const getInitialFormData = () => ({
     amount: '',
     category_id: '',
     custom_category: '',
-    date: new Date().toISOString().split('T')[0],
+    date: getLocalDateString(),
     type: 'expense',
     necessity_level: '',
     notes: ''
@@ -224,7 +224,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
             ? 'personalizar-ingreso'
             : 'personalizar-gasto',
         custom_category: isCustom ? categoryName : '',
-        date: transaction.date ? transaction.date.substring(0, 10) : new Date().toISOString().substring(0, 10),
+        date: transaction.date ? transaction.date.substring(0, 10) : getLocalDateString(),
         type: transaction.type || 'expense',
         necessity_level: transaction.type === 'expense'
           ? transaction.metadata?.necessity_level || transaction.metadata?.necessityLevel || ''
@@ -370,11 +370,91 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
         }
       }
 
+      // Asegurar que la fecha esté en formato local correcto (YYYY-MM-DD)
+      // IMPORTANTE: El input de tipo "date" devuelve un string en formato YYYY-MM-DD
+      // pero puede tener problemas de zona horaria. Forzamos siempre usar la fecha actual
+      // si el usuario no la cambió manualmente, o validamos que sea correcta.
+      let finalDate = formData.date;
+      const currentDate = getLocalDateString();
+      
+      if (finalDate) {
+        // Si la fecha viene como string YYYY-MM-DD, validarla
+        if (typeof finalDate === 'string') {
+          const dateMatch = finalDate.match(/^(\d{4})-(\d{2})-(\d{2})/);
+          if (dateMatch) {
+            // Parsear la fecha para verificar que sea válida
+            // dateMatch[1] = año, dateMatch[2] = mes, dateMatch[3] = día
+            const year = parseInt(dateMatch[1], 10);
+            const month = parseInt(dateMatch[2], 10);
+            const day = parseInt(dateMatch[3], 10);
+            const inputDate = new Date(year, month - 1, day);
+            
+            // Validar que la fecha sea válida
+            if (isNaN(inputDate.getTime())) {
+              console.warn('⚠️ [Transactions] Fecha inválida detectada, usando fecha actual:', finalDate);
+              finalDate = currentDate;
+            } else {
+              const inputDateStr = getLocalDateString(inputDate);
+              
+              // Si la fecha parseada no coincide con el string original, hay un problema de zona horaria
+              if (inputDateStr !== finalDate) {
+                console.warn('⚠️ [Transactions] Problema de zona horaria detectado:', {
+                  original: finalDate,
+                  parsed: inputDateStr
+                });
+                finalDate = inputDateStr;
+              }
+              
+              // Verificar que la fecha no sea del mes anterior (problema común de zona horaria)
+              const now = new Date();
+              const inputDateObj = new Date(year, month - 1, day);
+              const daysDiff = Math.floor((now - inputDateObj) / (1000 * 60 * 60 * 24));
+              
+              // Si la fecha es más de 1 día anterior a hoy, usar fecha actual
+              if (daysDiff > 1) {
+                console.warn('⚠️ [Transactions] Fecha muy antigua, usando fecha actual:', {
+                  inputDate: finalDate,
+                  currentDate: currentDate,
+                  daysDiff
+                });
+                finalDate = currentDate;
+              }
+            }
+          } else {
+            // Si no está en formato correcto, usar fecha actual
+            finalDate = currentDate;
+          }
+        } else if (finalDate instanceof Date) {
+          finalDate = getLocalDateString(finalDate);
+        } else {
+          finalDate = currentDate;
+        }
+      } else {
+        finalDate = currentDate;
+      }
+      
+      // Última validación: asegurar que la fecha no sea del mes anterior
+      const finalDateParts = finalDate.split('-');
+      const finalYear = parseInt(finalDateParts[0]);
+      const finalMonth = parseInt(finalDateParts[1]);
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1;
+      
+      // Si la fecha es del mes anterior, usar fecha actual
+      if (finalYear < currentYear || (finalYear === currentYear && finalMonth < currentMonth)) {
+        console.warn('⚠️ [Transactions] Fecha del mes anterior detectada, usando fecha actual:', {
+          inputDate: finalDate,
+          currentDate: currentDate
+        });
+        finalDate = currentDate;
+      }
+
       const transactionData = {
         description: formData.description.trim(),
         amount: parseFloat(formData.amount),
         category_id: categoryId, // UUID de la categoría
-        date: formData.date,
+        date: finalDate, // Usar fecha validada y formateada
         type: formData.type,
         // necessity_level no existe en el schema, guardarlo en metadata JSONB
         metadata: formData.type === 'expense' && formData.necessity_level 
@@ -382,6 +462,25 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
           : {},
         notes: formData.notes.trim() || null,
       };
+
+      // Log para debugging
+      if (process.env.NODE_ENV === 'development') {
+        const now = new Date();
+        const txDate = new Date(finalDate + 'T00:00:00'); // Agregar hora para evitar problemas de zona horaria
+        console.log('📝 [Transactions] Creando transacción:', {
+          description: transactionData.description,
+          amount: transactionData.amount,
+          dateString: transactionData.date,
+          dateParsed: txDate.toISOString(),
+          month: txDate.getMonth() + 1,
+          day: txDate.getDate(),
+          year: txDate.getFullYear(),
+          currentDate: getLocalDateString(),
+          currentMonth: now.getMonth() + 1,
+          currentDay: now.getDate(),
+          currentYear: now.getFullYear()
+        });
+      }
 
       if (isEditMode) {
         await updateTransaction(transaction.id, transactionData);

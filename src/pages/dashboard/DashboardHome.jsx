@@ -40,7 +40,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useFinance } from '@/hooks/useFinance';
-import { cn } from '@/lib/utils';
+import { cn, getLocalDateString, parseLocalDate } from '@/lib/utils';
 import { supabase } from '@/lib/customSupabaseClient';
 import VoiceRecordingScreen from '@/components/VoiceRecordingScreen';
 import { playStartRecordingSound } from '@/utils/audioEffects';
@@ -92,7 +92,10 @@ const KPICard = ({ title, value, subtitle, trend, trendValue, trendUp, icon: Ico
 // Gauge Chart Component
 // =====================================================
 const GaugeChart = ({ value, max, label, color, size = 200, delay = 0 }) => {
-  const percentage = Math.min(100, (value / max) * 100);
+  // Validar valores para evitar NaN
+  const safeValue = isNaN(value) || value === null || value === undefined ? 0 : Number(value);
+  const safeMax = isNaN(max) || max === null || max === undefined || max === 0 ? 1 : Number(max);
+  const percentage = Math.min(100, Math.max(0, (safeValue / safeMax) * 100));
   const radius = (size - 20) / 2;
   const circumference = Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
@@ -140,7 +143,7 @@ const GaugeChart = ({ value, max, label, color, size = 200, delay = 0 }) => {
             transition={{ delay: delay + 0.5 }}
             className="text-3xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']"
               >
-            {value}%
+            {safeValue.toFixed(1)}%
           </motion.p>
           <p className="text-xs text-[#6E6E73] dark:text-gray-400 font-medium mt-1">{label}</p>
             </div>
@@ -431,13 +434,27 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
     amount: '',
     category_id: '',
     custom_category: '',
-    date: new Date().toISOString().split('T')[0],
+    date: getLocalDateString(),
     type: 'expense',
     necessity_level: '',
     notes: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showCustomCategory, setShowCustomCategory] = useState(false);
+
+  // Actualizar la fecha cada vez que se abre el modal para asegurar que siempre sea la fecha actual
+  useEffect(() => {
+    if (isOpen) {
+      const currentDate = getLocalDateString();
+      if (process.env.NODE_ENV === 'development') {
+        console.log('📅 [AddTransactionModal] Modal abierto, actualizando fecha a:', currentDate);
+      }
+      setFormData(prev => ({
+        ...prev,
+        date: currentDate // Siempre usar la fecha actual cuando se abre el modal
+      }));
+    }
+  }, [isOpen]);
 
   const handleCategoryChange = (value) => {
     if (value === 'personalizar-ingreso' || value === 'personalizar-gasto') {
@@ -451,6 +468,16 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Log para debugging: verificar el valor de la fecha antes de procesar
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📅 [AddTransactionModal] Fecha del formulario antes de procesar:', {
+        formDataDate: formData.date,
+        currentDate: getLocalDateString(),
+        dateType: typeof formData.date,
+        isDateObject: formData.date instanceof Date
+      });
+    }
 
     if (!formData.description.trim()) {
       toast({
@@ -580,17 +607,116 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
         throw new Error('No se pudo determinar la categoría');
       }
 
+      // Asegurar que la fecha esté en formato local correcto (YYYY-MM-DD)
+      // IMPORTANTE: El input de tipo "date" devuelve un string en formato YYYY-MM-DD
+      // pero puede tener problemas de zona horaria. Forzamos siempre usar la fecha actual
+      // si el usuario no la cambió manualmente, o validamos que sea correcta.
+      let finalDate = formData.date;
+      const currentDate = getLocalDateString();
+      
+      if (finalDate) {
+        // Si la fecha viene como string YYYY-MM-DD, validarla
+        if (typeof finalDate === 'string') {
+          const dateMatch = finalDate.match(/^(\d{4})-(\d{2})-(\d{2})/);
+          if (dateMatch) {
+            // Parsear la fecha para verificar que sea válida
+            // dateMatch[1] = año, dateMatch[2] = mes, dateMatch[3] = día
+            const year = parseInt(dateMatch[1], 10);
+            const month = parseInt(dateMatch[2], 10);
+            const day = parseInt(dateMatch[3], 10);
+            const inputDate = new Date(year, month - 1, day);
+            
+            // Validar que la fecha sea válida
+            if (isNaN(inputDate.getTime())) {
+              console.warn('⚠️ [AddTransactionModal] Fecha inválida detectada, usando fecha actual:', finalDate);
+              finalDate = currentDate;
+            } else {
+              const inputDateStr = getLocalDateString(inputDate);
+              
+              // Si la fecha parseada no coincide con el string original, hay un problema de zona horaria
+              if (inputDateStr !== finalDate) {
+                console.warn('⚠️ [AddTransactionModal] Problema de zona horaria detectado:', {
+                  original: finalDate,
+                  parsed: inputDateStr
+                });
+                finalDate = inputDateStr;
+              }
+              
+              // Verificar que la fecha no sea del mes anterior (problema común de zona horaria)
+              const now = new Date();
+              const inputDateObj = new Date(year, month - 1, day);
+              const daysDiff = Math.floor((now - inputDateObj) / (1000 * 60 * 60 * 24));
+              
+              // Si la fecha es más de 1 día anterior a hoy, usar fecha actual
+              if (daysDiff > 1) {
+                console.warn('⚠️ [AddTransactionModal] Fecha muy antigua, usando fecha actual:', {
+                  inputDate: finalDate,
+                  currentDate: currentDate,
+                  daysDiff
+                });
+                finalDate = currentDate;
+              }
+            }
+          } else {
+            // Si no está en formato correcto, usar fecha actual
+            finalDate = currentDate;
+          }
+        } else if (finalDate instanceof Date) {
+          finalDate = getLocalDateString(finalDate);
+        } else {
+          finalDate = currentDate;
+        }
+      } else {
+        finalDate = currentDate;
+      }
+      
+      // Última validación: asegurar que la fecha no sea del mes anterior
+      const finalDateParts = finalDate.split('-');
+      const finalYear = parseInt(finalDateParts[0]);
+      const finalMonth = parseInt(finalDateParts[1]);
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1;
+      
+      // Si la fecha es del mes anterior, usar fecha actual
+      if (finalYear < currentYear || (finalYear === currentYear && finalMonth < currentMonth)) {
+        console.warn('⚠️ [AddTransactionModal] Fecha del mes anterior detectada, usando fecha actual:', {
+          inputDate: finalDate,
+          currentDate: currentDate
+        });
+        finalDate = currentDate;
+      }
+
       const transactionData = {
         description: formData.description.trim(),
         amount: parseFloat(formData.amount),
         category_id: categoryId,
-        date: formData.date,
+        date: finalDate, // Usar fecha validada y formateada
         type: formData.type,
         metadata: formData.type === 'expense' && formData.necessity_level
           ? { necessity_level: formData.necessity_level }
           : {},
         notes: formData.notes.trim() || null,
       };
+
+      // Log para debugging
+      if (process.env.NODE_ENV === 'development') {
+        const now = new Date();
+        const txDate = new Date(transactionData.date + 'T00:00:00'); // Agregar hora para evitar problemas de zona horaria
+        console.log('📝 [AddTransactionModal] Creando transacción:', {
+          description: transactionData.description,
+          amount: transactionData.amount,
+          dateString: transactionData.date,
+          dateParsed: txDate.toISOString(),
+          month: txDate.getMonth() + 1,
+          day: txDate.getDate(),
+          year: txDate.getFullYear(),
+          currentDate: getLocalDateString(),
+          currentMonth: now.getMonth() + 1,
+          currentDay: now.getDate(),
+          currentYear: now.getFullYear()
+        });
+      }
 
       await addTransaction(transactionData);
 
@@ -605,7 +731,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
         amount: '',
         category_id: '',
         custom_category: '',
-        date: new Date().toISOString().split('T')[0],
+        date: getLocalDateString(),
         type: 'expense',
         necessity_level: '',
         notes: ''
@@ -914,10 +1040,97 @@ const DashboardHome = () => {
     const currentYear = now.getFullYear();
 
     // Filtrar transacciones del mes actual
+    // INCLUYE transacciones restauradas del mes anterior (últimos 7 días)
     const currentMonthTransactions = transactions.filter(tx => {
-      const txDate = new Date(tx.date);
-      return txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear;
+      if (!tx.date) return false;
+      
+      // Si es una transacción restaurada, incluirla siempre (viene del mes anterior)
+      if (tx.restored_from_previous_cycle === true) {
+        return true;
+      }
+      
+      // Parsear fecha usando función helper que evita problemas de zona horaria
+      let txDate;
+      try {
+        txDate = parseLocalDate(tx.date);
+        // Validar que la fecha sea válida
+        if (!txDate || isNaN(txDate.getTime())) {
+          console.warn('⚠️ [Dashboard] Fecha inválida en transacción:', tx.id, tx.date);
+          return false;
+        }
+      } catch (error) {
+        console.warn('⚠️ [Dashboard] Error parseando fecha:', tx.id, tx.date, error);
+        return false;
+      }
+      
+      const txMonth = txDate.getMonth();
+      const txYear = txDate.getFullYear();
+      const matches = txMonth === currentMonth && txYear === currentYear;
+      
+      return matches;
     });
+
+    // Log para debugging
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📅 [Dashboard] Mes actual:', currentMonth + 1, '/', currentYear);
+      console.log('📊 [Dashboard] Total transacciones:', transactions.length);
+      console.log('📊 [Dashboard] Transacciones del mes actual:', currentMonthTransactions.length);
+      
+      // Verificar transacciones restauradas
+      const restoredTransactions = transactions.filter(tx => tx.restored_from_previous_cycle === true);
+      if (restoredTransactions.length > 0) {
+        console.log('🔄 [Dashboard] Transacciones restauradas encontradas:', restoredTransactions.length);
+        restoredTransactions.slice(0, 3).forEach((tx, i) => {
+          const txDate = parseLocalDate(tx.date);
+          console.log(`   ${i + 1}. Fecha: ${txDate ? txDate.toLocaleDateString() : tx.date}, Mes: ${txDate ? txDate.getMonth() + 1 : 'N/A'}, Descripción: ${tx.description}`);
+        });
+      }
+      
+      // Mostrar desglose de transacciones
+      const newTransactions = currentMonthTransactions.filter(tx => !tx.restored_from_previous_cycle);
+      const restoredIncluded = currentMonthTransactions.filter(tx => tx.restored_from_previous_cycle === true);
+      
+      // Verificar todas las transacciones que NO son restauradas y ver por qué no pasan el filtro
+      const nonRestoredTransactions = transactions.filter(tx => !tx.restored_from_previous_cycle);
+      const nonRestoredInCurrentMonth = nonRestoredTransactions.filter(tx => {
+        if (!tx.date) return false;
+        const txDate = parseLocalDate(tx.date);
+        if (!txDate || isNaN(txDate.getTime())) return false;
+        return txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear;
+      });
+      
+      console.log('📊 [Dashboard] Desglose:');
+      console.log(`   - Nuevas transacciones (mes actual): ${newTransactions.length}`);
+      console.log(`   - Transacciones restauradas incluidas: ${restoredIncluded.length}`);
+      console.log(`   - Total en dashboard: ${currentMonthTransactions.length}`);
+      console.log(`   - Total NO restauradas: ${nonRestoredTransactions.length}`);
+      console.log(`   - NO restauradas del mes actual: ${nonRestoredInCurrentMonth.length}`);
+      
+      if (nonRestoredTransactions.length > 0 && nonRestoredInCurrentMonth.length === 0) {
+        console.log('⚠️ [Dashboard] Transacciones NO restauradas que NO están en el mes actual:');
+        nonRestoredTransactions.slice(0, 5).forEach((tx, i) => {
+          const txDate = parseLocalDate(tx.date);
+          console.log(`   ${i + 1}. Fecha: ${txDate ? txDate.toLocaleDateString() : tx.date}, Mes: ${txDate ? txDate.getMonth() + 1 : 'N/A'}, Año: ${txDate ? txDate.getFullYear() : 'N/A'}, Descripción: ${tx.description}, Monto: $${tx.amount}`);
+        });
+      }
+      
+      if (newTransactions.length > 0) {
+        console.log('✅ [Dashboard] Nuevas transacciones del mes actual:');
+        newTransactions.slice(0, 3).forEach((tx, i) => {
+          const txDate = parseLocalDate(tx.date);
+          console.log(`   ${i + 1}. ${tx.description}: $${tx.amount}, Fecha: ${txDate.toLocaleDateString()}`);
+        });
+      }
+      
+      if (transactions.length > 0 && currentMonthTransactions.length === 0) {
+        // Mostrar las primeras 5 transacciones con sus fechas
+        console.log('⚠️ [Dashboard] No hay transacciones del mes actual. Primeras 5 transacciones:');
+        transactions.slice(0, 5).forEach((tx, i) => {
+          const txDate = new Date(tx.date);
+          console.log(`   ${i + 1}. Fecha: ${txDate.toLocaleDateString()}, Mes: ${txDate.getMonth() + 1}, Año: ${txDate.getFullYear()}, Descripción: ${tx.description}, Restaurada: ${tx.restored_from_previous_cycle || false}`);
+        });
+      }
+    }
 
     // Calcular totales
     const totalExpenses = currentMonthTransactions
@@ -1228,7 +1441,7 @@ const DashboardHome = () => {
             <CheckCircle2 className="w-5 h-5 text-green-500" />
           </div>
           <GaugeChart 
-            value={Math.max(0, Math.min(100, realData.savingsRate))} 
+            value={isNaN(realData.savingsRate) ? 0 : Math.max(0, Math.min(100, realData.savingsRate))} 
             max={100} 
             label="Ahorro" 
             color={realData.savingsRate >= 0 ? "#10b981" : "#ef4444"} 

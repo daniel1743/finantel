@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
+import { parseLocalDate } from '@/lib/utils';
 
 // Límites para optimizar rendimiento
 const TRANSACTIONS_LIMIT = 500; // Máximo de transacciones a cargar
@@ -25,9 +26,18 @@ export const useFinance = (userId) => {
 
   // --- Fetching ---
   const fetchData = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
+      
+      // Log para debugging
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔄 [useFinance] Fetching data for user:', userId);
+      }
+      
       const [txRes, catRes, budRes, goalRes] = await Promise.all([
         supabase
           .from('transactions')
@@ -52,21 +62,45 @@ export const useFinance = (userId) => {
           .limit(GOALS_LIMIT)
       ]);
 
-      if (txRes.error) throw txRes.error;
+      // Verificar errores y loggear resultados
+      if (txRes.error) {
+        console.error('❌ [useFinance] Error fetching transactions:', txRes.error);
+        throw txRes.error;
+      }
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ [useFinance] Transactions:', txRes.data?.length || 0, 'registros');
+        console.log('✅ [useFinance] Categories:', catRes.data?.length || 0, 'registros');
+        if (txRes.data && txRes.data.length > 0) {
+          console.log('📊 [useFinance] Sample transaction:', txRes.data[0]);
+        }
+      }
+      
+      if (catRes.error) {
+        console.warn('⚠️ [useFinance] Error fetching categories:', catRes.error);
+      }
+      if (budRes.error) {
+        console.warn('⚠️ [useFinance] Error fetching budgets:', budRes.error);
+      }
+      if (goalRes.error) {
+        console.warn('⚠️ [useFinance] Error fetching goals:', goalRes.error);
+      }
       
       setTransactions(txRes.data || []);
       setCategories(catRes.data || []);
       setBudgets(budRes.data || []);
       setGoals(goalRes.data || []);
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error fetching finance data:', error);
-      }
-      toastRef.current?.({ variant: "destructive", title: "Error", description: "Failed to load financial data." });
+      console.error('❌ [useFinance] Error fetching finance data:', error);
+      toastRef.current?.({ 
+        variant: "destructive", 
+        title: "Error", 
+        description: error.message || "No se pudieron cargar los datos financieros." 
+      });
     } finally {
       setLoading(false);
     }
-  }, [userId]); // Removido toast de dependencias
+  }, [userId]);
 
   // --- Realtime Subscription ---
   useEffect(() => {
@@ -89,6 +123,17 @@ export const useFinance = (userId) => {
   // --- CRUD Actions con Actualizaciones Optimistas ---
 
   const addTransaction = async (data) => {
+    // Log para debugging
+    if (process.env.NODE_ENV === 'development') {
+      console.log('➕ [useFinance] Agregando transacción:', {
+        description: data.description,
+        amount: data.amount,
+        type: data.type,
+        date: data.date,
+        restored: data.restored_from_previous_cycle || false
+      });
+    }
+    
     // Optimistic update
     const tempId = `temp-${Date.now()}`;
     const optimisticTx = { ...data, id: tempId, user_id: userId, created_at: new Date().toISOString() };
@@ -102,6 +147,20 @@ export const useFinance = (userId) => {
         .single();
 
       if (error) throw error;
+
+      // Log para debugging
+      if (process.env.NODE_ENV === 'development') {
+        const txDate = parseLocalDate(newTx.date);
+        console.log('✅ [useFinance] Transacción creada:', {
+          id: newTx.id,
+          description: newTx.description,
+          amount: newTx.amount,
+          date: newTx.date,
+          month: txDate ? txDate.getMonth() + 1 : 'N/A',
+          year: txDate ? txDate.getFullYear() : 'N/A',
+          restored: newTx.restored_from_previous_cycle || false
+        });
+      }
 
       // Reemplazar optimista con real
       setTransactions(prev => prev.map(tx => tx.id === tempId ? newTx : tx));

@@ -81,3 +81,4 @@ const Seguridad = () => {
 
 export default Seguridad;
 
+

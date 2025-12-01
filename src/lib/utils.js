@@ -47,3 +47,43 @@ export function formatCurrency(amount, currency = 'USD') {
 	// Retornar con símbolo
 	return `${config.symbol}${formattedAmount}`;
 }
+
+/**
+ * Obtiene la fecha local en formato YYYY-MM-DD sin problemas de zona horaria
+ * @param {Date} date - Fecha opcional (por defecto fecha actual)
+ * @returns {string} - Fecha en formato YYYY-MM-DD
+ */
+export function getLocalDateString(date = new Date()) {
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, '0');
+	const day = String(date.getDate()).padStart(2, '0');
+	return `${year}-${month}-${day}`;
+}
+
+/**
+ * Parsea una fecha desde la base de datos (string YYYY-MM-DD) a un objeto Date local
+ * sin problemas de zona horaria. Evita que fechas como '2025-12-01' se interpreten
+ * como UTC y retrocedan un día.
+ * @param {string} dateString - Fecha en formato YYYY-MM-DD
+ * @returns {Date} - Objeto Date en hora local
+ */
+export function parseLocalDate(dateString) {
+	if (!dateString) return null;
+	
+	// Si ya es un objeto Date, devolverlo
+	if (dateString instanceof Date) {
+		return dateString;
+	}
+	
+	// Parsear el string YYYY-MM-DD directamente
+	const match = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/);
+	if (match) {
+		const year = parseInt(match[1], 10);
+		const month = parseInt(match[2], 10) - 1; // Los meses en Date son 0-indexed
+		const day = parseInt(match[3], 10);
+		return new Date(year, month, day);
+	}
+	
+	// Si no coincide el formato, intentar parsear normalmente
+	return new Date(dateString);
+}

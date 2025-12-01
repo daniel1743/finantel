@@ -264,3 +264,4 @@ Pero **por ahora, tu proyecto es React + Vite y todo está correcto.**
 **Proyecto:** Finantel v2.1  
 **Arquitectura:** React 19 + Vite 4 + React Router DOM 6
 
+

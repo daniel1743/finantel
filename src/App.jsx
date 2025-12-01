@@ -23,6 +23,11 @@ const Onboarding = lazy(() => import('@/pages/Onboarding'));
 const PricingPage = lazy(() => import('@/pages/PricingPage'));
 const Transparency = lazy(() => import('@/pages/legal/Transparency'));
 
+// Legal Pages
+const Terms = lazy(() => import('@/pages/legal/Terms'));
+const PrivacyPolicy = lazy(() => import('@/pages/legal/PrivacyPolicy'));
+const Cookies = lazy(() => import('@/pages/legal/Cookies'));
+
 // Footer Pages
 const Caracteristicas = lazy(() => import('@/pages/Caracteristicas'));
 const Seguridad = lazy(() => import('@/pages/Seguridad'));
@@ -107,6 +112,11 @@ function App() {
                   <Route path="/carreras" element={<Carreras />} />
                   <Route path="/blog" element={<Blog />} />
                   <Route path="/contacto" element={<Contacto />} />
+                  
+                  {/* Legal Pages */}
+                  <Route path="/legal/terms" element={<Terms />} />
+                  <Route path="/legal/privacy-policy" element={<PrivacyPolicy />} />
+                  <Route path="/legal/cookies" element={<Cookies />} />
                   
                   {/* Protected Dashboard Routes */}
                   <Route path="/dashboard" element={

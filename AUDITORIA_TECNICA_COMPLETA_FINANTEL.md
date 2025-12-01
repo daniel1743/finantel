@@ -462,3 +462,4 @@
 **Proyecto:** Finantel v2.1  
 **Tipo:** Auditoría Técnica Completa (QA Total)
 
+
