@@ -37,6 +37,7 @@ const VoiceRecordingScreen = ({ isOpen, onClose, onTransactionCreated, userId })
 
   const startRecording = async () => {
     try {
+      console.log('🎤 [VoiceRecording] Iniciando grabación de audio...');
       const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setStream(mediaStream);
 
@@ -47,29 +48,58 @@ const VoiceRecordingScreen = ({ isOpen, onClose, onTransactionCreated, userId })
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
+      const startTime = Date.now();
+      console.log('🎤 [VoiceRecording] MediaRecorder creado:', {
+        mimeType: 'audio/webm;codecs=opus',
+        state: mediaRecorder.state,
+        timestamp: new Date().toISOString()
+      });
+
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           audioChunksRef.current.push(event.data);
+          console.log('🎤 [VoiceRecording] Chunk de audio recibido:', {
+            size: event.data.size,
+            type: event.data.type,
+            chunksAcumulados: audioChunksRef.current.length,
+            tiempoGrabacion: ((Date.now() - startTime) / 1000).toFixed(2) + 's'
+          });
         }
       };
 
       mediaRecorder.onstop = async () => {
+        const totalSize = audioChunksRef.current.reduce((sum, chunk) => sum + chunk.size, 0);
+        const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+        console.log('🎤 [VoiceRecording] Grabación detenida:', {
+          duracion: duration + 's',
+          totalChunks: audioChunksRef.current.length,
+          tamañoTotal: totalSize + ' bytes',
+          tamañoFormateado: (totalSize / 1024).toFixed(2) + ' KB'
+        });
+
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        console.log('🎤 [VoiceRecording] Blob de audio creado:', {
+          size: audioBlob.size,
+          type: audioBlob.type,
+          timestamp: new Date().toISOString()
+        });
+
         await processAudio(audioBlob);
         mediaStream.getTracks().forEach(track => track.stop());
       };
 
       mediaRecorder.start();
       setIsRecording(true);
+      console.log('🎤 [VoiceRecording] Grabación iniciada, estado:', mediaRecorder.state);
 
-      // 🔊 Reproducir sonido de inicio
-      playStartRecordingSound();
+      // 🔊 Reproducir sonido de inicio (no bloqueante)
+      playStartRecordingSound().catch(() => {});
 
     } catch (error) {
       console.error('Error al acceder al micrófono:', error);
 
-      // 🔊 Reproducir sonido de error
-      playErrorSound();
+      // 🔊 Reproducir sonido de error (no bloqueante)
+      playErrorSound().catch(() => {});
 
       toast({
         title: "Error",
@@ -86,13 +116,15 @@ const VoiceRecordingScreen = ({ isOpen, onClose, onTransactionCreated, userId })
       setIsRecording(false);
       setIsProcessing(true);
 
-      // 🔊 Reproducir sonido de detención
-      playStopRecordingSound();
+      // 🔊 Reproducir sonido de detención (no bloqueante)
+      playStopRecordingSound().catch(() => {});
     }
   };
 
   const processAudio = async (audioBlob) => {
     try {
+      console.log('🔄 [VoiceRecording] Iniciando procesamiento de audio...');
+      
       if (!userId) {
         throw new Error('No se detectó el usuario actual.');
       }
@@ -101,6 +133,14 @@ const VoiceRecordingScreen = ({ isOpen, onClose, onTransactionCreated, userId })
       if (!supabaseUrl) {
         throw new Error('Falta configurar VITE_SUPABASE_URL.');
       }
+
+      console.log('📤 [VoiceRecording] Preparando envío a Edge Function:', {
+        url: `${supabaseUrl}/functions/v1/voice-to-transaction`,
+        audioSize: audioBlob.size,
+        audioType: audioBlob.type,
+        userId: userId,
+        timestamp: new Date().toISOString()
+      });
 
       const formData = new FormData();
       formData.append('audio', audioBlob, 'audio.webm');
@@ -113,25 +153,150 @@ const VoiceRecordingScreen = ({ isOpen, onClose, onTransactionCreated, userId })
       const headers = {};
       if (session?.access_token) {
         headers.Authorization = `Bearer ${session.access_token}`;
+        console.log('🔐 [VoiceRecording] Token de autenticación obtenido:', {
+          tokenLength: session.access_token.length,
+          hasToken: true
+        });
+      } else {
+        console.warn('⚠️ [VoiceRecording] No se obtuvo token de autenticación');
       }
 
+      console.log('📡 [VoiceRecording] Enviando audio a Edge Function...');
+      const requestStartTime = Date.now();
+      
       const response = await fetch(`${supabaseUrl}/functions/v1/voice-to-transaction`, {
         method: 'POST',
         headers,
         body: formData,
       });
 
+      const requestDuration = ((Date.now() - requestStartTime) / 1000).toFixed(2);
+      console.log('📥 [VoiceRecording] Respuesta recibida:', {
+        status: response.status,
+        statusText: response.statusText,
+        duracion: requestDuration + 's',
+        headers: Object.fromEntries(response.headers.entries())
+      });
+
       const payloadText = await response.text();
+      console.log('📄 [VoiceRecording] Payload recibido (raw):', {
+        length: payloadText.length,
+        preview: payloadText.substring(0, 200) + (payloadText.length > 200 ? '...' : '')
+      });
+
       const data = payloadText ? JSON.parse(payloadText) : null;
+      console.log('📊 [VoiceRecording] Datos parseados:', {
+        success: data?.success,
+        hasTranscript: !!data?.transcript,
+        hasTransaction: !!data?.transaction,
+        hasParsed: !!data?.parsed,
+        error: data?.error
+      });
 
       if (!response.ok || !data?.success) {
+        console.error('❌ [VoiceRecording] Error en la respuesta:', {
+          status: response.status,
+          error: data?.error,
+          data: data
+        });
         throw new Error(data?.error || 'No se pudo procesar el audio');
       }
+
+      // Log detallado de la transcripción
+      console.log('📝 [VoiceRecording] TRANSCRIPCIÓN:', {
+        textoOriginal: data.transcript,
+        longitud: data.transcript?.length || 0,
+        timestamp: new Date().toISOString()
+      });
+
+      // Log detallado de los datos parseados
+      if (data.parsed) {
+        console.log('🔍 [VoiceRecording] DATOS PARSEADOS:', {
+          descripcion: data.parsed.description,
+          monto: data.parsed.amount,
+          tipo: data.parsed.type,
+          categoria: data.parsed.category,
+          moneda: data.parsed.currency,
+          fecha: data.parsed.date,
+          metadata: data.parsed.metadata
+        });
+      }
+
+      // Log detallado de la transacción creada
+      if (data.transaction) {
+        console.log('💾 [VoiceRecording] TRANSACCIÓN GUARDADA EN BD:', {
+          id: data.transaction.id,
+          user_id: data.transaction.user_id,
+          description: data.transaction.description,
+          amount: data.transaction.amount,
+          type: data.transaction.type,
+          date: data.transaction.date,
+          category_id: data.transaction.category_id,
+          currency: data.transaction.currency,
+          created_at: data.transaction.created_at,
+          metadata: data.transaction.metadata
+        });
+      }
+
+      // ============================================
+      // RESUMEN VISUAL COMPLETO EN CONSOLA
+      // ============================================
+      console.log('%c' + '═'.repeat(60), 'color: #1C8FA0; font-weight: bold; font-size: 14px;');
+      console.log('%c🎤 RESUMEN COMPLETO - PROCESAMIENTO DE VOZ', 'color: #1C8FA0; font-weight: bold; font-size: 16px;');
+      console.log('%c' + '═'.repeat(60), 'color: #1C8FA0; font-weight: bold; font-size: 14px;');
+      
+      console.group('%c📝 TRANSCRIPCIÓN', 'color: #4CAF50; font-weight: bold;');
+      console.log('%cTexto original:', 'color: #666; font-weight: bold;', data.transcript);
+      console.log('%cLongitud:', 'color: #666; font-weight: bold;', data.transcript?.length || 0, 'caracteres');
+      console.groupEnd();
+      
+      if (data.parsed) {
+        const currency = data.transaction?.currency || data.parsed?.currency || 'CLP';
+        console.group('%c🔍 DATOS PARSEADOS', 'color: #2196F3; font-weight: bold;');
+        console.log('%c💰 Monto:', 'color: #FF9800; font-weight: bold; font-size: 14px;', 
+          new Intl.NumberFormat('es-CL', { style: 'currency', currency: currency }).format(data.parsed.amount));
+        console.log('%c📋 Tipo:', 'color: #666; font-weight: bold;', 
+          data.parsed.type === 'expense' ? '💰 Gasto' : '💵 Ingreso');
+        console.log('%c📝 Descripción:', 'color: #666; font-weight: bold;', data.parsed.description);
+        console.log('%c🏷️ Categoría:', 'color: #666; font-weight: bold;', data.parsed.category || 'N/A');
+        console.log('%c💱 Moneda:', 'color: #666; font-weight: bold;', currency);
+        console.groupEnd();
+      }
+      
+      if (data.transaction) {
+        console.group('%c💾 TRANSACCIÓN GUARDADA', 'color: #9C27B0; font-weight: bold;');
+        console.log('%c🆔 ID:', 'color: #666; font-weight: bold;', data.transaction.id);
+        console.log('%c💰 Monto guardado:', 'color: #FF9800; font-weight: bold; font-size: 14px;', 
+          new Intl.NumberFormat('es-CL', { style: 'currency', currency: data.transaction.currency || 'CLP' }).format(data.transaction.amount));
+        console.log('%c📝 Descripción:', 'color: #666; font-weight: bold;', data.transaction.description);
+        console.log('%c📅 Fecha:', 'color: #666; font-weight: bold;', data.transaction.date);
+        console.log('%c📋 Tipo:', 'color: #666; font-weight: bold;', 
+          data.transaction.type === 'expense' ? '💰 Gasto' : '💵 Ingreso');
+        console.log('%c🏷️ Categoría ID:', 'color: #666; font-weight: bold;', data.transaction.category_id || 'N/A');
+        console.log('%c💱 Moneda:', 'color: #666; font-weight: bold;', data.transaction.currency || 'CLP');
+        console.log('%c⏰ Creada:', 'color: #666; font-weight: bold;', 
+          new Date(data.transaction.created_at).toLocaleString('es-CL'));
+        if (data.transaction.metadata) {
+          console.log('%c📦 Metadata:', 'color: #666; font-weight: bold;', data.transaction.metadata);
+        }
+        console.groupEnd();
+      }
+      
+      console.group('%c⏱️ TIEMPOS DE PROCESAMIENTO', 'color: #FF5722; font-weight: bold;');
+      console.log('%c📡 Duración de la petición:', 'color: #666; font-weight: bold;', 
+        ((Date.now() - requestStartTime) / 1000).toFixed(2) + ' segundos');
+      console.log('%c🎤 Tamaño del audio:', 'color: #666; font-weight: bold;', 
+        (audioBlob.size / 1024).toFixed(2) + ' KB');
+      console.groupEnd();
+      
+      console.log('%c' + '═'.repeat(60), 'color: #1C8FA0; font-weight: bold; font-size: 14px;');
+      console.log('%c✅ PROCESO COMPLETADO EXITOSAMENTE', 'color: #4CAF50; font-weight: bold; font-size: 14px;');
+      console.log('%c' + '═'.repeat(60), 'color: #1C8FA0; font-weight: bold; font-size: 14px;');
 
       setTranscript(data.transcript);
 
       // 🔊 Reproducir sonido de éxito
-      playSuccessSound();
+      playSuccessSound().catch(() => {});
 
       const currencySymbol = data.currency === 'CLP' || data.currency === 'COP' ? '$' : data.currency;
 
@@ -141,6 +306,7 @@ const VoiceRecordingScreen = ({ isOpen, onClose, onTransactionCreated, userId })
       });
 
       if (onTransactionCreated && data.transaction) {
+        console.log('✅ [VoiceRecording] Llamando callback onTransactionCreated con:', data.transaction);
         onTransactionCreated(data.transaction);
       }
 
@@ -153,7 +319,7 @@ const VoiceRecordingScreen = ({ isOpen, onClose, onTransactionCreated, userId })
       console.error('Error procesando audio:', error);
 
       // 🔊 Reproducir sonido de error
-      playErrorSound();
+      playErrorSound().catch(() => {});
 
       toast({
         title: "Error",

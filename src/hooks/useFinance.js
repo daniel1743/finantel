@@ -111,8 +111,21 @@ export const useFinance = (userId) => {
       .channel('finance_updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter: `user_id=eq.${userId}` }, 
         (payload) => {
-           if(payload.eventType === 'INSERT') setTransactions(prev => [payload.new, ...prev]);
-           else fetchData(); // Simplest strategy for others
+           if(payload.eventType === 'INSERT') {
+             // Agregar la nueva transacción al principio y ordenar por fecha descendente
+             setTransactions(prev => {
+               const updated = [payload.new, ...prev];
+               // Ordenar por fecha descendente para mantener el orden correcto
+               return updated.sort((a, b) => {
+                 const dateA = parseLocalDate(a.date);
+                 const dateB = parseLocalDate(b.date);
+                 if (!dateA || !dateB) return 0;
+                 return dateB.getTime() - dateA.getTime();
+               });
+             });
+           } else {
+             fetchData(); // Simplest strategy for others
+           }
         }
       )
       .subscribe();
@@ -123,21 +136,35 @@ export const useFinance = (userId) => {
   // --- CRUD Actions con Actualizaciones Optimistas ---
 
   const addTransaction = async (data) => {
-    // Log para debugging
-    if (process.env.NODE_ENV === 'development') {
-      console.log('➕ [useFinance] Agregando transacción:', {
-        description: data.description,
-        amount: data.amount,
-        type: data.type,
-        date: data.date,
-        restored: data.restored_from_previous_cycle || false
-      });
-    }
+    // Log detallado para debugging
+    console.log('➕ [useFinance] Agregando transacción:', {
+      description: data.description,
+      amount: data.amount,
+      type: data.type,
+      date: data.date,
+      category_id: data.category_id,
+      currency: data.currency,
+      restored: data.restored_from_previous_cycle || false,
+      metadata: data.metadata,
+      source: data.metadata?.source || 'manual', // 'voice', 'manual', etc.
+      timestamp: new Date().toISOString()
+    });
     
     // Optimistic update
     const tempId = `temp-${Date.now()}`;
     const optimisticTx = { ...data, id: tempId, user_id: userId, created_at: new Date().toISOString() };
-    setTransactions(prev => [optimisticTx, ...prev]);
+    console.log('⚡ [useFinance] Actualización optimista:', {
+      tempId: tempId,
+      transaction: optimisticTx
+    });
+    setTransactions(prev => {
+      const updated = [optimisticTx, ...prev];
+      console.log('📊 [useFinance] Estado actualizado (optimista):', {
+        totalTransacciones: updated.length,
+        primeraTransaccion: updated[0]?.description
+      });
+      return updated;
+    });
 
     try {
       const { data: newTx, error } = await supabase
@@ -162,8 +189,29 @@ export const useFinance = (userId) => {
         });
       }
 
-      // Reemplazar optimista con real
-      setTransactions(prev => prev.map(tx => tx.id === tempId ? newTx : tx));
+      // Reemplazar optimista con real y reordenar por fecha descendente
+      setTransactions(prev => {
+        const updated = prev.map(tx => tx.id === tempId ? newTx : tx);
+        // Ordenar por fecha descendente para mantener el orden correcto (más recientes primero)
+        const sorted = updated.sort((a, b) => {
+          const dateA = parseLocalDate(a.date);
+          const dateB = parseLocalDate(b.date);
+          if (!dateA || !dateB) return 0;
+          // Ordenar descendente: fechas más recientes primero
+          return dateB.getTime() - dateA.getTime();
+        });
+        
+        console.log('✅ [useFinance] Transacción guardada en BD y actualizada en estado:', {
+          id: newTx.id,
+          description: newTx.description,
+          amount: newTx.amount,
+          date: newTx.date,
+          totalTransacciones: sorted.length,
+          posicionEnLista: sorted.findIndex(tx => tx.id === newTx.id) + 1
+        });
+        
+        return sorted;
+      });
       toastRef.current?.({ title: "Éxito", description: "Transacción creada." });
     } catch (error) {
       // Revertir optimista

@@ -4,12 +4,40 @@
  */
 
 /**
+ * Helper para crear y activar un AudioContext
+ * Maneja el estado "suspended" que requieren los navegadores modernos
+ */
+const createAudioContext = async () => {
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) {
+      throw new Error('Web Audio API no está disponible');
+    }
+
+    const audioContext = new AudioContextClass();
+
+    // Si el contexto está suspendido, intentar reanudarlo
+    if (audioContext.state === 'suspended') {
+      await audioContext.resume();
+    }
+
+    return audioContext;
+  } catch (error) {
+    console.warn('Error creando AudioContext:', error);
+    return null;
+  }
+};
+
+/**
  * Reproduce un sonido de "beep" corto y agradable
  * Estilo "activación" como los asistentes de voz
  */
-export const playStartRecordingSound = () => {
+export const playStartRecordingSound = async () => {
   try {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const audioContext = await createAudioContext();
+    if (!audioContext) {
+      return; // Silenciosamente fallar si no se puede crear el contexto
+    }
 
     // Crear oscilador (generador de tono)
     const oscillator = audioContext.createOscillator();
@@ -35,10 +63,17 @@ export const playStartRecordingSound = () => {
 
     // Limpiar después
     oscillator.onended = () => {
-      audioContext.close();
+      setTimeout(() => {
+        audioContext.close().catch(err => {
+          console.warn('Error cerrando AudioContext:', err);
+        });
+      }, 100);
     };
   } catch (error) {
-    console.warn('No se pudo reproducir el sonido de inicio:', error);
+    // Silenciosamente fallar - no es crítico si el sonido no funciona
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('No se pudo reproducir el sonido de inicio:', error);
+    }
   }
 };
 
@@ -46,9 +81,12 @@ export const playStartRecordingSound = () => {
  * Reproduce un sonido de "confirmación" al detener
  * Tono descendente suave
  */
-export const playStopRecordingSound = () => {
+export const playStopRecordingSound = async () => {
   try {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const audioContext = await createAudioContext();
+    if (!audioContext) {
+      return;
+    }
 
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
@@ -69,10 +107,16 @@ export const playStopRecordingSound = () => {
     oscillator.stop(audioContext.currentTime + 0.12);
 
     oscillator.onended = () => {
-      audioContext.close();
+      setTimeout(() => {
+        audioContext.close().catch(err => {
+          console.warn('Error cerrando AudioContext:', err);
+        });
+      }, 100);
     };
   } catch (error) {
-    console.warn('No se pudo reproducir el sonido de detención:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('No se pudo reproducir el sonido de detención:', error);
+    }
   }
 };
 
@@ -80,9 +124,12 @@ export const playStopRecordingSound = () => {
  * Reproduce un sonido de "éxito" al completar
  * Doble tono alegre
  */
-export const playSuccessSound = () => {
+export const playSuccessSound = async () => {
   try {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const audioContext = await createAudioContext();
+    if (!audioContext) {
+      return;
+    }
 
     // Primera nota
     const osc1 = audioContext.createOscillator();
@@ -118,10 +165,14 @@ export const playSuccessSound = () => {
 
     // Limpiar
     setTimeout(() => {
-      audioContext.close();
+      audioContext.close().catch(err => {
+        console.warn('Error cerrando AudioContext:', err);
+      });
     }, 300);
   } catch (error) {
-    console.warn('No se pudo reproducir el sonido de éxito:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('No se pudo reproducir el sonido de éxito:', error);
+    }
   }
 };
 
@@ -129,9 +180,12 @@ export const playSuccessSound = () => {
  * Reproduce un sonido de "error" suave
  * Tono bajo y corto
  */
-export const playErrorSound = () => {
+export const playErrorSound = async () => {
   try {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const audioContext = await createAudioContext();
+    if (!audioContext) {
+      return;
+    }
 
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
@@ -151,9 +205,15 @@ export const playErrorSound = () => {
     oscillator.stop(audioContext.currentTime + 0.2);
 
     oscillator.onended = () => {
-      audioContext.close();
+      setTimeout(() => {
+        audioContext.close().catch(err => {
+          console.warn('Error cerrando AudioContext:', err);
+        });
+      }, 100);
     };
   } catch (error) {
-    console.warn('No se pudo reproducir el sonido de error:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('No se pudo reproducir el sonido de error:', error);
+    }
   }
 };

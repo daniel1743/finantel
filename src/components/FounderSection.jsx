@@ -20,24 +20,21 @@ const FounderSection = () => {
           </div>
 
           <div className="flex flex-col md:flex-row gap-12 items-start">
-            {/* Foto del fundador - placeholder */}
+            {/* Foto del fundador */}
             <div className="flex-shrink-0 mx-auto md:mx-0">
               <img
-                src="/founder-photo.jpg"
-                alt="Daniel Falcón - Fundador de Finantel"
-                className="w-48 h-48 rounded-2xl object-cover border-2 border-[#1C8FA0]/20 shadow-lg"
+                src="/daniel_falcon.jpg"
+                alt="Daniel Falcon - Fundador de Finantel"
+                className="w-48 h-48 rounded-2xl object-cover shadow-lg"
                 onError={(e) => {
                   // Si la imagen no existe, mostrar placeholder
                   e.target.style.display = 'none';
                   e.target.nextElementSibling.style.display = 'flex';
                 }}
               />
-              <div className="w-48 h-48 rounded-2xl bg-gradient-to-br from-[#1C8FA0]/20 to-[#E47B45]/20 flex items-center justify-center border-2 border-[#1C8FA0]/20 shadow-lg" style={{ display: 'none' }}>
+              <div className="w-48 h-48 rounded-2xl bg-gradient-to-br from-[#1C8FA0]/20 to-[#E47B45]/20 flex items-center justify-center shadow-lg" style={{ display: 'none' }}>
                 <User className="w-24 h-24 text-[#1C8FA0] opacity-50" />
               </div>
-              <p className="text-xs text-[#6E6E73] dark:text-gray-400 text-center mt-4 italic">
-                Reemplaza /founder-photo.jpg con tu foto
-              </p>
             </div>
 
             {/* Texto */}
@@ -74,4 +71,6 @@ const FounderSection = () => {
 };
 
 export default FounderSection;
+
+
 

@@ -1700,7 +1700,7 @@ const DashboardHome = () => {
         animate={{ scale: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 20, delay: 1.5 }}
         onClick={() => {
-          playStartRecordingSound();
+          playStartRecordingSound().catch(() => {});
           setIsVoiceModalOpen(true);
         }}
         className="fixed bottom-8 right-8 w-[68px] h-[68px] bg-[#1C8FA0] hover:bg-[#167a8a] text-white rounded-full shadow-[0_20px_40px_-12px_rgba(28,143,160,0.5)] flex items-center justify-center hover:scale-110 transition-all duration-300 z-50 group"

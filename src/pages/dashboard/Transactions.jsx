@@ -22,7 +22,7 @@ import {
   Calendar,
   DollarSign
 } from 'lucide-react';
-import { cn, formatCurrency, getLocalDateString } from '@/lib/utils';
+import { cn, formatCurrency, getLocalDateString, parseLocalDate } from '@/lib/utils';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useFinance } from '@/hooks/useFinance';
 import { useToast } from '@/components/ui/use-toast';
@@ -764,16 +764,34 @@ const Transactions = () => {
   // Filtrar transacciones con memoización para mejor rendimiento
   const filteredTransactions = useMemo(() => {
     if (!debouncedSearchQuery.trim()) {
+      // Log para debugging
+      if (process.env.NODE_ENV === 'development') {
+        console.log('📋 [Transactions] Mostrando todas las transacciones:', transactions.length);
+        if (transactions.length > 0) {
+          console.log('📋 [Transactions] Primera transacción:', {
+            id: transactions[0].id,
+            description: transactions[0].description,
+            date: transactions[0].date,
+            amount: transactions[0].amount
+          });
+        }
+      }
       return transactions;
     }
     
     const query = debouncedSearchQuery.toLowerCase();
-    return transactions.filter(tx => {
+    const filtered = transactions.filter(tx => {
       const description = (tx.description || '').toLowerCase();
       const category = (tx.categories?.name || '').toLowerCase();
       const amount = String(tx.amount || '');
       return description.includes(query) || category.includes(query) || amount.includes(query);
     });
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 [Transactions] Búsqueda:', debouncedSearchQuery, '→', filtered.length, 'resultados');
+    }
+    
+    return filtered;
   }, [transactions, debouncedSearchQuery]);
 
   // Cargar moneda del usuario
@@ -970,12 +988,18 @@ const Transactions = () => {
                 ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400" 
                 : "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400";
               
-              // Formatear fecha
-              const formattedDate = tx.date ? new Date(tx.date).toLocaleDateString('es-ES', { 
-                day: 'numeric', 
-                month: 'short', 
-                year: 'numeric' 
-              }) : 'Sin fecha';
+              // Formatear fecha usando parseLocalDate para evitar problemas de zona horaria
+              const formattedDate = tx.date ? (() => {
+                const txDate = parseLocalDate(tx.date);
+                if (!txDate || isNaN(txDate.getTime())) {
+                  return 'Sin fecha';
+                }
+                return txDate.toLocaleDateString('es-ES', { 
+                  day: 'numeric', 
+                  month: 'short', 
+                  year: 'numeric' 
+                });
+              })() : 'Sin fecha';
               
               // Formatear monto
               const amount = parseFloat(tx.amount) || 0;
