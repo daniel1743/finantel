@@ -1,32 +1,20 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
-import { ArrowRight, ShieldCheck, TrendingUp, PieChart, ShoppingBag, ArrowUpRight, Film, Music, Ticket, Coffee, Car, Plane, Zap } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useABTest } from '@/contexts/ABTestContext';
-import RecentUsersCounter from '@/components/RecentUsersCounter';
 
 const Hero = () => {
-  const { toast } = useToast();
   const navigate = useNavigate();
-  const { experiments, trackConversion } = useABTest();
+  const { trackConversion } = useABTest();
   const [currentTransactionIndex, setCurrentTransactionIndex] = useState(0);
-
-  // A/B Test Logic
-  const ctaText = experiments['hero_cta_text'] === 'variant_b' ? 'Prueba Ahora' : 'Comenzar Gratis';
 
   // Transacciones disponibles para rotación
   const allTransactions = [
-    { name: "Supermercado", cat: "Alimentación", amount: "-$124.50", Icon: ShoppingBag, color: "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400" },
-    { name: "Freelance Project", cat: "Ingresos", amount: "+$850.00", Icon: ArrowUpRight, positive: true, color: "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" },
-    { name: "Netflix", cat: "Suscripciones", amount: "-$15.99", Icon: Film, color: "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400" },
-    { name: "Spotify Premium", cat: "Suscripciones", amount: "-$9.99", Icon: Music, color: "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" },
-    { name: "Bono Extra", cat: "Ingresos", amount: "+$500.00", Icon: Zap, positive: true, color: "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400" },
-    { name: "Cine", cat: "Entretenimiento", amount: "-$8.50", Icon: Ticket, color: "bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400" },
-    { name: "Café", cat: "Alimentación", amount: "-$4.50", Icon: Coffee, color: "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400" },
-    { name: "Uber", cat: "Transporte", amount: "-$12.30", Icon: Car, color: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400" },
+    { name: "Supermercado", cat: "Alimentación", amount: "-$124.50", color: "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400" },
+    { name: "Freelance Project", cat: "Ingresos", amount: "+$850.00", positive: true, color: "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" },
+    { name: "Netflix", cat: "Suscripciones", amount: "-$15.99", color: "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400" },
   ];
 
   // Rotar transacciones cada 3 segundos
@@ -37,7 +25,6 @@ const Hero = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Obtener 3 transacciones para mostrar (siempre incluye la actual)
   const getDisplayTransactions = () => {
     const transactions = [];
     for (let i = 0; i < 3; i++) {
@@ -52,12 +39,10 @@ const Hero = () => {
   const [animatedChartData, setAnimatedChartData] = useState(chartData.map(() => 0));
 
   useEffect(() => {
-    // Animar el gráfico al cargar
     const timer = setTimeout(() => {
       setAnimatedChartData(chartData);
     }, 500);
 
-    // Animar cambios periódicos
     const interval = setInterval(() => {
       const newData = chartData.map(() => Math.random() * 80 + 20);
       setAnimatedChartData(newData);
@@ -85,48 +70,35 @@ const Hero = () => {
           
           {/* Text Content */}
           <div className="lg:col-span-7 space-y-8 relative z-10">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1C8FA0]/10 text-[#1C8FA0] text-sm font-medium mb-4"
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1C8FA0] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#1C8FA0]"></span>
-              </span>
-              Nueva versión 2.0 disponible
-            </motion.div>
-            
             <motion.h1 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
+              transition={{ duration: 0.6 }}
               className="text-5xl sm:text-6xl lg:text-[72px] font-bold text-[#1a1a1a] dark:text-white leading-[1.1] tracking-tight"
             >
-              Controla tus finanzas <span className="text-[#1C8FA0]">SIN conectar</span> tu banco
+              Tu dinero, claro y bajo tu control.
             </motion.h1>
             
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-lg sm:text-xl text-[#6E6E73] dark:text-gray-400 max-w-xl leading-relaxed font-medium"
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="text-lg sm:text-xl text-[#6E6E73] dark:text-gray-400 max-w-xl leading-relaxed"
             >
-              Tu dinero, tu privacidad, tu claridad. IA financiera moderna que entiende tus gastos sin comprometer tu seguridad bancaria.
+              Gestiona tus gastos sin entregar tus claves bancarias. IA financiera privada, moderna y hecha para personas reales.
             </motion.p>
             
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
               className="flex flex-col sm:flex-row gap-4 pt-4"
             >
               <Button 
                 onClick={handleCTAClick}
                 className="bg-[#1C8FA0] hover:bg-[#167a8a] text-white text-lg px-8 py-7 h-auto rounded-full shadow-xl shadow-[#1C8FA0]/20 transition-all hover:shadow-[#1C8FA0]/30 hover:-translate-y-1"
               >
-                {ctaText}
+                Comenzar Gratis
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </motion.div>
@@ -135,17 +107,12 @@ const Hero = () => {
           {/* Visual Content - Interactive Dashboard Mockup */}
           <div className="lg:col-span-5 relative flex items-center justify-center">
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95, rotate: -2 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="relative z-10 w-full"
             >
-              {/* Recent Users Counter - Positioned absolutely */}
-              <div className="absolute -top-4 -right-4 z-20 hidden lg:block">
-                <RecentUsersCounter />
-              </div>
-
-              {/* Dashboard Mockup Card - Horizontal Layout */}
+              {/* Dashboard Mockup Card */}
               <motion.div 
                 initial={{ opacity: 0, y: 20, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -158,14 +125,10 @@ const Hero = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Left Side: Balance & Chart */}
                   <div className="space-y-4">
-                    {/* Header */}
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="text-sm text-[#6E6E73] dark:text-gray-400 font-medium">Balance Total</p>
                         <h3 className="text-3xl font-bold text-[#1a1a1a] dark:text-white mt-1">$12,450.00</h3>
-                      </div>
-                      <div className="w-10 h-10 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center">
-                        <TrendingUp className="w-5 h-5 text-[#1C8FA0]" />
                       </div>
                     </div>
 
@@ -182,7 +145,7 @@ const Hero = () => {
                               delay: i * 0.1,
                               ease: "easeOut"
                             }}
-                            className="w-2.5 bg-[#1C8FA0] rounded-t-full opacity-80 hover:opacity-100 transition-opacity"
+                            className="w-2.5 bg-[#1C8FA0] rounded-t-full opacity-80"
                           />
                         ))}
                       </div>
@@ -200,14 +163,12 @@ const Hero = () => {
                           key={`${currentTransactionIndex}-${i}`}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors cursor-default"
+                          className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
                           style={{ minHeight: '60px' }}
                         >
                           <div className="flex items-center gap-3 min-w-0 flex-1">
-                            <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors flex-shrink-0 ${tx.color}`} style={{ minWidth: '36px', minHeight: '36px' }}>
-                              <tx.Icon className="w-4 h-4" style={{ width: '16px', height: '16px' }} />
+                            <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${tx.color}`}>
+                              <div className="w-4 h-4 rounded-full bg-current opacity-50" />
                             </div>
                             <div className="min-w-0 flex-1">
                               <p className="text-sm font-semibold text-[#1a1a1a] dark:text-white truncate">{tx.name}</p>

@@ -1,6 +1,8 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { ShieldCheck, Eye, Lock, FileCheck, Users, Sparkles, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
+import CreateTicketModal from '@/components/modals/CreateTicketModal';
 
 const commitments = [
   {
@@ -41,6 +43,20 @@ const faqs = [
 ];
 
 const Transparency = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [showTicketModal, setShowTicketModal] = useState(false);
+
+  const handleWriteToTeam = (e) => {
+    e.preventDefault();
+    if (!user) {
+      // Si no está autenticado, redirigir al login
+      navigate('/auth?redirect=/legal/transparencia');
+      return;
+    }
+    setShowTicketModal(true);
+  };
+
   return (
     <div className="min-h-screen bg-[#F5F7F9] dark:bg-[#0f0f11] py-16 px-4 md:px-8 lg:px-12">
       <div className="max-w-5xl mx-auto space-y-12">
@@ -176,15 +192,23 @@ const Transparency = () => {
             >
               Volver al Dashboard
             </Link>
-            <a
-              href="mailto:soporte@finantel.app?subject=Consulta%20sobre%20transparencia"
+            <button
+              onClick={handleWriteToTeam}
               className="px-6 py-3 rounded-xl border border-white/40 text-white font-semibold hover:bg-white/10 transition-colors"
             >
               Escribir al equipo
-            </a>
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Modal para crear ticket */}
+      <CreateTicketModal
+        isOpen={showTicketModal}
+        onClose={() => setShowTicketModal(false)}
+        defaultSubject="Consulta sobre transparencia"
+        defaultMessage=""
+      />
     </div>
   );
 };

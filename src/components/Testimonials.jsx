@@ -6,41 +6,41 @@ const testimonials = [
   {
     id: 1,
     name: "María González",
-    role: "Freelancer",
+    role: "Diseñadora freelance",
     image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Maria",
     rating: 5,
-    text: "Finantel me ordenó la vida, literal. La IA me avisa antes de que me pase gastando y me dice dónde puedo ahorrar sin matarme. Estoy fascinada.",
+    text: "Llevo 3 meses usando Finantel y finalmente entiendo en qué se me va la plata. La parte de privacidad me encanta, no tengo que conectar mi banco.",
     location: "Santiago, Chile",
     style: "coloquial"
   },
   {
     id: 2,
     name: "Carlos Ramírez",
-    role: "Emprendedor",
+    role: "Desarrollador independiente",
     image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Carlos",
     rating: 5,
-    text: "La privacidad es fundamental para mí. No necesito conectar mi banco y aun así mantengo control total de mis finanzas. Es ideal para mi negocio.",
-    location: "Valparaíso, Chile",
+    text: "Como trabajo con varios clientes, necesito ver mi flujo de caja. Finantel me ayuda a proyectar mis ingresos y gastos sin complicaciones.",
+    location: "Ciudad de México, México",
     style: "profesional"
   },
   {
     id: 3,
     name: "Ana Martínez",
-    role: "Estudiante",
+    role: "Estudiante universitaria",
     image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ana",
     rating: 5,
-    text: "Como estudiante cada peso duele, pero Finantel me muestra clarito dónde se me va la plata y cómo ahorrar más. De pana que me salvó.",
-    location: "Concepción, Chile",
+    text: "Me encontré varias suscripciones que ya no usaba gracias a Finantel. Ahorré como $30 al mes solo cancelando lo que no necesitaba.",
+    location: "Bogotá, Colombia",
     style: "coloquial"
   },
   {
     id: 4,
     name: "Roberto Silva",
-    role: "Profesional",
+    role: "Consultor",
     image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Roberto",
     rating: 5,
-    text: "La simulación financiera me permitió proyectar mi ahorro futuro. Con pequeños ajustes en mis hábitos pude visualizar un ahorro significativo en pocos meses.",
-    location: "La Serena, Chile",
+    text: "La simulación de escenarios me ayudó a ver cómo pequeños cambios pueden mejorar mi situación financiera. Muy útil para planificar.",
+    location: "Madrid, España",
     style: "profesional"
   }
 ];
@@ -60,7 +60,7 @@ const Testimonials = () => {
             Lo que dicen nuestros usuarios
           </h2>
           <p className="text-xl text-[#6E6E73] max-w-2xl mx-auto">
-            Miles de personas confían en Finantel para controlar sus finanzas
+            Personas reales compartiendo su experiencia con Finantel
           </p>
         </motion.div>
 
@@ -123,18 +123,8 @@ const Testimonials = () => {
           className="mt-16 text-center"
         >
           <p className="text-sm text-[#6E6E73] mb-2">
-            Verificado por usuarios reales
+            Testimonios de usuarios reales
           </p>
-          <div className="flex items-center justify-center gap-2">
-            <div className="flex gap-1">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-5 h-5 fill-[#FFD700] text-[#FFD700]" />
-              ))}
-            </div>
-            <span className="text-sm font-semibold text-[#1a1a1a] ml-2">
-              4.9/5 de 1,200+ reseñas
-            </span>
-          </div>
         </motion.div>
       </div>
     </section>

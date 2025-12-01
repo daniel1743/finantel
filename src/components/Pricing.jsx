@@ -18,8 +18,8 @@ const Pricing = () => {
     <section id="pricing" className="py-32 bg-[#F9FAFB] scroll-mt-20">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-20">
-          <h2 className="text-4xl font-bold text-[#1a1a1a] mb-4">Inversión transparente</h2>
-          <p className="text-xl text-[#6E6E73]">Comienza gratis, escala cuando lo necesites.</p>
+          <h2 className="text-4xl font-bold text-[#1a1a1a] mb-4">Precios simples</h2>
+          <p className="text-xl text-[#6E6E73]">Comienza gratis. Actualiza cuando lo necesites.</p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
@@ -38,7 +38,7 @@ const Pricing = () => {
                 <span className="text-4xl font-bold text-[#1a1a1a] group-hover:text-[#1C8FA0] transition-colors">$0</span>
                 <span className="text-[#6E6E73]">/mes</span>
               </div>
-              <p className="text-[#6E6E73] mb-8 text-sm">Para individuos que quieren claridad básica.</p>
+              <p className="text-[#6E6E73] mb-8 text-sm">Para empezar a ordenar tus finanzas.</p>
               <Button 
                 onClick={() => handlePlanClick('Starter')} 
                 variant="outline" 
@@ -85,7 +85,7 @@ const Pricing = () => {
                 <span className="text-5xl font-bold text-white group-hover:text-[#1C8FA0] transition-colors">$9</span>
                 <span className="text-gray-400">/mes</span>
               </div>
-              <p className="text-gray-400 mb-8 text-sm group-hover:text-gray-300 transition-colors">Potencia total para tus finanzas personales.</p>
+              <p className="text-gray-400 mb-8 text-sm group-hover:text-gray-300 transition-colors">Para quienes quieren análisis más profundos.</p>
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -140,7 +140,7 @@ const Pricing = () => {
                 <span className="text-4xl font-bold text-[#1a1a1a] group-hover:text-[#E47B45] transition-colors">$19</span>
                 <span className="text-[#6E6E73]">/mes</span>
               </div>
-              <p className="text-[#6E6E73] mb-8 text-sm">Gestión colaborativa para el hogar.</p>
+              <p className="text-[#6E6E73] mb-8 text-sm">Para familias que quieren gestionar gastos juntos.</p>
               <Button 
                 onClick={() => handlePlanClick('Family')} 
                 variant="outline" 

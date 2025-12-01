@@ -26,7 +26,7 @@ const WhyFinantel = () => {
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-20">
           <h2 className="text-sm font-bold text-[#1C8FA0] tracking-widest uppercase mb-3">Por qué Finantel</h2>
-          <p className="text-3xl md:text-4xl font-bold text-[#1a1a1a]">Redefiniendo la gestión personal</p>
+          <p className="text-3xl md:text-4xl font-bold text-[#1a1a1a]">Finanzas personales simples y en tu idioma</p>
         </div>
         
         <div className="grid md:grid-cols-3 gap-12">

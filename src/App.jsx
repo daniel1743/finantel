@@ -23,6 +23,16 @@ const Onboarding = lazy(() => import('@/pages/Onboarding'));
 const PricingPage = lazy(() => import('@/pages/PricingPage'));
 const Transparency = lazy(() => import('@/pages/legal/Transparency'));
 
+// Footer Pages
+const Caracteristicas = lazy(() => import('@/pages/Caracteristicas'));
+const Seguridad = lazy(() => import('@/pages/Seguridad'));
+const Precios = lazy(() => import('@/pages/Precios'));
+const Roadmap = lazy(() => import('@/pages/Roadmap'));
+const SobreNosotros = lazy(() => import('@/pages/SobreNosotros'));
+const Carreras = lazy(() => import('@/pages/Carreras'));
+const Blog = lazy(() => import('@/pages/Blog'));
+const Contacto = lazy(() => import('@/pages/Contacto'));
+
 const DashboardLayout = lazy(() => import('@/pages/Dashboard'));
 const DashboardHome = lazy(() => import('@/pages/dashboard/DashboardHome'));
 const Overview = lazy(() => import('@/pages/dashboard/Overview'));
@@ -50,6 +60,7 @@ const Billing = lazy(() => import('@/pages/dashboard/Billing'));
 const AIPlanner = lazy(() => import('@/pages/dashboard/AIPlanner'));
 const FutureSelf = lazy(() => import('@/pages/dashboard/FutureSelf'));
 const DeepFinance = lazy(() => import('@/pages/dashboard/DeepFinance'));
+const DeepFinanceAnalysis = lazy(() => import('@/pages/dashboard/DeepFinanceAnalysis'));
 
 const PageLoader = () => (
   <div className="h-screen w-full flex items-center justify-center bg-[#F5F7F9] dark:bg-[#0f0f11]">
@@ -81,11 +92,21 @@ function App() {
                       <Routes>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/pricing" element={<PricingPage />} />
-                          <Route path="/legal/transparencia" element={<Transparency />} />
+                  <Route path="/legal/transparencia" element={<Transparency />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/login" element={<Navigate to="/auth" replace />} />
                   <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route path="/onboarding" element={<Onboarding />} />
+                  
+                  {/* Footer Pages */}
+                  <Route path="/caracteristicas" element={<Caracteristicas />} />
+                  <Route path="/seguridad" element={<Seguridad />} />
+                  <Route path="/precios" element={<Precios />} />
+                  <Route path="/roadmap" element={<Roadmap />} />
+                  <Route path="/sobre-nosotros" element={<SobreNosotros />} />
+                  <Route path="/carreras" element={<Carreras />} />
+                  <Route path="/blog" element={<Blog />} />
+                  <Route path="/contacto" element={<Contacto />} />
                   
                   {/* Protected Dashboard Routes */}
                   <Route path="/dashboard" element={
@@ -113,6 +134,7 @@ function App() {
                     } />
                     <Route path="analysis" element={<Analysis />} />
                     <Route path="deepfinance" element={<DeepFinance />} />
+                    <Route path="deepfinance-analysis" element={<DeepFinanceAnalysis />} />
                     <Route path="shared" element={
                       <ProtectedFamilyRoute featureName="Gastos Compartidos">
                         <SharedExpenses />

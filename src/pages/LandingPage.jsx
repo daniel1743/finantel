@@ -2,17 +2,15 @@
 import React from 'react';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
-import UserStats from '@/components/UserStats';
-import BrandsScroll from '@/components/BrandsScroll';
-import WhyFinantel from '@/components/WhyFinantel';
-import UniqueValue from '@/components/UniqueValue';
-import Features from '@/components/Features';
+import Benefits from '@/components/Benefits';
+import WhyDifferent from '@/components/WhyDifferent';
+import FounderSection from '@/components/FounderSection';
+import RealNumbers from '@/components/RealNumbers';
 import Testimonials from '@/components/Testimonials';
-import LimitedOffer from '@/components/LimitedOffer';
 import Pricing from '@/components/Pricing';
+import PrivacyFirst from '@/components/PrivacyFirst';
 import Footer from '@/components/Footer';
 import FloatingCTA from '@/components/FloatingCTA';
-import RecentUsersCounter from '@/components/RecentUsersCounter';
 
 const LandingPage = () => {
   return (
@@ -20,18 +18,16 @@ const LandingPage = () => {
       <Header />
       <main>
         <Hero />
-        <UserStats />
-        <BrandsScroll />
-        <Features />
-        <WhyFinantel />
-        <UniqueValue />
+        <Benefits />
+        <WhyDifferent />
+        <FounderSection />
+        <RealNumbers />
         <Testimonials />
-        <LimitedOffer />
         <Pricing />
+        <PrivacyFirst />
       </main>
       <Footer />
       <FloatingCTA />
-      <RecentUsersCounter />
     </>
   );
 };
