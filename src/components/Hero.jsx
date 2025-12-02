@@ -94,9 +94,9 @@ const Hero = () => {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="flex flex-col sm:flex-row gap-4 pt-4"
             >
-              <Button 
+              <Button
                 onClick={handleCTAClick}
-                className="bg-[#1C8FA0] hover:bg-[#167a8a] text-white text-lg px-8 py-7 h-auto rounded-full shadow-xl shadow-[#1C8FA0]/20 transition-all hover:shadow-[#1C8FA0]/30 hover:-translate-y-1"
+                className="bg-[#1C8FA0] hover:bg-[#167a8a] text-white text-base px-8 py-3.5 h-auto rounded-full shadow-xl shadow-[#1C8FA0]/20 transition-all hover:shadow-[#1C8FA0]/30 hover:-translate-y-1 font-medium"
               >
                 Comenzar Gratis
                 <ArrowRight className="ml-2 w-5 h-5" />

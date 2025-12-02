@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import Sidebar from '@/components/Sidebar';
+import SidebarMUI from '@/components/SidebarMUI';
 import DashboardTopNav from '@/components/DashboardTopNav';
 
 const DashboardLayout = () => {
@@ -9,7 +9,7 @@ const DashboardLayout = () => {
 
   return (
     <div className="flex h-screen bg-[#F5F7F9] dark:bg-[#0f0f11] overflow-hidden transition-colors duration-300">
-      <Sidebar isMobileOpen={isMobileOpen} setIsMobileOpen={setIsMobileOpen} />
+      <SidebarMUI isMobileOpen={isMobileOpen} setIsMobileOpen={setIsMobileOpen} />
       
       <div className="flex-1 flex flex-col overflow-hidden relative">
         <DashboardTopNav onMenuClick={() => setIsMobileOpen(true)} />

@@ -71,9 +71,9 @@ const KPICard = ({ title, value, subtitle, trend, trendValue, trendUp, icon: Ico
           {trendValue}
           </div>
             </div>
-      <h3 className="text-[#6E6E73] dark:text-gray-400 text-sm font-medium mb-1">{title}</h3>
-      <p className="text-3xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight'] tracking-tight mb-1">{value}</p>
-      {subtitle && <p className="text-xs text-[#6E6E73] dark:text-gray-400">{subtitle}</p>}
+      <h3 className="text-[#6E6E73] dark:text-gray-400 text-sm font-medium mb-2 break-words whitespace-normal leading-tight">{title}</h3>
+      <p className="text-2xl font-bold text-[#1a1a1a] dark:text-white font-mono tracking-normal mb-2 break-words whitespace-normal leading-tight" style={{ letterSpacing: '0.02em' }}>{value}</p>
+      {subtitle && <p className="text-xs text-[#6E6E73] dark:text-gray-400 break-words whitespace-normal leading-relaxed">{subtitle}</p>}
       
       {/* Mini Sparkline Chart */}
       <div className="h-10 mt-4 flex items-end gap-1">
@@ -1548,9 +1548,32 @@ const DashboardHome = () => {
             </button>
           </div>
         </div>
-        <div className="p-2">
-          {realData.hasData && transactions && transactions.length > 0 ? (
-            transactions.slice(0, 5).map((tx, i) => {
+
+        {/* Contenido dividido en dos columnas: izquierda=Balance+gráfico, derecha=lista */}
+        <div className="p-4 md:p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* IZQUIERDA: Balance Total + gráfico pequeño */}
+            <div className="flex flex-col items-start gap-4">
+              <p className="text-sm font-semibold text-[#6E6E73] dark:text-gray-400 uppercase tracking-wide">Balance Total</p>
+              <div className="text-3xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">{`$${((realData.totalIncome || 0) - (realData.totalExpenses || 0)).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</div>
+              <div className="w-full max-w-xs bg-gray-50 dark:bg-white/5 rounded-lg p-3">
+                <div className="h-20 flex items-end gap-2">
+                  {(realData.monthlyData && realData.monthlyData.length > 0 ? realData.monthlyData : Array.from({length:6},(_,i)=>({value:0}))).map((d, idx) => {
+                    const v = Math.max(0, Math.min(1, d.value || 0));
+                    const heightPerc = Math.max(6, Math.round(v * 100));
+                    return (
+                      <div key={idx} className="flex-1 rounded-t-sm" style={{ height: `${heightPerc}%`, background: 'linear-gradient(180deg,#1C8FA0, #167a8a)' }} />
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* DERECHA: Lista de transacciones */}
+            <div>
+              <div className="space-y-2">
+                {realData.hasData && transactions && transactions.length > 0 ? (
+                  transactions.slice(0, 5).map((tx, i) => {
               const categoryName = tx.categories?.name || 'Sin categoría';
               const categoryIcon = tx.categories?.icon || 'DollarSign';
               const isIncome = tx.type === 'income';
@@ -1596,20 +1619,22 @@ const DashboardHome = () => {
                 transition={{ duration: 0.3, delay: 1.3 + (i * 0.05) }}
                 className="flex items-center justify-between p-4 hover:bg-gray-50/80 dark:hover:bg-white/5 rounded-xl transition-colors group cursor-pointer border-b border-gray-50 dark:border-white/5 last:border-0"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-10 h-10 rounded-full bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform flex-shrink-0">
                     {React.isValidElement(item.icon) 
                       ? item.icon 
                       : React.createElement(item.icon, { className: "w-4 h-4 text-[#6E6E73] dark:text-gray-400" })}
-        </div>
-                  <div>
-                    <p className="text-sm font-bold text-[#1a1a1a] dark:text-white">{item.name}</p>
-                    <p className="text-xs text-[#6E6E73] dark:text-gray-400">{item.category} • {item.date}</p>
-      </div>
+                  </div>
+                  <div className="flex-1 min-w-0 pr-2">
+                    <p className="text-sm font-bold text-[#1a1a1a] dark:text-white break-words whitespace-normal">{item.name}</p>
+                    <p className="text-xs text-[#6E6E73] dark:text-gray-400 break-words whitespace-normal">{item.category} • {item.date}</p>
+                  </div>
                 </div>
-                <span className={`text-sm font-bold font-mono ${item.isIncome ? 'text-green-600 dark:text-green-400' : 'text-[#1a1a1a] dark:text-white'}`}>
-                  {item.amount}
-                </span>
+                <div className="flex-shrink-0 ml-2 text-right">
+                  <span className={`text-sm font-bold font-mono whitespace-nowrap ${item.isIncome ? 'text-green-600 dark:text-green-400' : 'text-[#1a1a1a] dark:text-white'}`}>
+                    {item.amount}
+                  </span>
+                </div>
               </motion.div>
             ))
           ) : (
@@ -1636,49 +1661,53 @@ const DashboardHome = () => {
             description="Ver y gestionar todas tus transacciones"
             icon={DollarSign}
             to="/dashboard/transactions"
-            color="#1C8FA0"
-            delay={1.4}
-          />
-          <QuickAccessCard
-            title="Presupuestos"
-            description="Controla tus gastos y presupuestos"
-            icon={Target}
-            to="/dashboard/budgets"
-            color="#E47B45"
-            delay={1.5}
-          />
-          <QuickAccessCard
-            title="Metas"
-            description="Alcanza tus objetivos financieros"
-            icon={CheckCircle2}
-            to="/dashboard/goals"
-            color="#8B5CF6"
-            delay={1.6}
-          />
-          <QuickAccessCard
-            title="Análisis"
-            description="Obtén insights de tus finanzas"
-            icon={Activity}
-            to="/dashboard/analysis"
-            color="#10B981"
-            delay={1.7}
-          />
+                    return {
+                      icon: IconComponent,
+                      name: tx.description || 'Sin descripción',
+                      category: categoryName,
+                      date: dateStr,
+                      amount: `${isIncome ? '+' : '-'}$${parseFloat(tx.amount || 0).toFixed(2)}`,
+                      isIncome
+                    };
+                  }).map((item, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: 1.3 + (i * 0.05) }}
+                      className="flex flex-col md:flex-row md:items-center justify-between p-4 hover:bg-gray-50/80 dark:hover:bg-white/5 rounded-xl transition-colors group cursor-pointer border-b border-gray-50 dark:border-white/5 last:border-0"
+                    >
+                      <div className="flex items-start md:items-center gap-4 min-w-0">
+                        <div className="w-10 h-10 rounded-full bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform flex-shrink-0">
+                          {React.isValidElement(item.icon)
+                            ? item.icon
+                            : React.createElement(item.icon, { className: "w-4 h-4 text-[#6E6E73] dark:text-gray-400" })}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-[#1a1a1a] dark:text-white md:whitespace-normal truncate md:overflow-visible">{item.name}</p>
+                          <p className="text-xs text-[#6E6E73] dark:text-gray-400 md:whitespace-normal truncate md:overflow-visible">{item.category} • {item.date}</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-2 md:mt-0 md:flex-shrink-0 md:ml-4 md:w-28 md:text-right w-full text-left">
+                        <span className={`text-sm font-bold font-mono ${item.isIncome ? 'text-green-600 dark:text-green-400' : 'text-[#1a1a1a] dark:text-white'}`} style={{whiteSpace: 'nowrap'}}>
+                          {item.amount}
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-[#6E6E73] dark:text-gray-400">
+                    <DollarSign className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No hay transacciones recientes</p>
+                    <p className="text-sm mt-2">Agrega tu primera transacción para comenzar</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </motion.div>
-
-      {/* Floating Action Button - Micrófono */}
-      <motion.button
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20, delay: 1.5 }}
-        onClick={() => {
-          playStartRecordingSound().catch(() => {});
-          setIsVoiceModalOpen(true);
-        }}
-        className="fixed bottom-8 right-8 w-[68px] h-[68px] bg-[#1C8FA0] hover:bg-[#167a8a] text-white rounded-full shadow-[0_20px_40px_-12px_rgba(28,143,160,0.5)] flex items-center justify-center hover:scale-110 transition-all duration-300 z-50 group"
-      >
-        <Mic className="w-8 h-8 group-hover:scale-110 transition-transform duration-300" />
-      </motion.button>
     </div>
   );
 };

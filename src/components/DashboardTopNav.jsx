@@ -76,8 +76,8 @@ const DashboardTopNav = ({ onMenuClick }) => {
   }, [isMenuOpen]);
 
   return (
-    <nav className="sticky top-0 z-30 bg-[#F5F7F9]/80 dark:bg-[#0f0f11]/80 backdrop-blur-xl border-b border-gray-100/50 dark:border-white/5 h-20 px-6 lg:px-8 flex items-center justify-between transition-all duration-300">
-      <div className="flex items-center gap-4">
+    <nav className="sticky top-0 z-30 bg-[#F5F7F9]/80 dark:bg-[#0f0f11]/80 backdrop-blur-xl border-b border-gray-100/50 dark:border-white/5 h-16 sm:h-20 px-4 sm:px-6 lg:px-8 flex items-center justify-between transition-all duration-300">
+      <div className="flex items-center gap-4 min-w-0">
         <button 
           onClick={onMenuClick}
           className="lg:hidden p-2 -ml-2 text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:bg-white dark:hover:bg-white/5 rounded-lg transition-all"
@@ -85,26 +85,26 @@ const DashboardTopNav = ({ onMenuClick }) => {
           <Menu className="w-6 h-6" />
         </button>
         
-        <div className="flex flex-col">
-          <span className="text-xs font-bold text-[#6E6E73] dark:text-gray-500 uppercase tracking-wider">Bienvenido de nuevo</span>
-          <div className="text-lg font-medium text-[#1a1a1a] dark:text-white">
-            Hola, <span className="font-bold">{userName}</span>
+        <div className="flex flex-col min-w-0">
+          <span className="text-xs font-bold text-[#6E6E73] dark:text-gray-500 uppercase tracking-wider truncate">Bienvenido de nuevo</span>
+          <div className="text-lg font-medium text-[#1a1a1a] dark:text-white min-w-0 truncate">
+            Hola,&nbsp;<span className="font-bold truncate">{userName}</span>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-6">
+        <div className="flex items-center gap-3 sm:gap-4">
           <button 
             onClick={toggleTheme}
-            className="p-2 rounded-full bg-white dark:bg-white/5 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 border border-gray-100 dark:border-white/5 text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white"
+            className="p-2 rounded-full bg-white dark:bg-white/5 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 border border-gray-100 dark:border-white/5 text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white flex-shrink-0"
           >
             {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
 
           <button 
             onClick={() => navigate('/dashboard/notifications')}
-            className="relative p-2 rounded-full bg-white dark:bg-white/5 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 group border border-gray-100 dark:border-white/5"
+            className="relative p-2 rounded-full bg-white dark:bg-white/5 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 group border border-gray-100 dark:border-white/5 flex-shrink-0"
           >
             <Bell className="w-5 h-5 text-[#6E6E73] dark:text-gray-400 group-hover:text-[#1a1a1a] dark:group-hover:text-white transition-colors" />
             {/* Mostrar punto rojo solo si hay notificaciones no leídas */}
@@ -120,7 +120,7 @@ const DashboardTopNav = ({ onMenuClick }) => {
                 e.stopPropagation();
                 setIsMenuOpen(!isMenuOpen);
               }}
-              className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1C8FA0] to-[#167a8a] p-[2px] shadow-lg shadow-[#1C8FA0]/20 hover:shadow-[#1C8FA0]/30 transition-all hover:-translate-y-0.5 relative"
+              className="w-10 h-10 min-w-[40px] rounded-full bg-gradient-to-br from-[#1C8FA0] to-[#167a8a] p-[2px] shadow-lg shadow-[#1C8FA0]/20 hover:shadow-[#1C8FA0]/30 transition-all hover:-translate-y-0.5 relative flex-shrink-0"
             >
               <div className="w-full h-full rounded-full bg-white dark:bg-[#1a1a1a] flex items-center justify-center overflow-hidden relative">
                 {userAvatar ? (

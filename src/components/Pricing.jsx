@@ -101,7 +101,7 @@ const Pricing = () => {
                 onClick={() => handlePlanClick('Starter')}
                 disabled={loading === 'Starter'}
                 variant="outline"
-                className="w-full rounded-full py-6 border-2 border-gray-200 hover:border-[#1C8FA0] hover:bg-[#1C8FA0] hover:text-white text-[#1a1a1a] transition-all duration-300 group-hover:shadow-lg group-hover:shadow-[#1C8FA0]/20"
+                className="w-full rounded-full py-3.5 border-2 border-gray-200 hover:border-[#1C8FA0] hover:bg-[#1C8FA0] hover:text-white text-[#1a1a1a] transition-all duration-300 group-hover:shadow-lg group-hover:shadow-[#1C8FA0]/20 font-medium"
               >
                 {loading === 'Starter' ? (
                   <>
@@ -149,7 +149,7 @@ const Pricing = () => {
                 <Button
                   onClick={() => handlePlanClick('Pro')}
                   disabled={loading === 'Pro'}
-                  className="w-full bg-[#1C8FA0] hover:bg-[#167a8a] text-white rounded-full py-6 shadow-lg shadow-[#1C8FA0]/25 group-hover:shadow-[#1C8FA0]/40 group-hover:shadow-2xl transition-all duration-300 relative overflow-hidden"
+                  className="w-full bg-[#1C8FA0] hover:bg-[#167a8a] text-white rounded-full py-3.5 shadow-lg shadow-[#1C8FA0]/25 group-hover:shadow-[#1C8FA0]/40 group-hover:shadow-2xl transition-all duration-300 relative overflow-hidden font-medium"
                 >
                   <span className="relative z-10">
                     {loading === 'Pro' ? (
@@ -205,7 +205,7 @@ const Pricing = () => {
                 onClick={() => handlePlanClick('Family')}
                 disabled={loading === 'Family'}
                 variant="outline"
-                className="w-full rounded-full py-6 border-2 border-gray-200 hover:border-[#E47B45] hover:bg-[#E47B45] hover:text-white text-[#1a1a1a] transition-all duration-300 group-hover:shadow-lg group-hover:shadow-[#E47B45]/20"
+                className="w-full rounded-full py-3.5 border-2 border-gray-200 hover:border-[#E47B45] hover:bg-[#E47B45] hover:text-white text-[#1a1a1a] transition-all duration-300 group-hover:shadow-lg group-hover:shadow-[#E47B45]/20 font-medium"
               >
                 {loading === 'Family' ? (
                   <>

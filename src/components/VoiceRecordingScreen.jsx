@@ -41,8 +41,26 @@ const VoiceRecordingScreen = ({ isOpen, onClose, onTransactionCreated, userId })
       const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setStream(mediaStream);
 
+      // Verificar codecs soportados
+      const mimeTypes = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/ogg;codecs=opus',
+        'audio/mp4',
+        'audio/wav'
+      ];
+      
+      let selectedMimeType = 'audio/webm';
+      for (const mimeType of mimeTypes) {
+        if (MediaRecorder.isTypeSupported(mimeType)) {
+          selectedMimeType = mimeType;
+          console.log('✅ [VoiceRecording] MIME type soportado:', mimeType);
+          break;
+        }
+      }
+
       const mediaRecorder = new MediaRecorder(mediaStream, {
-        mimeType: 'audio/webm;codecs=opus'
+        mimeType: selectedMimeType
       });
 
       mediaRecorderRef.current = mediaRecorder;
@@ -50,13 +68,13 @@ const VoiceRecordingScreen = ({ isOpen, onClose, onTransactionCreated, userId })
 
       const startTime = Date.now();
       console.log('🎤 [VoiceRecording] MediaRecorder creado:', {
-        mimeType: 'audio/webm;codecs=opus',
+        mimeType: selectedMimeType,
         state: mediaRecorder.state,
         timestamp: new Date().toISOString()
       });
 
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
+        if (event.data && event.data.size > 0) {
           audioChunksRef.current.push(event.data);
           console.log('🎤 [VoiceRecording] Chunk de audio recibido:', {
             size: event.data.size,
@@ -64,31 +82,67 @@ const VoiceRecordingScreen = ({ isOpen, onClose, onTransactionCreated, userId })
             chunksAcumulados: audioChunksRef.current.length,
             tiempoGrabacion: ((Date.now() - startTime) / 1000).toFixed(2) + 's'
           });
+        } else {
+          console.warn('⚠️ [VoiceRecording] Chunk vacío recibido');
         }
       };
 
-      mediaRecorder.onstop = async () => {
-        const totalSize = audioChunksRef.current.reduce((sum, chunk) => sum + chunk.size, 0);
-        const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-        console.log('🎤 [VoiceRecording] Grabación detenida:', {
-          duracion: duration + 's',
-          totalChunks: audioChunksRef.current.length,
-          tamañoTotal: totalSize + ' bytes',
-          tamañoFormateado: (totalSize / 1024).toFixed(2) + ' KB'
+      mediaRecorder.onerror = (event) => {
+        console.error('❌ [VoiceRecording] Error en MediaRecorder:', event.error);
+        toast({
+          title: "Error de grabación",
+          description: event.error?.message || "Error al grabar audio",
+          variant: "destructive",
         });
-
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        console.log('🎤 [VoiceRecording] Blob de audio creado:', {
-          size: audioBlob.size,
-          type: audioBlob.type,
-          timestamp: new Date().toISOString()
-        });
-
-        await processAudio(audioBlob);
-        mediaStream.getTracks().forEach(track => track.stop());
       };
 
-      mediaRecorder.start();
+      mediaRecorder.onstop = async () => {
+        try {
+          const totalSize = audioChunksRef.current.reduce((sum, chunk) => sum + chunk.size, 0);
+          const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+          console.log('🎤 [VoiceRecording] Grabación detenida:', {
+            duracion: duration + 's',
+            totalChunks: audioChunksRef.current.length,
+            tamañoTotal: totalSize + ' bytes',
+            tamañoFormateado: (totalSize / 1024).toFixed(2) + ' KB'
+          });
+
+          if (audioChunksRef.current.length === 0) {
+            throw new Error('No se capturó ningún chunk de audio. La grabación está vacía.');
+          }
+
+          if (totalSize === 0) {
+            throw new Error('El audio capturado está vacío (0 bytes).');
+          }
+
+          const audioBlob = new Blob(audioChunksRef.current, { type: selectedMimeType });
+          console.log('🎤 [VoiceRecording] Blob de audio creado:', {
+            size: audioBlob.size,
+            type: audioBlob.type,
+            timestamp: new Date().toISOString()
+          });
+
+          await processAudio(audioBlob);
+        } catch (error) {
+          console.error('❌ [VoiceRecording] Error en onstop:', error);
+          setIsProcessing(false);
+          toast({
+            title: "Error",
+            description: error.message || "Error al procesar la grabación",
+            variant: "destructive",
+          });
+        } finally {
+          // Limpiar stream siempre
+          mediaStream.getTracks().forEach(track => {
+            track.stop();
+            console.log('🛑 [VoiceRecording] Track detenido:', track.kind);
+          });
+        }
+      };
+
+      // Iniciar grabación con timeslice para recibir chunks periódicamente
+      // Esto asegura que recibamos datos incluso si la grabación se detiene abruptamente
+      mediaRecorder.start(1000); // Chunk cada 1 segundo
       setIsRecording(true);
       console.log('🎤 [VoiceRecording] Grabación iniciada, estado:', mediaRecorder.state);
 
@@ -164,11 +218,28 @@ const VoiceRecordingScreen = ({ isOpen, onClose, onTransactionCreated, userId })
       console.log('📡 [VoiceRecording] Enviando audio a Edge Function...');
       const requestStartTime = Date.now();
       
-      const response = await fetch(`${supabaseUrl}/functions/v1/voice-to-transaction`, {
-        method: 'POST',
-        headers,
-        body: formData,
-      });
+      // Timeout de 60 segundos para evitar que se quede colgado
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+      }, 60000); // 60 segundos
+      
+      let response;
+      try {
+        response = await fetch(`${supabaseUrl}/functions/v1/voice-to-transaction`, {
+          method: 'POST',
+          headers,
+          body: formData,
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'AbortError') {
+          throw new Error('La petición tardó demasiado (timeout de 60s). Por favor, intenta de nuevo.');
+        }
+        throw fetchError;
+      }
 
       const requestDuration = ((Date.now() - requestStartTime) / 1000).toFixed(2);
       console.log('📥 [VoiceRecording] Respuesta recibida:', {
@@ -184,7 +255,14 @@ const VoiceRecordingScreen = ({ isOpen, onClose, onTransactionCreated, userId })
         preview: payloadText.substring(0, 200) + (payloadText.length > 200 ? '...' : '')
       });
 
-      const data = payloadText ? JSON.parse(payloadText) : null;
+      let data = null;
+      try {
+        data = payloadText ? JSON.parse(payloadText) : null;
+      } catch (parseError) {
+        console.error('❌ [VoiceRecording] Error parseando JSON:', parseError);
+        console.error('📄 [VoiceRecording] Payload completo:', payloadText);
+        throw new Error(`Error al parsear respuesta del servidor: ${parseError.message}`);
+      }
       console.log('📊 [VoiceRecording] Datos parseados:', {
         success: data?.success,
         hasTranscript: !!data?.transcript,

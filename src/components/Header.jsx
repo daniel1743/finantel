@@ -96,13 +96,13 @@ const Header = () => {
             <Button
               variant="ghost"
               onClick={() => navigate('/auth')}
-              className="text-[#6E6E73] hover:text-[#1C8FA0] hover:bg-transparent font-medium"
+              className="text-[#6E6E73] hover:text-[#1C8FA0] hover:bg-transparent font-medium py-2.5 px-5"
             >
               Iniciar Sesión
             </Button>
             <Button
               onClick={() => navigate('/auth')}
-              className="bg-[#1C8FA0] hover:bg-[#167a8a] text-white rounded-full px-6 font-medium shadow-lg shadow-[#1C8FA0]/20 transition-all hover:shadow-[#1C8FA0]/30 hover:-translate-y-0.5"
+              className="bg-[#1C8FA0] hover:bg-[#167a8a] text-white rounded-full px-6 py-2.5 font-medium shadow-lg shadow-[#1C8FA0]/20 transition-all hover:shadow-[#1C8FA0]/30 hover:-translate-y-0.5"
             >
               Comenzar Gratis
             </Button>
@@ -183,7 +183,7 @@ const Header = () => {
                       navigate('/auth');
                       setMobileMenuOpen(false);
                     }}
-                    className="w-full rounded-full py-6 border-2 border-gray-200 hover:border-[#1C8FA0] hover:bg-[#1C8FA0] hover:text-white text-[#1a1a1a] font-medium"
+                    className="w-full rounded-full py-3 border-2 border-gray-200 hover:border-[#1C8FA0] hover:bg-[#1C8FA0] hover:text-white text-[#1a1a1a] font-medium"
                   >
                     Iniciar Sesión
                   </Button>
@@ -192,7 +192,7 @@ const Header = () => {
                       navigate('/auth');
                       setMobileMenuOpen(false);
                     }}
-                    className="w-full bg-[#1C8FA0] hover:bg-[#167a8a] text-white rounded-full py-6 font-medium shadow-lg shadow-[#1C8FA0]/20"
+                    className="w-full bg-[#1C8FA0] hover:bg-[#167a8a] text-white rounded-full py-3 font-medium shadow-lg shadow-[#1C8FA0]/20"
                   >
                     Comenzar Gratis
                   </Button>

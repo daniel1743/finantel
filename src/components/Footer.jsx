@@ -148,7 +148,7 @@ const Footer = () => {
               <Button
                 type="submit"
                 disabled={loading || subscribed}
-                className="w-full bg-[#1a1a1a] dark:bg-white hover:bg-black dark:hover:bg-gray-100 text-white dark:text-[#1a1a1a] rounded-xl py-6"
+                className="w-full bg-[#1a1a1a] dark:bg-white hover:bg-black dark:hover:bg-gray-100 text-white dark:text-[#1a1a1a] rounded-xl py-3"
               >
                 {loading ? (
                   <>
