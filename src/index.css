@@ -119,22 +119,24 @@ h1, h2, h3, h4, h5, h6 {
   font-family: 'Inter Tight', sans-serif;
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Oculto pero funcional */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 0px;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 5px;
+  background: transparent;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+/* Firefox - Ocultar scrollbar pero mantener scroll */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
 }
 
 /* Dropdown styles - Esquinas redondeadas y responsive */

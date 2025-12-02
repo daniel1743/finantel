@@ -80,36 +80,29 @@ const DashboardTopNav = ({ onMenuClick }) => {
       <div className="flex items-center gap-4 min-w-0">
         <button 
           onClick={onMenuClick}
-          className="lg:hidden p-2 -ml-2 text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:bg-white dark:hover:bg-white/5 rounded-lg transition-all"
+          className="lg:hidden p-1 rounded-full border border-transparent hover:border-gray-100 dark:hover:border-white/5 hover:bg-white dark:hover:bg-white/5 transition-all hover:-translate-y-0.5 hover:shadow-md text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white flex-shrink-0"
         >
-          <Menu className="w-6 h-6" />
+          <Menu className="w-3 h-3" />
         </button>
-        
-        <div className="flex flex-col min-w-0">
-          <span className="text-xs font-bold text-[#6E6E73] dark:text-gray-500 uppercase tracking-wider truncate">Bienvenido de nuevo</span>
-          <div className="text-lg font-medium text-[#1a1a1a] dark:text-white min-w-0 truncate">
-            Hola,&nbsp;<span className="font-bold truncate">{userName}</span>
-          </div>
-        </div>
       </div>
 
       <div className="flex items-center gap-3 sm:gap-6">
         <div className="flex items-center gap-3 sm:gap-4">
           <button 
             onClick={toggleTheme}
-            className="p-2 rounded-full bg-white dark:bg-white/5 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 border border-gray-100 dark:border-white/5 text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white flex-shrink-0"
+            className="p-1 rounded-full border border-transparent hover:border-gray-100 dark:hover:border-white/5 hover:bg-white dark:hover:bg-white/5 transition-all hover:-translate-y-0.5 hover:shadow-md text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white flex-shrink-0"
           >
-            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            {theme === 'dark' ? <Sun className="w-3 h-3" /> : <Moon className="w-3 h-3" />}
           </button>
 
           <button 
             onClick={() => navigate('/dashboard/notifications')}
-            className="relative p-2 rounded-full bg-white dark:bg-white/5 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 group border border-gray-100 dark:border-white/5 flex-shrink-0"
+            className="relative p-1 rounded-full border border-transparent hover:border-gray-100 dark:hover:border-white/5 hover:bg-white dark:hover:bg-white/5 transition-all hover:-translate-y-0.5 hover:shadow-md group flex-shrink-0"
           >
-            <Bell className="w-5 h-5 text-[#6E6E73] dark:text-gray-400 group-hover:text-[#1a1a1a] dark:group-hover:text-white transition-colors" />
+            <Bell className="w-3 h-3 text-[#6E6E73] dark:text-gray-400 group-hover:text-[#1a1a1a] dark:group-hover:text-white transition-colors" />
             {/* Mostrar punto rojo solo si hay notificaciones no leídas */}
             {unreadCount > 0 && (
-              <span className="absolute top-2 right-2 w-2 h-2 bg-[#E47B45] rounded-full border-2 border-white dark:border-[#1a1a1a]" />
+              <span className="absolute top-1.5 right-1.5 w-1 h-1 bg-[#E47B45] rounded-full border border-white dark:border-[#1a1a1a]" />
             )}
           </button>
           
@@ -120,7 +113,7 @@ const DashboardTopNav = ({ onMenuClick }) => {
                 e.stopPropagation();
                 setIsMenuOpen(!isMenuOpen);
               }}
-              className="w-10 h-10 min-w-[40px] rounded-full bg-gradient-to-br from-[#1C8FA0] to-[#167a8a] p-[2px] shadow-lg shadow-[#1C8FA0]/20 hover:shadow-[#1C8FA0]/30 transition-all hover:-translate-y-0.5 relative flex-shrink-0"
+              className="w-10 h-10 min-w-[40px] rounded-full bg-gradient-to-br from-[#1C8FA0] to-[#167a8a] p-[2px] shadow-lg shadow-[#1C8FA0]/30 hover:shadow-[#1C8FA0]/40 transition-all hover:-translate-y-0.5 relative flex-shrink-0 ring-2 ring-[#1C8FA0]/60"
             >
               <div className="w-full h-full rounded-full bg-white dark:bg-[#1a1a1a] flex items-center justify-center overflow-hidden relative">
                 {userAvatar ? (
@@ -142,15 +135,15 @@ const DashboardTopNav = ({ onMenuClick }) => {
                   {userName.charAt(0).toUpperCase()}
                 </span>
               </div>
-              {/* Bandera en la esquina inferior derecha */}
+              {/* Bandera en la esquina inferior derecha - Badge verificador pequeño con anillo dorado */}
               {countryCode && (
-                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-white dark:bg-[#1a1a1a] border-2 border-[#1C8FA0] flex items-center justify-center overflow-hidden shadow-sm z-10">
+                <div className="absolute -bottom-0.5 -right-0.5 rounded-full bg-white dark:bg-[#1a1a1a] border border-amber-400 flex items-center justify-center overflow-hidden shadow-sm z-10 ring-1 ring-amber-400/60" style={{ width: '12.54px', height: '12.54px' }}>
                   <ReactCountryFlag
                     countryCode={countryCode}
                     svg
                     style={{
-                      width: '12px',
-                      height: '12px',
+                      width: '7.31px',
+                      height: '7.31px',
                       objectFit: 'cover',
                     }}
                     title={`${currency || 'USD'}`}

@@ -1644,6 +1644,9 @@ const DashboardHome = () => {
               <p className="text-sm mt-2">Agrega tu primera transacción para comenzar</p>
             </div>
           )}
+            </div>
+          </div>
+        </div>
         </div>
       </motion.div>
 
@@ -1661,51 +1664,7 @@ const DashboardHome = () => {
             description="Ver y gestionar todas tus transacciones"
             icon={DollarSign}
             to="/dashboard/transactions"
-                    return {
-                      icon: IconComponent,
-                      name: tx.description || 'Sin descripción',
-                      category: categoryName,
-                      date: dateStr,
-                      amount: `${isIncome ? '+' : '-'}$${parseFloat(tx.amount || 0).toFixed(2)}`,
-                      isIncome
-                    };
-                  }).map((item, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: 1.3 + (i * 0.05) }}
-                      className="flex flex-col md:flex-row md:items-center justify-between p-4 hover:bg-gray-50/80 dark:hover:bg-white/5 rounded-xl transition-colors group cursor-pointer border-b border-gray-50 dark:border-white/5 last:border-0"
-                    >
-                      <div className="flex items-start md:items-center gap-4 min-w-0">
-                        <div className="w-10 h-10 rounded-full bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform flex-shrink-0">
-                          {React.isValidElement(item.icon)
-                            ? item.icon
-                            : React.createElement(item.icon, { className: "w-4 h-4 text-[#6E6E73] dark:text-gray-400" })}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-[#1a1a1a] dark:text-white md:whitespace-normal truncate md:overflow-visible">{item.name}</p>
-                          <p className="text-xs text-[#6E6E73] dark:text-gray-400 md:whitespace-normal truncate md:overflow-visible">{item.category} • {item.date}</p>
-                        </div>
-                      </div>
-
-                      <div className="mt-2 md:mt-0 md:flex-shrink-0 md:ml-4 md:w-28 md:text-right w-full text-left">
-                        <span className={`text-sm font-bold font-mono ${item.isIncome ? 'text-green-600 dark:text-green-400' : 'text-[#1a1a1a] dark:text-white'}`} style={{whiteSpace: 'nowrap'}}>
-                          {item.amount}
-                        </span>
-                      </div>
-                    </motion.div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-[#6E6E73] dark:text-gray-400">
-                    <DollarSign className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No hay transacciones recientes</p>
-                    <p className="text-sm mt-2">Agrega tu primera transacción para comenzar</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          />
         </div>
       </motion.div>
     </div>
