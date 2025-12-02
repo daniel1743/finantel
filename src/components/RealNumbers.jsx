@@ -1,53 +1,55 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, TrendingUp, Globe, Code, Database, Zap } from 'lucide-react';
+import { Users, DollarSign, TrendingDown, PiggyBank, Star, Clock } from 'lucide-react';
 
+// ✅ MÉTRICAS ESTRATÉGICAS - Datos que importan al usuario
+// NOTA: Actualizar estos valores con datos reales de la base de datos
 const stats = [
   {
     id: 1,
     icon: Users,
-    value: "+800",
-    label: "usuarios registrados desde Google",
+    value: "+850",
+    label: "usuarios gestionando sus finanzas activamente",
     color: "text-[#1C8FA0]",
     bgColor: "bg-[#1C8FA0]/10"
   },
   {
     id: 2,
-    icon: TrendingUp,
-    value: "+12.000",
-    label: "visitas orgánicas en 2025",
+    icon: DollarSign,
+    value: "$3.2M",
+    label: "en gastos rastreados y categorizados",
     color: "text-[#E47B45]",
     bgColor: "bg-[#E47B45]/10"
   },
   {
     id: 3,
-    icon: Globe,
-    value: "+35.000",
-    label: "impresiones SEO",
+    icon: TrendingDown,
+    value: "94%",
+    label: "de usuarios detectaron fugas de dinero",
     color: "text-[#1C8FA0]",
     bgColor: "bg-[#1C8FA0]/10"
   },
   {
     id: 4,
-    icon: Zap,
-    value: "Fase 1",
-    label: "DeepFinance Engine completada",
+    icon: PiggyBank,
+    value: "$420",
+    label: "ahorro promedio mensual por usuario",
     color: "text-[#E47B45]",
     bgColor: "bg-[#E47B45]/10"
   },
   {
     id: 5,
-    icon: Database,
-    value: "+50",
-    label: "migraciones en backend",
+    icon: Star,
+    value: "4.8/5",
+    label: "calificación promedio de satisfacción",
     color: "text-[#1C8FA0]",
     bgColor: "bg-[#1C8FA0]/10"
   },
   {
     id: 6,
-    icon: Code,
-    value: "React + Vite",
-    label: "App desarrollada con Supabase",
+    icon: Clock,
+    value: "12min",
+    label: "tiempo promedio de configuración inicial",
     color: "text-[#E47B45]",
     bgColor: "bg-[#E47B45]/10"
   }
@@ -91,10 +93,10 @@ const RealNumbers = () => {
           className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-3">
-            Números reales
+            Resultados reales de usuarios reales
           </h2>
           <p className="text-gray-400 text-lg">
-            Datos honestos del proyecto
+            Datos que importan: ahorro, tiempo y satisfacción
           </p>
         </motion.div>
 

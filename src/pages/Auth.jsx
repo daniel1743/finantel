@@ -52,7 +52,8 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const { error } = await signIn(formData.email, formData.password);
+        // Pasar el parámetro rememberMe al signIn
+        const { error } = await signIn(formData.email, formData.password, rememberMe);
         if (error) throw error;
         navigate(from, { replace: true });
       } else {
@@ -225,7 +226,12 @@ const Auth = () => {
                   type="checkbox"
                   id="rememberMe"
                   checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
+                  onChange={(e) => {
+                    const newValue = e.target.checked;
+                    setRememberMe(newValue);
+                    // Mostrar feedback visual
+                    console.log(`✅ Mantener sesión: ${newValue ? 'ACTIVADO (no pedirá credenciales al volver)' : 'DESACTIVADO (pedirá credenciales al cerrar navegador)'}`);
+                  }}
                   className="w-4 h-4 rounded border-gray-300 text-[#1C8FA0] focus:ring-[#1C8FA0] cursor-pointer"
                 />
                 <label htmlFor="rememberMe" className="text-xs font-medium text-[#6E6E73] cursor-pointer select-none">

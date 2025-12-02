@@ -257,6 +257,21 @@ export default defineConfig({
 			'Cross-Origin-Embedder-Policy': 'credentialless',
 		},
 		allowedHosts: true,
+		hmr: {
+			overlay: false
+		}
+	},
+	optimizeDeps: {
+		include: [
+			'react',
+			'react-dom',
+			'react-router-dom',
+			'react-country-flag',
+			'@supabase/supabase-js',
+			'lucide-react'
+		],
+		exclude: [],
+		force: false
 	},
 	resolve: {
 		extensions: ['.jsx', '.js', '.tsx', '.ts', '.json', ],

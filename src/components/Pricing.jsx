@@ -1,17 +1,75 @@
-import React from 'react';
-import { Check, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { Check, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { supabase } from '@/lib/supabaseClient';
+
+// ✅ CHECKOUT FUNCIONAL CON STRIPE
+// NOTA: Configurar STRIPE_SECRET_KEY en Supabase Edge Functions
+// NOTA: Crear productos y precios en Stripe Dashboard
+const PRICE_IDS = {
+  starter: null, // Free plan
+  pro: 'price_xxxxxxxxxxxxx', // ⚠️ Reemplazar con Price ID real de Stripe
+  family: 'price_yyyyyyyyyyyyy' // ⚠️ Reemplazar con Price ID real de Stripe
+};
 
 const Pricing = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(null);
 
-  const handlePlanClick = (plan) => {
-    toast({
-      title: `Seleccionaste ${plan}`,
-      description: "Te redirigiremos al proceso de pago seguro.",
-    });
+  const handlePlanClick = async (planId) => {
+    setLoading(planId);
+
+    try {
+      // Si no está autenticado, redirigir a auth con el plan seleccionado
+      if (!user) {
+        navigate('/auth', { state: { selectedPlan: planId } });
+        setLoading(null);
+        return;
+      }
+
+      // Si es plan starter (free), ir directo a onboarding/dashboard
+      if (planId === 'starter') {
+        navigate('/dashboard');
+        toast({
+          title: "¡Bienvenido a Finantel!",
+          description: "Plan Starter activado. Comienza a registrar tus gastos.",
+        });
+        setLoading(null);
+        return;
+      }
+
+      // Crear checkout session (Mercado Pago o Stripe)
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: {
+          planId: planId.toLowerCase(),
+          provider: 'mercadopago' // Cambiar a 'stripe' cuando esté configurado
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        // Redirigir a checkout (Mercado Pago o Stripe)
+        window.location.href = data.url;
+      } else {
+        throw new Error('No se recibió URL de checkout');
+      }
+
+    } catch (error) {
+      console.error('Error al procesar checkout:', error);
+      toast({
+        title: "Error al procesar pago",
+        description: error.message || "No pudimos iniciar el proceso de pago. Por favor intenta nuevamente.",
+        variant: "destructive"
+      });
+      setLoading(null);
+    }
   };
 
   return (
@@ -39,12 +97,20 @@ const Pricing = () => {
                 <span className="text-[#6E6E73]">/mes</span>
               </div>
               <p className="text-[#6E6E73] mb-8 text-sm">Para empezar a ordenar tus finanzas.</p>
-              <Button 
-                onClick={() => handlePlanClick('Starter')} 
-                variant="outline" 
+              <Button
+                onClick={() => handlePlanClick('Starter')}
+                disabled={loading === 'Starter'}
+                variant="outline"
                 className="w-full rounded-full py-6 border-2 border-gray-200 hover:border-[#1C8FA0] hover:bg-[#1C8FA0] hover:text-white text-[#1a1a1a] transition-all duration-300 group-hover:shadow-lg group-hover:shadow-[#1C8FA0]/20"
               >
-                Comenzar Gratis
+                {loading === 'Starter' ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Procesando...
+                  </>
+                ) : (
+                  'Comenzar Gratis'
+                )}
               </Button>
               <ul className="mt-8 space-y-4">
                 {['Gastos ilimitados', '5 categorías', 'Exportación básica'].map((item) => (
@@ -90,17 +156,29 @@ const Pricing = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Button 
-                  onClick={() => handlePlanClick('Pro')} 
+                <Button
+                  onClick={() => handlePlanClick('Pro')}
+                  disabled={loading === 'Pro'}
                   className="w-full bg-[#1C8FA0] hover:bg-[#167a8a] text-white rounded-full py-6 shadow-lg shadow-[#1C8FA0]/25 group-hover:shadow-[#1C8FA0]/40 group-hover:shadow-2xl transition-all duration-300 relative overflow-hidden"
                 >
-                  <span className="relative z-10">Obtener Pro</span>
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                    initial={{ x: '-100%' }}
-                    whileHover={{ x: '100%' }}
-                    transition={{ duration: 0.6 }}
-                  />
+                  <span className="relative z-10">
+                    {loading === 'Pro' ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
+                        Procesando...
+                      </>
+                    ) : (
+                      'Obtener Pro'
+                    )}
+                  </span>
+                  {!loading && (
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                      initial={{ x: '-100%' }}
+                      whileHover={{ x: '100%' }}
+                      transition={{ duration: 0.6 }}
+                    />
+                  )}
                 </Button>
               </motion.div>
               <ul className="mt-8 space-y-4">
@@ -141,12 +219,20 @@ const Pricing = () => {
                 <span className="text-[#6E6E73]">/mes</span>
               </div>
               <p className="text-[#6E6E73] mb-8 text-sm">Para familias que quieren gestionar gastos juntos.</p>
-              <Button 
-                onClick={() => handlePlanClick('Family')} 
-                variant="outline" 
+              <Button
+                onClick={() => handlePlanClick('Family')}
+                disabled={loading === 'Family'}
+                variant="outline"
                 className="w-full rounded-full py-6 border-2 border-gray-200 hover:border-[#E47B45] hover:bg-[#E47B45] hover:text-white text-[#1a1a1a] transition-all duration-300 group-hover:shadow-lg group-hover:shadow-[#E47B45]/20"
               >
-                Contactar Ventas
+                {loading === 'Family' ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Procesando...
+                  </>
+                ) : (
+                  'Obtener Family'
+                )}
               </Button>
               <ul className="mt-8 space-y-4">
                 {['Todo en Pro', 'Hasta 5 miembros', 'Presupuestos compartidos', 'Roles y permisos', 'Asesor financiero IA'].map((item) => (

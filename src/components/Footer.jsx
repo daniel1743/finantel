@@ -1,19 +1,64 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import { Twitter, Instagram, Linkedin } from 'lucide-react';
+import { Twitter, Instagram, Linkedin, Loader2, Check } from 'lucide-react';
+import { supabase } from '@/lib/supabaseClient';
 
 const Footer = () => {
   const { toast } = useToast();
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
 
-  const handleNewsletterSubmit = (e) => {
+  const handleNewsletterSubmit = async (e) => {
     e.preventDefault();
-    toast({
-      title: "¡Suscrito!",
-      description: "Gracias por unirte a nuestra newsletter exclusiva.",
-    });
+    setLoading(true);
+
+    try {
+      // Guardar en Supabase
+      const { data, error } = await supabase
+        .from('newsletter_subscribers')
+        .insert({
+          email,
+          source: 'landing_footer',
+          confirmed: false
+        })
+        .select()
+        .single();
+
+      if (error) {
+        // Error de email duplicado
+        if (error.code === '23505') {
+          toast({
+            title: "Ya estás suscrito",
+            description: "Este email ya está en nuestra lista de suscriptores.",
+          });
+          setLoading(false);
+          return;
+        }
+        throw error;
+      }
+
+      // Éxito
+      setSubscribed(true);
+      toast({
+        title: "¡Suscrito exitosamente!",
+        description: "Revisa tu email para confirmar tu suscripción.",
+      });
+      setEmail('');
+
+    } catch (error) {
+      console.error('Error al suscribir:', error);
+      toast({
+        title: "Error",
+        description: "No pudimos suscribirte. Por favor intenta nuevamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -69,13 +114,33 @@ const Footer = () => {
               Enviamos máximo 1 correo por semana.
             </p>
             <form onSubmit={handleNewsletterSubmit} className="space-y-3">
-              <input 
-                type="email" 
-                placeholder="tu@email.com" 
-                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#0f0f11] border-none focus:ring-2 focus:ring-[#1C8FA0]/20 text-sm outline-none transition-all"
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="tu@email.com"
+                required
+                disabled={loading || subscribed}
+                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#0f0f11] border-none focus:ring-2 focus:ring-[#1C8FA0]/20 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               />
-              <Button type="submit" className="w-full bg-[#1a1a1a] dark:bg-white hover:bg-black dark:hover:bg-gray-100 text-white dark:text-[#1a1a1a] rounded-xl py-6">
-                Suscribirse
+              <Button
+                type="submit"
+                disabled={loading || subscribed}
+                className="w-full bg-[#1a1a1a] dark:bg-white hover:bg-black dark:hover:bg-gray-100 text-white dark:text-[#1a1a1a] rounded-xl py-6"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Suscribiendo...
+                  </>
+                ) : subscribed ? (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    ¡Suscrito!
+                  </>
+                ) : (
+                  'Suscribirse'
+                )}
               </Button>
             </form>
           </div>

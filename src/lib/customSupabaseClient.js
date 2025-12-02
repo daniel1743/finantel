@@ -13,14 +13,45 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Variables de entorno de Supabase no configuradas. Por favor, crea un archivo .env con VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY');
 }
 
+// ✅ Storage Adapter Dinámico para "Mantener Sesión Activa"
+// Usa localStorage cuando rememberMe=true, sessionStorage cuando rememberMe=false
+const createDynamicStorage = () => {
+  return {
+    getItem: (key) => {
+      // Primero intentar localStorage, luego sessionStorage
+      return window.localStorage.getItem(key) || window.sessionStorage.getItem(key);
+    },
+    setItem: (key, value) => {
+      // Verificar preferencia de "mantener sesión"
+      const rememberMe = window.localStorage.getItem('finantel_remember_me') !== 'false';
+
+      if (rememberMe) {
+        // Persistir en localStorage (permanente)
+        window.localStorage.setItem(key, value);
+        // Limpiar de sessionStorage si existe
+        window.sessionStorage.removeItem(key);
+      } else {
+        // Usar sessionStorage (se borra al cerrar pestaña)
+        window.sessionStorage.setItem(key, value);
+        // Limpiar de localStorage si existe
+        window.localStorage.removeItem(key);
+      }
+    },
+    removeItem: (key) => {
+      // Remover de ambos storages
+      window.localStorage.removeItem(key);
+      window.sessionStorage.removeItem(key);
+    },
+  };
+};
+
 // Configurar cliente con opciones para manejo de tokens
-// Usamos localStorage siempre, pero podemos limpiar la sesión según la preferencia del usuario
 const customSupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true, // Refrescar tokens automáticamente
-    persistSession: true, // Persistir sesión en localStorage
+    persistSession: true, // Persistir sesión
     detectSessionInUrl: true, // Detectar sesión en URL (para callbacks)
-    storage: window.localStorage, // Usar localStorage para persistencia
+    storage: createDynamicStorage(), // ✅ Usar storage dinámico
     flowType: 'pkce', // Usar PKCE flow para mejor seguridad
   },
   realtime: {

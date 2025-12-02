@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { User } from 'lucide-react';
+import { User, Linkedin, Twitter, Mail } from 'lucide-react';
 
 const FounderSection = () => {
   return (
@@ -20,21 +20,53 @@ const FounderSection = () => {
           </div>
 
           <div className="flex flex-col md:flex-row gap-12 items-start">
-            {/* Foto del fundador */}
+            {/* Foto del fundador + Redes Sociales */}
             <div className="flex-shrink-0 mx-auto md:mx-0">
-              <img
-                src="/daniel_falcon.jpg"
-                alt="Daniel Falcon - Fundador de Finantel"
-                className="w-48 h-48 rounded-2xl object-cover shadow-lg"
-                onError={(e) => {
-                  // Si la imagen no existe, mostrar placeholder
-                  e.target.style.display = 'none';
-                  e.target.nextElementSibling.style.display = 'flex';
-                }}
-              />
-              <div className="w-48 h-48 rounded-2xl bg-gradient-to-br from-[#1C8FA0]/20 to-[#E47B45]/20 flex items-center justify-center shadow-lg" style={{ display: 'none' }}>
-                <User className="w-24 h-24 text-[#1C8FA0] opacity-50" />
+              <div className="relative">
+                <img
+                  src="/team/daniel-falcon-founder.jpg"
+                  alt="Daniel Falcón - Fundador de Finantel"
+                  className="w-48 h-48 rounded-2xl object-cover shadow-lg border-2 border-[#1C8FA0]/20"
+                  onError={(e) => {
+                    // Fallback mejorado si la imagen no existe
+                    e.target.src = "https://ui-avatars.com/api/?name=Daniel+Falcon&background=1C8FA0&color=fff&size=256&bold=true";
+                  }}
+                />
               </div>
+
+              {/* Redes Sociales */}
+              <div className="flex gap-3 mt-6 justify-center md:justify-start">
+                <a
+                  href="https://linkedin.com/in/danielfalcon"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-11 h-11 rounded-full bg-[#0077B5] flex items-center justify-center text-white hover:scale-110 transition-transform shadow-md hover:shadow-lg"
+                  aria-label="LinkedIn de Daniel Falcón"
+                >
+                  <Linkedin className="w-5 h-5" />
+                </a>
+                <a
+                  href="https://twitter.com/danielfalcon"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-11 h-11 rounded-full bg-[#1DA1F2] flex items-center justify-center text-white hover:scale-110 transition-transform shadow-md hover:shadow-lg"
+                  aria-label="Twitter de Daniel Falcón"
+                >
+                  <Twitter className="w-5 h-5" />
+                </a>
+                <a
+                  href="mailto:daniel@finantel.net"
+                  className="w-11 h-11 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:scale-110 transition-transform shadow-md hover:shadow-lg"
+                  aria-label="Email de Daniel Falcón"
+                >
+                  <Mail className="w-5 h-5" />
+                </a>
+              </div>
+
+              {/* Nota informativa */}
+              <p className="text-xs text-[#6E6E73] dark:text-gray-400 mt-4 text-center md:text-left max-w-[192px]">
+                📸 Foto profesional pendiente. Agregar en: <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">/public/team/</code>
+              </p>
             </div>
 
             {/* Texto */}

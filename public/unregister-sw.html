@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Limpiar Service Worker - Finantel</title>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      max-width: 600px;
+      margin: 100px auto;
+      padding: 20px;
+      text-align: center;
+    }
+    .status {
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 12px;
+      background: #f0f0f0;
+    }
+    .success {
+      background: #d4edda;
+      color: #155724;
+    }
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      background: #1C8FA0;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px;
+    }
+    button:hover {
+      background: #167a8a;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧹 Limpiar Service Worker</h1>
+  <p>Esta página te ayudará a eliminar el service worker y limpiar la caché.</p>
+
+  <div id="status" class="status">
+    Listo para limpiar...
+  </div>
+
+  <button onclick="unregisterServiceWorker()">Desregistrar Service Worker</button>
+  <button onclick="clearAllCaches()">Limpiar Todas las Cachés</button>
+  <button onclick="doAll()">Hacer Todo</button>
+  <button onclick="window.location.href='/'">Ir al Home</button>
+
+  <script>
+    const statusDiv = document.getElementById('status');
+
+    async function unregisterServiceWorker() {
+      try {
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+
+          if (registrations.length === 0) {
+            statusDiv.className = 'status';
+            statusDiv.textContent = '✅ No hay service workers registrados.';
+            return;
+          }
+
+          for (let registration of registrations) {
+            await registration.unregister();
+            console.log('Service worker desregistrado:', registration);
+          }
+
+          statusDiv.className = 'status success';
+          statusDiv.textContent = `✅ ${registrations.length} service worker(s) desregistrado(s) exitosamente.`;
+        } else {
+          statusDiv.className = 'status error';
+          statusDiv.textContent = '❌ Service Workers no están soportados en este navegador.';
+        }
+      } catch (error) {
+        statusDiv.className = 'status error';
+        statusDiv.textContent = `❌ Error: ${error.message}`;
+        console.error('Error desregistrando service worker:', error);
+      }
+    }
+
+    async function clearAllCaches() {
+      try {
+        if ('caches' in window) {
+          const cacheNames = await caches.keys();
+
+          if (cacheNames.length === 0) {
+            statusDiv.className = 'status';
+            statusDiv.textContent = '✅ No hay cachés para limpiar.';
+            return;
+          }
+
+          await Promise.all(
+            cacheNames.map(cacheName => caches.delete(cacheName))
+          );
+
+          statusDiv.className = 'status success';
+          statusDiv.textContent = `✅ ${cacheNames.length} caché(s) eliminada(s): ${cacheNames.join(', ')}`;
+        } else {
+          statusDiv.className = 'status error';
+          statusDiv.textContent = '❌ Cache API no está soportada en este navegador.';
+        }
+      } catch (error) {
+        statusDiv.className = 'status error';
+        statusDiv.textContent = `❌ Error: ${error.message}`;
+        console.error('Error limpiando cachés:', error);
+      }
+    }
+
+    async function doAll() {
+      statusDiv.className = 'status';
+      statusDiv.textContent = '⏳ Limpiando todo...';
+
+      await unregisterServiceWorker();
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await clearAllCaches();
+
+      setTimeout(() => {
+        statusDiv.className = 'status success';
+        statusDiv.textContent = '✅ Todo limpiado! Recarga la página o cierra todas las pestañas de Finantel y vuelve a abrir.';
+      }, 500);
+    }
+
+    // Auto-mostrar info al cargar
+    window.addEventListener('load', async () => {
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        const cacheNames = await caches.keys();
+
+        statusDiv.textContent = `ℹ️ Service Workers activos: ${registrations.length} | Cachés: ${cacheNames.length}`;
+      }
+    });
+  </script>
+</body>
+</html>

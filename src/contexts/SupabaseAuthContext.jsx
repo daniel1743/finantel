@@ -232,9 +232,11 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = useCallback(async (email, password, rememberMe = true) => {
     try {
-      // Guardar preferencia de "recordar sesión"
+      // ✅ Guardar preferencia de "recordar sesión" ANTES de iniciar sesión
       localStorage.setItem('finantel_remember_me', rememberMe ? 'true' : 'false');
-      
+
+      console.log(`🔐 Iniciando sesión con "Mantener sesión": ${rememberMe ? 'SÍ (localStorage)' : 'NO (sessionStorage - se borrará al cerrar)'}`);
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -304,14 +306,15 @@ export const AuthProvider = ({ children }) => {
 
   const signInWithGoogle = useCallback(async (rememberMe = true) => {
     try {
-      // Guardar preferencia de "recordar sesión"
+      // ✅ Guardar preferencia de "recordar sesión" ANTES de iniciar sesión
       localStorage.setItem('finantel_remember_me', rememberMe ? 'true' : 'false');
-      
+
+      console.log(`🔐 Iniciando sesión con Google - "Mantener sesión": ${rememberMe ? 'SÍ (localStorage)' : 'NO (sessionStorage - se borrará al cerrar)'}`);
+
       // Obtener la URL actual para redirección
-      // Usar la URL completa con el protocolo correcto
       const redirectTo = `${window.location.origin}/auth/callback`;
-      
-      console.log('[Auth] Iniciando sesión con Google, redirectTo:', redirectTo);
+
+      console.log('[Auth] URL de redirección:', redirectTo);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',

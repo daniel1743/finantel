@@ -19,6 +19,19 @@ const STATIC_ASSETS = [
 
 // Instalación del Service Worker
 self.addEventListener('install', (event) => {
+  // ⚠️ CRÍTICO: NO instalar en localhost (desarrollo)
+  const isLocalhost = 
+    self.location.hostname === 'localhost' ||
+    self.location.hostname === '127.0.0.1' ||
+    self.location.hostname.includes('localhost');
+
+  if (isLocalhost) {
+    console.log('[SW] Service Worker NO se instala en localhost (desarrollo)');
+    // Desactivar inmediatamente en localhost
+    self.skipWaiting();
+    return;
+  }
+
   console.log('[SW] Instalando Service Worker versión', APP_VERSION);
   
   event.waitUntil(
@@ -47,6 +60,23 @@ self.addEventListener('install', (event) => {
 
 // Activación del Service Worker
 self.addEventListener('activate', (event) => {
+  // ⚠️ CRÍTICO: NO activar en localhost (desarrollo)
+  const isLocalhost = 
+    self.location.hostname === 'localhost' ||
+    self.location.hostname === '127.0.0.1' ||
+    self.location.hostname.includes('localhost');
+
+  if (isLocalhost) {
+    console.log('[SW] Service Worker NO se activa en localhost (desarrollo)');
+    // Desactivar todos los clientes en localhost
+    event.waitUntil(
+      self.clients.claim().then(() => {
+        return self.registration.unregister();
+      })
+    );
+    return;
+  }
+
   console.log('[SW] Activando Service Worker versión', APP_VERSION);
   
   event.waitUntil(
@@ -90,6 +120,16 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // ⚠️ CRÍTICO: Desactivar completamente en localhost (desarrollo)
+  // Si estamos en localhost, NO interceptar ninguna petición
+  if (url.hostname === 'localhost' || 
+      url.hostname === '127.0.0.1' ||
+      url.hostname.includes('localhost')) {
+    // En desarrollo, dejar que el navegador maneje las peticiones normalmente
+    // NO usar event.respondWith() para que el navegador maneje la petición
+    return;
+  }
+
   // Ignorar requests de extensiones y chrome-extension
   if (url.protocol === 'chrome-extension:' || url.protocol === 'chrome:') {
     return;
@@ -97,6 +137,11 @@ self.addEventListener('fetch', (event) => {
 
   // Ignorar archivos que no existen (evitar errores 404)
   if (url.pathname.includes('visual-editor-config.js')) {
+    return;
+  }
+
+  // Ignorar favicon.ico si no existe (evitar errores)
+  if (url.pathname === '/favicon.ico') {
     return;
   }
 
@@ -163,7 +208,7 @@ self.addEventListener('fetch', (event) => {
         }
         // No está en caché, obtener de red
         return fetch(request).then((response) => {
-          if (response.status === 200 && request.method === 'GET') {
+          if (response && response.status === 200 && request.method === 'GET') {
             const responseClone = response.clone();
             caches.open(STATIC_CACHE_NAME).then((cache) => {
               cache.put(request, responseClone).catch((err) => {
@@ -171,7 +216,18 @@ self.addEventListener('fetch', (event) => {
               });
             });
           }
-          return response;
+          // Asegurar que siempre devolvemos un Response válido
+          return response || new Response('', { status: 404 });
+        }).catch((error) => {
+          // Si falla el fetch, dejar que el navegador maneje el error
+          // NO devolver un Response falso que cause "Failed to convert value to 'Response'"
+          console.error('[SW] Error obteniendo asset:', error);
+          throw error; // Re-lanzar para que el navegador maneje el error
+        });
+          // Si falla el fetch, dejar que el navegador maneje el error
+          // No devolver 503 para evitar errores en desarrollo
+          console.error('[SW] Error obteniendo asset:', error);
+          throw error;
         });
       })
     );
@@ -194,10 +250,23 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => {
+        .catch((error) => {
           // Fallback a caché si no hay red
           return caches.match(request).then((cachedResponse) => {
-            return cachedResponse || new Response('Sin conexión', { status: 503 });
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+            // Si no hay caché y es una ruta SPA, devolver index.html
+            if (request.mode === 'navigate') {
+              return caches.match('/index.html').then((indexHtml) => {
+                return indexHtml || new Response('Sin conexión', { 
+                  status: 503,
+                  headers: { 'Content-Type': 'text/html' }
+                });
+              });
+            }
+            // Para otros recursos, dejar que el navegador maneje el error
+            throw error;
           });
         })
     );
