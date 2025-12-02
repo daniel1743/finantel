@@ -4,7 +4,7 @@ import { User, Linkedin, Twitter, Mail } from 'lucide-react';
 
 const FounderSection = () => {
   return (
-    <section className="py-32 bg-white dark:bg-[#0f0f11]">
+    <section className="py-16 md:py-20 bg-white dark:bg-[#0f0f11]">
       <div className="max-w-4xl mx-auto px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -24,13 +24,9 @@ const FounderSection = () => {
             <div className="flex-shrink-0 mx-auto md:mx-0">
               <div className="relative">
                 <img
-                  src="/team/daniel-falcon-founder.jpg"
+                  src="/daniel_falcon.jpg"
                   alt="Daniel Falcón - Fundador de Finantel"
                   className="w-48 h-48 rounded-2xl object-cover shadow-lg border-2 border-[#1C8FA0]/20"
-                  onError={(e) => {
-                    // Fallback mejorado si la imagen no existe
-                    e.target.src = "https://ui-avatars.com/api/?name=Daniel+Falcon&background=1C8FA0&color=fff&size=256&bold=true";
-                  }}
                 />
               </div>
 
@@ -62,11 +58,6 @@ const FounderSection = () => {
                   <Mail className="w-5 h-5" />
                 </a>
               </div>
-
-              {/* Nota informativa */}
-              <p className="text-xs text-[#6E6E73] dark:text-gray-400 mt-4 text-center md:text-left max-w-[192px]">
-                📸 Foto profesional pendiente. Agregar en: <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">/public/team/</code>
-              </p>
             </div>
 
             {/* Texto */}

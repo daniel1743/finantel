@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Twitter, Instagram, Linkedin, Loader2, Check } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/customSupabaseClient';
 
 const Footer = () => {
   const { toast } = useToast();
@@ -77,11 +77,33 @@ const Footer = () => {
               Finanzas personales simples y privadas. Hecho para personas reales.
             </p>
             <div className="flex gap-4">
-              {[Twitter, Instagram, Linkedin].map((Icon, i) => (
-                <a key={i} href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-[#6E6E73] hover:bg-[#1C8FA0] hover:text-white transition-all">
-                  <Icon className="w-4 h-4" />
-                </a>
-              ))}
+              <a
+                href="https://twitter.com/finantelapp"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-[#6E6E73] hover:bg-[#1C8FA0] hover:text-white transition-all"
+                aria-label="Twitter de Finantel"
+              >
+                <Twitter className="w-4 h-4" />
+              </a>
+              <a
+                href="https://instagram.com/finantelapp"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-[#6E6E73] hover:bg-[#1C8FA0] hover:text-white transition-all"
+                aria-label="Instagram de Finantel"
+              >
+                <Instagram className="w-4 h-4" />
+              </a>
+              <a
+                href="https://linkedin.com/company/finantel"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-[#6E6E73] hover:bg-[#1C8FA0] hover:text-white transition-all"
+                aria-label="LinkedIn de Finantel"
+              >
+                <Linkedin className="w-4 h-4" />
+              </a>
             </div>
           </div>
           

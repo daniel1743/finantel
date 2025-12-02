@@ -88,7 +88,7 @@ function App() {
                 }}
               >
                 <SeoHead />
-                <UpdateNotification />
+                {/* <UpdateNotification /> */}
                 <DemoModeBanner />
                 <DemoConversionModal />
                 <div className="min-h-screen bg-[#F5F7F9] dark:bg-[#0f0f11] font-sans selection:bg-[#1C8FA0]/20 selection:text-[#1C8FA0] transition-colors duration-300">

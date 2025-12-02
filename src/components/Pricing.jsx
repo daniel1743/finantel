@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { Check, Sparkles, Loader2 } from 'lucide-react';
+import { Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/customSupabaseClient';
 
 // ✅ CHECKOUT FUNCIONAL CON STRIPE
 // NOTA: Configurar STRIPE_SECRET_KEY en Supabase Edge Functions
@@ -73,7 +73,7 @@ const Pricing = () => {
   };
 
   return (
-    <section id="pricing" className="py-32 bg-[#F9FAFB] scroll-mt-20">
+    <section id="pricing" className="py-16 md:py-20 bg-[#F9FAFB] scroll-mt-20">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-20">
           <h2 className="text-4xl font-bold text-[#1a1a1a] mb-4">Precios simples</h2>
@@ -82,9 +82,9 @@ const Pricing = () => {
 
         <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
           {/* Free Plan */}
-          <motion.div 
-            whileHover={{ scale: 1.05, y: -8 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+          <motion.div
+            whileHover={{ scale: 1.02, y: -4 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
             className="bg-white p-8 rounded-[32px] border-2 border-gray-100 shadow-sm hover:border-[#1C8FA0]/30 hover:shadow-[0_20px_40px_-12px_rgba(28,143,160,0.15)] transition-all duration-300 cursor-pointer group relative overflow-hidden"
           >
             {/* Hover gradient effect */}
@@ -115,7 +115,7 @@ const Pricing = () => {
               <ul className="mt-8 space-y-4">
                 {['Gastos ilimitados', '5 categorías', 'Exportación básica'].map((item) => (
                   <li key={item} className="flex items-center gap-3 text-sm text-[#6E6E73] group-hover:text-[#1a1a1a] transition-colors">
-                    <Check className="w-4 h-4 text-[#1C8FA0] group-hover:scale-110 transition-transform" /> {item}
+                    <Check className="w-4 h-4 text-[#1C8FA0] group-hover:scale-105 transition-transform" /> {item}
                   </li>
                 ))}
               </ul>
@@ -123,23 +123,13 @@ const Pricing = () => {
           </motion.div>
 
           {/* Pro Plan - Highlighted with Premium Hover */}
-          <motion.div 
-            whileHover={{ scale: 1.08, y: -12 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+          <motion.div
+            whileHover={{ scale: 1.03, y: -4 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
             className="bg-[#1a1a1a] p-10 rounded-[32px] shadow-[0_20px_40px_-12px_rgba(0,0,0,0.3)] relative transform scale-105 z-10 border-2 border-transparent hover:border-[#1C8FA0] hover:shadow-[0_30px_60px_-12px_rgba(28,143,160,0.4)] transition-all duration-300 cursor-pointer group overflow-hidden"
           >
             {/* Animated background gradient on hover */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#1C8FA0]/10 via-[#1C8FA0]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            
-            {/* Sparkle effect on hover */}
-            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              >
-                <Sparkles className="w-6 h-6 text-[#1C8FA0]" />
-              </motion.div>
-            </div>
 
             <div className="absolute top-0 right-0 bg-[#1C8FA0] text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-[32px] group-hover:bg-[#167a8a] transition-colors">
               POPULAR
@@ -182,31 +172,23 @@ const Pricing = () => {
                 </Button>
               </motion.div>
               <ul className="mt-8 space-y-4">
-                {['Todo en Starter', 'Categorías ilimitadas', 'IA Predictiva', 'Sincronización multi-dispositivo', 'Soporte prioritario'].map((item, index) => (
-                  <motion.li 
+                {['Todo en Starter', 'Categorías ilimitadas', 'IA Predictiva', 'Sincronización multi-dispositivo', 'Soporte prioritario'].map((item) => (
+                  <li
                     key={item}
-                    initial={{ opacity: 1 }}
-                    whileHover={{ x: 4, opacity: 1 }}
-                    transition={{ delay: index * 0.05 }}
                     className="flex items-center gap-3 text-sm text-gray-300 group-hover:text-white transition-colors"
                   >
-                    <motion.div
-                      whileHover={{ scale: 1.2, rotate: 360 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Check className="w-4 h-4 text-[#1C8FA0] group-hover:text-[#1C8FA0]" />
-                    </motion.div>
+                    <Check className="w-4 h-4 text-[#1C8FA0] group-hover:scale-105 transition-transform" />
                     {item}
-                  </motion.li>
+                  </li>
                 ))}
               </ul>
             </div>
           </motion.div>
 
           {/* Family Plan */}
-          <motion.div 
-            whileHover={{ scale: 1.05, y: -8 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+          <motion.div
+            whileHover={{ scale: 1.02, y: -4 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
             className="bg-white p-8 rounded-[32px] border-2 border-gray-100 shadow-sm hover:border-[#E47B45]/30 hover:shadow-[0_20px_40px_-12px_rgba(228,123,69,0.15)] transition-all duration-300 cursor-pointer group relative overflow-hidden"
           >
             {/* Hover gradient effect */}

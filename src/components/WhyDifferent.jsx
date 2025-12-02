@@ -32,7 +32,7 @@ const WhyDifferent = () => {
   ];
 
   return (
-    <section className="py-32 bg-[#F9FAFB] dark:bg-[#1a1a1a]">
+    <section className="py-16 md:py-20 bg-[#F9FAFB] dark:bg-[#1a1a1a]">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -42,10 +42,10 @@ const WhyDifferent = () => {
           className="text-center mb-20"
         >
           <h2 className="text-4xl md:text-5xl font-bold text-[#1a1a1a] dark:text-white mb-4">
-            Lo que otras apps no pueden hacer
+            Funcionalidades que marcan la diferencia
           </h2>
           <p className="text-xl text-[#6E6E73] dark:text-gray-400 max-w-2xl mx-auto">
-            Funcionalidades reales que marcan la diferencia
+            IA financiera avanzada diseñada para tu privacidad
           </p>
         </motion.div>
 

@@ -224,11 +224,6 @@ self.addEventListener('fetch', (event) => {
           console.error('[SW] Error obteniendo asset:', error);
           throw error; // Re-lanzar para que el navegador maneje el error
         });
-          // Si falla el fetch, dejar que el navegador maneje el error
-          // No devolver 503 para evitar errores en desarrollo
-          console.error('[SW] Error obteniendo asset:', error);
-          throw error;
-        });
       })
     );
     return;

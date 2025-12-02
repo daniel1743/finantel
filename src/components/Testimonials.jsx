@@ -11,7 +11,7 @@ const testimonials = [
     name: "María González Ruiz",
     role: "Diseñadora UX/UI Senior",
     company: "MG Design Studio",
-    image: "/testimonials/maria-gonzalez.jpg",
+    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=faces",
     linkedin: "https://linkedin.com/in/mariagonzalezruiz", // ⚠️ Reemplazar con link real
     verified: true,
     rating: 5,
@@ -28,7 +28,7 @@ const testimonials = [
     name: "Carlos Ramírez Torres",
     role: "Desarrollador Full Stack",
     company: "Tech Solutions SA",
-    image: "/testimonials/carlos-ramirez.jpg",
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=faces",
     linkedin: "https://linkedin.com/in/carlosramireztorres", // ⚠️ Reemplazar con link real
     verified: true,
     rating: 5,
@@ -45,7 +45,7 @@ const testimonials = [
     name: "Ana Martínez López",
     role: "Estudiante de Ingeniería",
     company: "Universidad Nacional",
-    image: "/testimonials/ana-martinez.jpg",
+    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=faces",
     linkedin: "https://linkedin.com/in/anamartinezlopez", // ⚠️ Reemplazar con link real
     verified: true,
     rating: 5,
@@ -62,7 +62,7 @@ const testimonials = [
     name: "Roberto Silva Mendoza",
     role: "Consultor Financiero",
     company: "Silva & Asociados",
-    image: "/testimonials/roberto-silva.jpg",
+    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=faces",
     linkedin: "https://linkedin.com/in/robertosilvamendoza", // ⚠️ Reemplazar con link real
     verified: true,
     rating: 5,
@@ -78,7 +78,7 @@ const testimonials = [
 
 const Testimonials = () => {
   return (
-    <section className="py-32 bg-gradient-to-b from-white to-[#F9FAFB]">
+    <section className="py-16 md:py-20 bg-gradient-to-b from-white to-[#F9FAFB]">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -129,10 +129,6 @@ const Testimonials = () => {
                     src={testimonial.image}
                     alt={testimonial.name}
                     className="w-12 h-12 rounded-full border-2 border-[#1C8FA0]/20 object-cover"
-                    onError={(e) => {
-                      // Fallback a placeholder si la foto no existe aún
-                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=1C8FA0&color=fff&size=128`;
-                    }}
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">

@@ -60,7 +60,7 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+    <section className="relative pt-20 pb-16 md:pt-32 md:pb-20 overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#1C8FA0]/5 via-white to-white -z-20 dark:from-[#1C8FA0]/10 dark:via-[#0f0f11] dark:to-[#0f0f11]" />
       <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#1C8FA0]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 -z-10" />
