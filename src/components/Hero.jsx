@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ShoppingBag, Coffee, DollarSign, Home, Zap, Plane, Car } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useABTest } from '@/contexts/ABTestContext';
@@ -12,9 +12,9 @@ const Hero = () => {
 
   // Transacciones disponibles para rotación
   const allTransactions = [
-    { name: "Supermercado", cat: "Alimentación", amount: "-$124.50", color: "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400" },
-    { name: "Freelance Project", cat: "Ingresos", amount: "+$850.00", positive: true, color: "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" },
-    { name: "Netflix", cat: "Suscripciones", amount: "-$15.99", color: "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400" },
+    { name: "Supermercado", cat: "Alimentación", amount: "-$124.50", color: "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400", icon: ShoppingBag },
+    { name: "Freelance Project", cat: "Ingresos", amount: "+$850.00", positive: true, color: "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400", icon: DollarSign },
+    { name: "Netflix", cat: "Suscripciones", amount: "-$15.99", color: "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400", icon: Zap },
   ];
 
   // Rotar transacciones cada 3 segundos
@@ -60,7 +60,7 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative pt-20 pb-16 md:pt-32 md:pb-20 overflow-hidden">
+    <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#1C8FA0]/5 via-white to-white -z-20 dark:from-[#1C8FA0]/10 dark:via-[#0f0f11] dark:to-[#0f0f11]" />
       <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#1C8FA0]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 -z-10" />
@@ -168,11 +168,11 @@ const Hero = () => {
                         >
                           <div className="flex items-center gap-3 min-w-0 flex-1">
                             <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${tx.color}`}>
-                              <div className="w-4 h-4 rounded-full bg-current opacity-50" />
+                              {tx.icon && React.createElement(tx.icon, { className: "w-4 h-4" })}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-sm font-semibold text-[#1a1a1a] dark:text-white truncate">{tx.name}</p>
-                              <p className="text-xs text-[#6E6E73] dark:text-gray-400 truncate">{tx.cat}</p>
+                              <p className="text-sm font-semibold text-[#1a1a1a] dark:text-white">{tx.name}</p>
+                              <p className="text-xs text-[#6E6E73] dark:text-gray-400">{tx.cat}</p>
                             </div>
                           </div>
                           <span className={`text-sm font-semibold flex-shrink-0 ml-2 ${tx.positive ? 'text-[#1C8FA0]' : 'text-[#1a1a1a] dark:text-white'}`}>

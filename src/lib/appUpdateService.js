@@ -24,18 +24,33 @@ class AppUpdateService {
   }
 
   // Registrar Service Worker
+  // ✅ SOLO se llama desde main.jsx cuando NO estamos en localhost
+  // Esta función asume que ya se verificó que no estamos en desarrollo
   async register() {
     if (!('serviceWorker' in navigator)) {
       console.warn('[AppUpdate] Service Worker no soportado');
       return false;
     }
 
+    // Verificación adicional de seguridad (por si se llama desde otro lugar)
+    const isLocalhost =
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname.includes('localhost');
+
+    if (isLocalhost) {
+      console.log('[AppUpdate] Service Worker deshabilitado en desarrollo (verificación adicional)');
+      return false;
+    }
+
     try {
+      // ✅ Registrar Service Worker en producción
+      // Path: /sw.js (ubicado en public/sw.js)
       this.registration = await navigator.serviceWorker.register('/sw.js', {
         scope: '/'
       });
 
-      console.log('[AppUpdate] Service Worker registrado:', this.registration.scope);
+      console.log('[AppUpdate] Service Worker registrado correctamente en producción:', this.registration.scope);
 
       // Escuchar actualizaciones
       this.registration.addEventListener('updatefound', () => {

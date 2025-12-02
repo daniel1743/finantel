@@ -44,9 +44,6 @@ import { cn, getLocalDateString, parseLocalDate } from '@/lib/utils';
 import { supabase } from '@/lib/customSupabaseClient';
 import VoiceRecordingScreen from '@/components/VoiceRecordingScreen';
 import { playStartRecordingSound } from '@/utils/audioEffects';
-import BulletChart from '@/components/dashboard/BulletChart';
-import ImprovedGaugeChart from '@/components/dashboard/ImprovedGaugeChart';
-import QuickAccessCard from '@/components/dashboard/QuickAccessCard';
 
 // =====================================================
 // KPIs Cards - Tarjetas de Métricas Principales
@@ -92,13 +89,68 @@ const KPICard = ({ title, value, subtitle, trend, trendValue, trendUp, icon: Ico
 );
 
 // =====================================================
-// Gauge Chart Component (MEJORADO - usando Recharts)
+// Gauge Chart Component
 // =====================================================
-// Usamos el ImprovedGaugeChart importado que tiene:
-// - Recharts profesional con gradientes
-// - 4 zonas de riesgo con emojis (🔴🟡🔵🟢)
-// - Mejor feedback visual
-const GaugeChart = ImprovedGaugeChart;
+const GaugeChart = ({ value, max, label, color, size = 200, delay = 0 }) => {
+  // Validar valores para evitar NaN
+  const safeValue = isNaN(value) || value === null || value === undefined ? 0 : Number(value);
+  const safeMax = isNaN(max) || max === null || max === undefined || max === 0 ? 1 : Number(max);
+  const percentage = Math.min(100, Math.max(0, (safeValue / safeMax) * 100));
+  const radius = (size - 20) / 2;
+  const circumference = Math.PI * radius;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  
+  let gaugeColor = color;
+  if (percentage > 90) gaugeColor = "#ef4444";
+  else if (percentage > 70) gaugeColor = "#f59e0b";
+  else if (percentage > 50) gaugeColor = "#3b82f6";
+  else gaugeColor = "#10b981";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.6, delay }}
+      className="flex flex-col items-center"
+    >
+      <div className="relative" style={{ width: size, height: size / 2 }}>
+        <svg width={size} height={size / 2} className="overflow-visible">
+          {/* Background arc */}
+          <path
+            d={`M ${size * 0.1} ${size * 0.5} A ${radius} ${radius} 0 0 1 ${size * 0.9} ${size * 0.5}`}
+            fill="none"
+            stroke="#f3f4f6"
+            strokeWidth="16"
+                    strokeLinecap="round"
+          />
+          {/* Progress arc */}
+          <motion.path
+            d={`M ${size * 0.1} ${size * 0.5} A ${radius} ${radius} 0 0 1 ${size * 0.9} ${size * 0.5}`}
+            fill="none"
+            stroke={gaugeColor}
+            strokeWidth="16"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            initial={{ strokeDashoffset: circumference }}
+            animate={{ strokeDashoffset }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+          />
+            </svg>
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 text-center">
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: delay + 0.5 }}
+            className="text-3xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']"
+              >
+            {safeValue.toFixed(1)}%
+          </motion.p>
+          <p className="text-xs text-[#6E6E73] dark:text-gray-400 font-medium mt-1">{label}</p>
+            </div>
+      </div>
+    </motion.div>
+  );
+};
 
 // =====================================================
 // Paleta de colores para categorías
@@ -1509,15 +1561,35 @@ const DashboardHome = () => {
                   spent: item.value,
                   color: realData.categoryData[i]?.color || '#9CA3AF'
                 };
-              }).map((item, i) => (
-                <BulletChart
-                  key={i}
-                  name={item.name}
-                  value={item.spent}
-                  budget={item.budget}
-                  delay={1.2 + (i * 0.1)}
-                />
-              ))
+              }).map((item, i) => {
+              const percentage = (item.spent / item.budget) * 100;
+              return (
+                <div key={i} className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium text-[#1a1a1a] dark:text-white">{item.name}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[#6E6E73] dark:text-gray-400">${item.spent}</span>
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/5 text-[#6E6E73] dark:text-gray-400">
+                        {percentage.toFixed(0)}%
+                      </span>
+      </div>
+                  </div>
+                  <div className="h-3 w-full bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.min(100, percentage)}%` }}
+                      transition={{ duration: 1, delay: 1.2 + (i * 0.1) }}
+                      className="h-full rounded-full"
+                      style={{ backgroundColor: item.color }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-[#6E6E73] dark:text-gray-400">
+                    <span>Presupuesto: ${item.budget}</span>
+                    <span>Restante: ${Math.max(0, item.budget - item.spent)}</span>
+                  </div>
+                </div>
+              );
+            })
             ) : (
               <div className="text-center py-8 text-[#6E6E73] dark:text-gray-400">
                 <p>No hay datos de presupuesto aún</p>
@@ -1619,50 +1691,6 @@ const DashboardHome = () => {
               <p className="text-sm mt-2">Agrega tu primera transacción para comenzar</p>
             </div>
           )}
-        </div>
-      </motion.div>
-
-      {/* Acceso Rápido - Quick Access Cards */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 1.3 }}
-        className="mt-8"
-      >
-        <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white mb-4">Acceso Rápido</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <QuickAccessCard
-            title="Transacciones"
-            description="Ver y gestionar todas tus transacciones"
-            icon={DollarSign}
-            to="/dashboard/transactions"
-            color="#1C8FA0"
-            delay={1.4}
-          />
-          <QuickAccessCard
-            title="Presupuestos"
-            description="Controla tus gastos y presupuestos"
-            icon={Target}
-            to="/dashboard/budgets"
-            color="#E47B45"
-            delay={1.5}
-          />
-          <QuickAccessCard
-            title="Metas"
-            description="Alcanza tus objetivos financieros"
-            icon={CheckCircle2}
-            to="/dashboard/goals"
-            color="#8B5CF6"
-            delay={1.6}
-          />
-          <QuickAccessCard
-            title="Análisis"
-            description="Obtén insights de tus finanzas"
-            icon={Activity}
-            to="/dashboard/analysis"
-            color="#10B981"
-            delay={1.7}
-          />
         </div>
       </motion.div>
 
