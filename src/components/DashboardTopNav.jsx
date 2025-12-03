@@ -5,20 +5,15 @@ import {
   Bell, 
   Menu, 
   Moon, 
-  Sun, 
-  User, 
-  CreditCard, 
-  Shield, 
-  HelpCircle, 
-  MessageSquare, 
-  LogOut 
+  Sun
 } from 'lucide-react';
 import ReactCountryFlag from 'react-country-flag';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useUserCurrency } from '@/hooks/useUserCurrency';
 import { useNotifications } from '@/hooks/useNotifications';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import UserMenu from '@/components/UserMenu';
 
 const DashboardTopNav = ({ onMenuClick }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -159,83 +154,14 @@ const DashboardTopNav = ({ onMenuClick }) => {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="absolute right-0 top-14 w-56 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-[0_20px_40px_-12px_rgba(0,0,0,0.15)] border border-gray-100 dark:border-white/10 p-2 z-50"
+                  className="absolute right-0 top-14 z-50"
                 >
-                  <div className="px-4 py-3 border-b border-gray-50 dark:border-white/5 mb-2">
-                    <p className="text-sm font-bold text-[#1a1a1a] dark:text-white truncate">{userName}</p>
-                    <p className="text-xs text-[#6E6E73] dark:text-gray-500 truncate">{userEmail}</p>
-                  </div>
-                  
-                  {/* Sección: Perfil y Configuración */}
-                  <Link 
-                    to="/dashboard/profile" 
-                    onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
-                  >
-                    <User className="w-4 h-4" />
-                    Mi Perfil
-                  </Link>
-                  
-                  <Link 
-                    to="/dashboard/billing" 
-                    onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
-                  >
-                    <CreditCard className="w-4 h-4" />
-                    Mi Suscripción
-                  </Link>
-                  
-                  <Link 
-                    to="/dashboard/profile" 
-                    onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
-                  >
-                    <Shield className="w-4 h-4" />
-                    Seguridad
-                  </Link>
-                  
-                  <div className="h-px bg-gray-50 dark:bg-white/5 my-2" />
-                  
-                  {/* Sección: Ayuda y Soporte */}
-                  <button 
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      // Abrir FAQ o página de ayuda
-                      window.open('https://help.finantel.app', '_blank');
-                    }}
-                    className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
-                  >
-                    <HelpCircle className="w-4 h-4" />
-                    Ayuda y Soporte
-                  </button>
-                  
-                  <button 
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      // Abrir modal de feedback o redirigir
-                      const subject = encodeURIComponent('Feedback - Finantel');
-                      const body = encodeURIComponent('Hola,\n\nMe gustaría compartir mi opinión sobre Finantel:\n\n');
-                      window.location.href = `mailto:support@finantel.app?subject=${subject}&body=${body}`;
-                    }}
-                    className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                    Enviar Comentarios
-                  </button>
-                  
-                  <div className="h-px bg-gray-50 dark:bg-white/5 my-2" />
-                  
-                  {/* Cerrar Sesión */}
-                  <button 
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      signOut();
-                    }}
-                    className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-colors font-medium"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Cerrar Sesión
-                  </button>
+                  <UserMenu
+                    userName={userName}
+                    userEmail={userEmail}
+                    onClose={() => setIsMenuOpen(false)}
+                    onSignOut={signOut}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>

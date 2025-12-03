@@ -1,139 +1,61 @@
-
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Bell, 
-  Check, 
-  AlertTriangle, 
-  TrendingUp, 
-  Settings,
-  Mail,
-  Smartphone,
-  Sparkles,
-  ShieldCheck,
-  X
-} from 'lucide-react';
+import { Bell, Settings, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
-
-const NotificationItem = ({ notification, index, onMarkAsRead, onViewDetails }) => {
-  // Formatear fecha relativa
-  const formatTime = (dateString) => {
-    if (!dateString) return 'Ahora';
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Ahora';
-    if (diffMins < 60) return `Hace ${diffMins} min`;
-    if (diffHours < 24) return `Hace ${diffHours} h`;
-    if (diffDays < 7) return `Hace ${diffDays} días`;
-    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
-      className={cn(
-        "flex items-start gap-4 p-4 rounded-xl border transition-all hover:shadow-md cursor-pointer group",
-        notification.is_read 
-          ? "bg-white dark:bg-[#1a1a1a] border-gray-100 dark:border-white/5" 
-          : "bg-[#1C8FA0]/5 border-[#1C8FA0]/20"
-      )}
-    >
-    <div className={cn(
-      "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
-      notification.type === 'alert' ? "bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400" :
-      notification.type === 'success' ? "bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400" :
-      "bg-[#1C8FA0]/10 dark:bg-[#1C8FA0]/20 text-[#1C8FA0] dark:text-[#1C8FA0]"
-    )}>
-      {notification.icon ? (
-        React.createElement(notification.icon, { className: "w-5 h-5" })
-      ) : notification.type === 'alert' ? (
-        <AlertTriangle className="w-5 h-5" />
-      ) : notification.type === 'success' ? (
-        <TrendingUp className="w-5 h-5" />
-      ) : (
-        <Bell className="w-5 h-5" />
-      )}
-    </div>
-    
-      <div className="flex-1">
-        <div className="flex justify-between items-start">
-          <h4 className={cn("font-bold text-sm", notification.is_read ? "text-[#1a1a1a] dark:text-white" : "text-[#1C8FA0]")}>
-            {notification.title}
-          </h4>
-          <span className="text-xs text-[#6E6E73] dark:text-gray-400 whitespace-nowrap ml-2">
-            {formatTime(notification.created_at || notification.time)}
-          </span>
-        </div>
-        <p className="text-sm text-[#6E6E73] dark:text-gray-400 mt-1 leading-relaxed">
-          {notification.message || notification.desc}
-        </p>
-        
-        <div className="flex gap-3 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-          {(notification.recommendation || notification.details) && (
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                onViewDetails(notification);
-              }}
-              className="text-xs font-bold text-[#1C8FA0] hover:underline"
-            >
-              Ver detalles
-            </button>
-          )}
-          {!notification.is_read && !notification.read && (
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                onMarkAsRead(notification.id);
-              }}
-              className="text-xs font-medium text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white"
-            >
-              Marcar como leída
-            </button>
-          )}
-        </div>
-      </div>
-    </motion.div>
-  );
-};
+import NotificationCard from '@/components/notifications/NotificationCard';
+import PreferencesPanel from '@/components/notifications/PreferencesPanel';
 
 const Notifications = () => {
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState('todos');
   const [preferences, setPreferences] = useState({
     email: true,
     push: true
+  });
+  const [alertTypes, setAlertTypes] = useState({
+    presupuestos: true,
+    metas: true,
+    seguridad: true,
+    consejos: true
   });
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const { toast } = useToast();
   
   // Usar el hook de notificaciones
-  const { notifications, loading, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, loading, markAsRead } = useNotifications();
 
-  // Mapear tipo de alerta a icono
-  const getIconForType = (type) => {
-    switch (type) {
-      case 'critical':
-      case 'warning':
-        return AlertTriangle;
-      case 'opportunity':
-      case 'trend':
-        return TrendingUp;
-      case 'info':
-      default:
-        return Bell;
+  // Cargar preferencias desde localStorage al montar
+  useEffect(() => {
+    const savedPreferences = localStorage.getItem('finantel_notification_preferences');
+    if (savedPreferences) {
+      try {
+        setPreferences(JSON.parse(savedPreferences));
+      } catch (error) {
+        console.error('Error loading preferences:', error);
+      }
     }
-  };
+
+    const savedAlertTypes = localStorage.getItem('finantel_alert_types');
+    if (savedAlertTypes) {
+      try {
+        setAlertTypes(JSON.parse(savedAlertTypes));
+      } catch (error) {
+        console.error('Error loading alert types:', error);
+      }
+    }
+  }, []);
+
+  // Guardar preferencias en localStorage cuando cambien
+  useEffect(() => {
+    localStorage.setItem('finantel_notification_preferences', JSON.stringify(preferences));
+  }, [preferences]);
+
+  // Guardar tipos de alerta en localStorage cuando cambien
+  useEffect(() => {
+    localStorage.setItem('finantel_alert_types', JSON.stringify(alertTypes));
+  }, [alertTypes]);
 
   const handleMarkAsRead = async (id) => {
     const success = await markAsRead(id);
@@ -156,7 +78,7 @@ const Notifications = () => {
 
   const filteredNotifications = useMemo(() => {
     return notifications.filter(n => {
-      if (activeTab === 'todos' || activeTab === 'all') return true;
+      if (activeTab === 'todos') return true;
       if (activeTab === 'no leídos') return !n.is_read;
       if (activeTab === 'alertas') return n.type === 'critical' || n.type === 'warning';
       if (activeTab === 'sistema') return n.type === 'info' || n.type === 'opportunity' || n.type === 'trend';
@@ -165,122 +87,108 @@ const Notifications = () => {
   }, [notifications, activeTab]);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-12">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">Notificaciones</h1>
-          <p className="text-[#6E6E73] dark:text-gray-400 mt-1 text-lg">Mantente al día con tu actividad financiera</p>
-        </div>
-        <button className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">
-          <Settings className="w-6 h-6 text-[#6E6E73] dark:text-gray-400" />
-        </button>
-      </div>
-
-      <div className="grid lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          {/* Tabs */}
-          <div className="flex gap-2 border-b border-gray-100 dark:border-white/5 pb-1">
-            {['Todos', 'No leídos', 'Alertas', 'Sistema'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab.toLowerCase())}
-                className={cn(
-                  "px-4 py-2 text-sm font-medium rounded-lg transition-all relative",
-                  activeTab === tab.toLowerCase() 
-                    ? "text-[#1C8FA0]" 
-                    : "text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white"
-                )}
-              >
-                {tab}
-                {activeTab === tab.toLowerCase() && (
-                  <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1C8FA0]" />
-                )}
-              </button>
-            ))}
+    <div className="min-h-screen bg-[#F5F7F9] dark:bg-[#0E0F11]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-3xl sm:text-4xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight'] mb-2">
+              Notificaciones
+            </h1>
+            <p className="text-base sm:text-lg text-[#6E6E73] dark:text-gray-400">
+              Mantente al día con tu actividad financiera
+            </p>
           </div>
-
-          <div className="space-y-4">
-            {loading ? (
-              <div className="text-center py-12 text-[#6E6E73] dark:text-gray-400">
-                <Bell className="w-12 h-12 mx-auto mb-4 opacity-50 animate-pulse" />
-                <p>Cargando notificaciones...</p>
-              </div>
-            ) : filteredNotifications.length > 0 ? (
-              filteredNotifications.map((n, i) => (
-                <NotificationItem 
-                  key={n.id} 
-                  notification={{
-                    ...n,
-                    read: n.is_read,
-                    desc: n.message,
-                    type: n.type === 'critical' || n.type === 'warning' ? 'alert' : n.type === 'opportunity' || n.type === 'trend' ? 'success' : 'info',
-                    icon: getIconForType(n.type),
-                    time: n.created_at,
-                    details: n.recommendation ? {
-                      fullDescription: n.message + (n.recommendation ? `\n\n${n.recommendation}` : ''),
-                      tips: []
-                    } : null
-                  }}
-                  index={i}
-                  onMarkAsRead={handleMarkAsRead}
-                  onViewDetails={handleViewDetails}
-                />
-              ))
-            ) : (
-              <div className="text-center py-12 text-[#6E6E73] dark:text-gray-400">
-                <Bell className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>No hay notificaciones en esta categoría</p>
-              </div>
-            )}
-          </div>
+          <button
+            onClick={() => {
+              const prefsSection = document.getElementById('preferences-section');
+              if (prefsSection) {
+                prefsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }}
+            className="p-2 hover:bg-white/5 dark:hover:bg-white/5 rounded-xl transition-colors flex-shrink-0 self-start sm:self-auto"
+            title="Ir a preferencias"
+          >
+            <Settings className="w-6 h-6 text-[#6E6E73] dark:text-gray-400" />
+          </button>
         </div>
 
-        {/* Settings Sidebar */}
-        <div className="space-y-6">
-          <div className="bg-white dark:bg-[#1a1a1a] rounded-[22px] p-6 border border-gray-100 dark:border-white/5 shadow-sm">
-            <h3 className="font-bold text-[#1a1a1a] dark:text-white mb-4">Preferencias</h3>
-            
+        {/* Layout de dos columnas */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+          {/* Columna izquierda: Notificaciones */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Tabs horizontales */}
+            <div 
+              className="flex gap-2 overflow-x-auto pb-3 border-b border-gray-100 dark:border-white/5 -mx-4 sm:mx-0 px-4 sm:px-0"
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
+              {['Todos', 'No leídos', 'Alertas', 'Sistema'].map((tab) => {
+                const tabKey = tab.toLowerCase();
+                const isActive = activeTab === tabKey;
+                
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tabKey)}
+                    className={cn(
+                      "px-4 py-2.5 text-sm font-semibold rounded-lg transition-all relative whitespace-nowrap flex-shrink-0",
+                      isActive
+                        ? "text-[#1C8FA0] dark:text-[#1C8FA0] bg-[#1C8FA0]/10 dark:bg-[#1C8FA0]/10"
+                        : "text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5"
+                    )}
+                  >
+                    {tab}
+                    {isActive && (
+                      <motion.div 
+                        layoutId="activeTab" 
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1C8FA0] dark:bg-[#1C8FA0]"
+                        style={{ bottom: '-3px' }}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Lista de notificaciones */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center">
-                    <Mail className="w-4 h-4 text-[#6E6E73] dark:text-gray-400" />
-                  </div>
-                  <span className="text-sm font-medium text-[#1a1a1a] dark:text-white">Email</span>
+              {loading ? (
+                <div className="text-center py-16 text-[#6E6E73] dark:text-gray-400">
+                  <Bell className="w-16 h-16 mx-auto mb-4 opacity-50 animate-pulse" />
+                  <p className="text-lg">Cargando notificaciones...</p>
                 </div>
-                <Switch 
-                  checked={preferences.email} 
-                  onCheckedChange={(val) => setPreferences(prev => ({...prev, email: val}))} 
-                />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center">
-                    <Smartphone className="w-4 h-4 text-[#6E6E73] dark:text-gray-400" />
-                  </div>
-                  <span className="text-sm font-medium text-[#1a1a1a] dark:text-white">Push</span>
+              ) : filteredNotifications.length > 0 ? (
+                filteredNotifications.map((n, i) => (
+                  <NotificationCard
+                    key={n.id}
+                    notification={n}
+                    index={i}
+                    onMarkAsRead={handleMarkAsRead}
+                    onViewDetails={handleViewDetails}
+                  />
+                ))
+              ) : (
+                <div className="text-center py-16 text-[#6E6E73] dark:text-gray-400">
+                  <Bell className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium">No hay notificaciones en esta categoría</p>
                 </div>
-                <Switch 
-                  checked={preferences.push} 
-                  onCheckedChange={(val) => setPreferences(prev => ({...prev, push: val}))} 
-                />
-              </div>
+              )}
             </div>
+          </div>
 
-            <div className="mt-6 pt-6 border-t border-gray-50 dark:border-white/5">
-              <h4 className="text-xs font-bold text-[#6E6E73] dark:text-gray-400 uppercase tracking-wider mb-3">Tipos de Alerta</h4>
-              <div className="space-y-2">
-                {['Presupuestos', 'Metas', 'Seguridad', 'Consejos'].map((type) => (
-                  <label key={type} className="flex items-center gap-3 cursor-pointer group">
-                    <div className="w-4 h-4 rounded border border-gray-300 dark:border-gray-600 group-hover:border-[#1C8FA0] flex items-center justify-center">
-                      <Check className="w-3 h-3 text-[#1C8FA0]" />
-                    </div>
-                    <span className="text-sm text-[#6E6E73] dark:text-gray-400 group-hover:text-[#1a1a1a] dark:group-hover:text-white transition-colors">{type}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
+          {/* Columna derecha: Preferencias */}
+          <div className="lg:col-span-1" id="preferences-section">
+            <PreferencesPanel
+              preferences={preferences}
+              onPreferencesChange={setPreferences}
+              alertTypes={alertTypes}
+              onAlertTypesChange={setAlertTypes}
+              toast={toast}
+            />
           </div>
         </div>
       </div>
@@ -312,15 +220,8 @@ const Notifications = () => {
 
               {/* Header */}
               <div className="flex items-start gap-4 mb-6 pr-8">
-                <div className="w-16 h-16 rounded-xl flex items-center justify-center shrink-0">
-                  <img 
-                    src="/finantel-icon.svg" 
-                    alt="Finantel Logo" 
-                    className="w-full h-full object-contain"
-                    style={{
-                      filter: 'drop-shadow(0 4px 8px rgba(28, 143, 160, 0.3))',
-                    }}
-                  />
+                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#1C8FA0] to-[#167a8a] flex items-center justify-center shrink-0 shadow-lg shadow-[#1C8FA0]/30">
+                  <Bell className="w-8 h-8 text-white" />
                 </div>
                 <div className="flex-1">
                   <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white mb-2">
