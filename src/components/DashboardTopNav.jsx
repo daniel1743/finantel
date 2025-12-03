@@ -108,7 +108,7 @@ const DashboardTopNav = ({ onMenuClick }) => {
                 e.stopPropagation();
                 setIsMenuOpen(!isMenuOpen);
               }}
-              className="w-10 h-10 min-w-[40px] rounded-full bg-gradient-to-br from-[#1C8FA0] to-[#167a8a] p-[2px] shadow-lg shadow-[#1C8FA0]/30 hover:shadow-[#1C8FA0]/40 transition-all hover:-translate-y-0.5 relative flex-shrink-0 ring-2 ring-[#1C8FA0]/60"
+              className="w-10 h-10 min-w-[40px] rounded-full shadow-lg shadow-[#1C8FA0]/30 hover:shadow-[#1C8FA0]/40 transition-all hover:-translate-y-0.5 relative flex-shrink-0 overflow-hidden"
             >
               <div className="w-full h-full rounded-full bg-white dark:bg-[#1a1a1a] flex items-center justify-center overflow-hidden relative">
                 {userAvatar ? (
@@ -130,15 +130,15 @@ const DashboardTopNav = ({ onMenuClick }) => {
                   {userName.charAt(0).toUpperCase()}
                 </span>
               </div>
-              {/* Bandera en la esquina inferior derecha - Badge verificador pequeño con anillo dorado */}
+              {/* Bandera en la esquina inferior derecha - Badge verificador pequeño */}
               {countryCode && (
-                <div className="absolute -bottom-0.5 -right-0.5 rounded-full bg-white dark:bg-[#1a1a1a] border border-amber-400 flex items-center justify-center overflow-hidden shadow-sm z-10 ring-1 ring-amber-400/60" style={{ width: '12.54px', height: '12.54px' }}>
+                <div className="absolute -bottom-0.5 -right-0.5 rounded-full bg-white dark:bg-[#1a1a1a] border border-amber-400 flex items-center justify-center overflow-hidden shadow-sm z-10" style={{ width: '10px', height: '10px' }}>
                   <ReactCountryFlag
                     countryCode={countryCode}
                     svg
                     style={{
-                      width: '7.31px',
-                      height: '7.31px',
+                      width: '6px',
+                      height: '6px',
                       objectFit: 'cover',
                     }}
                     title={`${currency || 'USD'}`}
