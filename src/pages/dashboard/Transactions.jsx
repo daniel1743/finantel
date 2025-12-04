@@ -122,12 +122,13 @@ const CustomDropdown = ({
       <button
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
+        onFocus={(e) => e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest' })}
         disabled={disabled}
         className={cn(
-          "w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl",
+          "w-full px-4 min-h-[44px] sm:min-h-[48px] bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl",
           "focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0]",
           "transition-all disabled:opacity-50 text-left flex items-center justify-between",
-          "cursor-pointer",
+          "cursor-pointer text-sm",
           isOpen && "ring-2 ring-[#1C8FA0]/20 border-[#1C8FA0]"
         )}
       >
@@ -137,8 +138,8 @@ const CustomDropdown = ({
         )}>
           {selectedOption ? (selectedOption.name || selectedOption.label) : placeholder}
         </span>
-        <ChevronDown className={cn(
-          "w-5 h-5 text-[#6E6E73] dark:text-gray-400 transition-transform flex-shrink-0 ml-2",
+        <Icon component={ChevronDown} size="sm" color="muted" className={cn(
+          "transition-transform flex-shrink-0 ml-2",
           isOpen && "transform rotate-180"
         )} />
       </button>
@@ -166,7 +167,7 @@ const CustomDropdown = ({
                   type="button"
                   onClick={() => handleSelect(option)}
                   className={cn(
-                    "w-full px-4 py-3 text-left transition-colors",
+                    "w-full px-4 min-h-[44px] text-left transition-colors text-sm flex items-center",
                     "hover:bg-gray-50 dark:hover:bg-white/5",
                     isSelected && "bg-[#1C8FA0]/10 text-[#1C8FA0] dark:bg-[#1C8FA0]/20",
                     !isSelected && "text-[#1a1a1a] dark:text-white"
@@ -528,9 +529,10 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         onClick={(e) => e.stopPropagation()}
-        className="relative bg-white dark:bg-[#1a1a1a] rounded-[26px] p-6 sm:p-8 w-full max-w-md shadow-2xl border border-gray-100 dark:border-white/10 z-10 max-h-[90vh] overflow-y-auto"
+        className="relative bg-white dark:bg-[#1a1a1a] rounded-[26px] w-full max-w-md shadow-2xl border border-gray-100 dark:border-white/10 z-10 flex flex-col max-h-[calc(100vh-48px)]"
       >
-        <div className="flex justify-between items-center mb-6">
+        {/* Header - Fixed */}
+        <div className="flex-shrink-0 flex justify-between items-center px-6 sm:px-8 pt-6 sm:pt-8 pb-4">
           <h2 className="text-xl font-bold text-[#1a1a1a] dark:text-white">
             {isEditMode ? 'Editar Transacción' : 'Nueva Transacción'}
           </h2>
@@ -538,12 +540,20 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
             onClick={onClose}
             disabled={isLoading}
             className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors disabled:opacity-50"
+            aria-label="Cerrar modal"
           >
-            <Icon component={X} size="md" color="default" className="dark:" />
+            <Icon component={X} size="md" color="default" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6" style={{ position: 'relative', zIndex: 1 }}>
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden" style={{ position: 'relative', zIndex: 1 }}>
+          {/* Body - Scrollable */}
+          <div className="flex-1 overflow-y-auto px-6 sm:px-8 pb-6 space-y-5"
+            style={{
+              /* Safe area for mobile keyboard */
+              paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))'
+            }}
+          >
           {/* Descripción */}
           <div>
             <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
@@ -562,13 +572,16 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
           {/* Tipo */}
           <div>
             <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">Tipo</label>
-            <div className="flex gap-2">
+            <div className="flex gap-2" role="group" aria-label="Tipo de transacción">
               <button
                 type="button"
+                role="button"
+                aria-pressed={formData.type === 'expense'}
                 onClick={() => setFormData({ ...formData, type: 'expense' })}
                 disabled={isLoading}
+                onFocus={(e) => e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest' })}
                 className={cn(
-                  "flex-1 py-2.5 rounded-xl font-medium text-sm transition-all",
+                  "flex-1 rounded-xl font-medium text-sm transition-all min-h-[44px] sm:min-h-[48px]",
                   formData.type === 'expense'
                     ? "bg-[#E47B45] text-white shadow-lg shadow-[#E47B45]/20"
                     : "bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-[#6E6E73] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10",
@@ -579,10 +592,13 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
               </button>
               <button
                 type="button"
+                role="button"
+                aria-pressed={formData.type === 'income'}
                 onClick={() => setFormData({ ...formData, type: 'income' })}
                 disabled={isLoading}
+                onFocus={(e) => e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest' })}
                 className={cn(
-                  "flex-1 py-2.5 rounded-xl font-medium text-sm transition-all",
+                  "flex-1 rounded-xl font-medium text-sm transition-all min-h-[44px] sm:min-h-[48px]",
                   formData.type === 'income'
                     ? "bg-[#1C8FA0] text-white shadow-lg shadow-[#1C8FA0]/20"
                     : "bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-[#6E6E73] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10",
@@ -694,18 +710,20 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
               rows={3}
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              onFocus={(e) => e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest' })}
               disabled={isLoading}
-              className="w-full disabled:opacity-50 resize-none"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-[#1a1a1a] dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50 resize-none text-sm"
             />
           </div>
+          </div>
 
-          {/* Botones */}
-          <div className="pt-4 flex gap-3">
+          {/* Footer - Sticky */}
+          <div className="flex-shrink-0 sticky bottom-0 bg-white dark:bg-[#1a1a1a] px-6 sm:px-8 py-4 border-t border-gray-100 dark:border-white/10 rounded-b-[26px] flex gap-3">
             <button
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-white/10 text-[#6E6E73] dark:text-gray-400 font-medium hover:bg-gray-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
+              className="flex-1 min-h-[44px] sm:min-h-[48px] rounded-xl border border-gray-200 dark:border-white/10 text-[#6E6E73] dark:text-gray-400 font-medium hover:bg-gray-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50 text-sm"
             >
               Cancelar
             </button>
@@ -719,11 +737,11 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
                 (showCustomCategory && !formData.custom_category.trim()) ||
                 (formData.type === 'expense' && !formData.necessity_level)
               }
-              className="flex-1 py-3 rounded-xl bg-[#1a1a1a] dark:bg-white text-white dark:text-black font-medium hover:bg-black dark:hover:bg-gray-100 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 min-h-[44px] sm:min-h-[48px] rounded-xl bg-[#1a1a1a] dark:bg-white text-white dark:text-black font-medium hover:bg-black dark:hover:bg-gray-100 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
             >
               {isLoading ? (
                 <>
-                  <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
+                  <Icon component={Loader2} size="sm" color="white" className="animate-spin" />
                   Guardando...
                 </>
               ) : (

@@ -90,42 +90,47 @@
   --icon-color-active: #1C8FA0;
 
   /* =====================================================
-     SISTEMA DE CONTROLES (INPUTS Y BOTONES) - Tokens
+     SISTEMA DE CONTROLES (INPUTS Y BOTONES) - Tokens MOBILE-FIRST
      ===================================================== */
-  /* Alturas estándar (mínimo 44px para accesibilidad táctil) */
-  --control-height-base: 44px;      /* Altura base para inputs y botones */
-  --control-height-sm: 36px;       /* Variante pequeña */
-  --control-height-lg: 52px;        /* Variante grande */
-  
+  /* Alturas estándar MOBILE (mínimo 44px para accesibilidad táctil) */
+  --control-height-mobile: 44px;        /* Altura mobile para inputs y botones */
+  --control-height-desktop: 48px;       /* Altura desktop */
+  --control-height-base: 44px;          /* Altura base (mobile) */
+  --control-height-sm: 36px;            /* Variante pequeña */
+  --control-height-lg: 52px;            /* Variante grande */
+
   /* Padding horizontal */
-  --control-padding-x: 16px;       /* Padding horizontal base */
-  --control-padding-x-sm: 12px;    /* Padding horizontal pequeño */
-  --control-padding-x-lg: 20px;    /* Padding horizontal grande */
-  
+  --control-padding-x: 16px;            /* Padding horizontal base */
+  --control-padding-x-sm: 12px;         /* Padding horizontal pequeño */
+  --control-padding-x-lg: 20px;         /* Padding horizontal grande */
+
   /* Border radius */
-  --control-radius: 10px;          /* Border radius estándar */
-  --control-radius-sm: 8px;        /* Border radius pequeño */
-  --control-radius-lg: 12px;       /* Border radius grande */
-  
-  /* Tipografía */
-  --control-font-size: 15px;       /* Tamaño de fuente base */
-  --control-font-size-sm: 14px;    /* Tamaño de fuente pequeño */
-  --control-font-size-lg: 16px;    /* Tamaño de fuente grande */
-  --control-font-weight: 500;      /* Peso de fuente */
-  
+  --control-radius: 10px;               /* Border radius estándar */
+  --control-radius-sm: 8px;             /* Border radius pequeño */
+  --control-radius-lg: 12px;            /* Border radius grande */
+
+  /* Tipografía MOBILE-FIRST */
+  --control-font-mobile: 14px;          /* Tamaño de fuente mobile */
+  --control-font-desktop: 15px;         /* Tamaño de fuente desktop */
+  --control-font-size: 14px;            /* Tamaño de fuente base (mobile) */
+  --control-font-size-sm: 13px;         /* Tamaño de fuente pequeño */
+  --control-font-size-lg: 16px;         /* Tamaño de fuente grande */
+  --control-font-weight: 500;           /* Peso de fuente */
+  --control-line-height: 1.4;           /* Line height para evitar recorte */
+
   /* Bordes */
   --control-border-width: 1px;
   --control-border-color: #E5E7EB;
   --control-border-color-dark: rgba(255, 255, 255, 0.1);
   --control-border-color-focus: #1C8FA0;
-  
+
   /* Estados */
   --control-bg-default: #F9FAFB;
   --control-bg-default-dark: rgba(255, 255, 255, 0.05);
   --control-bg-hover: #FFFFFF;
   --control-bg-hover-dark: rgba(255, 255, 255, 0.08);
   --control-shadow-focus: 0 0 0 3px rgba(28, 143, 160, 0.1);
-  
+
   /* Transiciones */
   --control-transition: all 0.2s ease-in-out;
 }
@@ -273,7 +278,7 @@ select option {
          SISTEMA DE CONTROLES - Clases Base Globales
          ===================================================== */
       
-      /* Input Base - Aplicar a todos los inputs */
+      /* Input Base - MOBILE-FIRST - Aplicar a todos los inputs */
       input[type="text"],
       input[type="email"],
       input[type="password"],
@@ -281,13 +286,16 @@ select option {
       input[type="tel"],
       input[type="url"],
       input[type="search"],
+      input[type="date"],
       textarea,
       select {
-        height: var(--control-height-base);
+        /* Mobile base */
+        height: var(--control-height-mobile);
         padding: 0 var(--control-padding-x);
         border-radius: var(--control-radius);
-        font-size: var(--control-font-size);
+        font-size: var(--control-font-mobile);
         font-weight: var(--control-font-weight);
+        line-height: var(--control-line-height); /* CRÍTICO: evitar recorte de texto */
         border: var(--control-border-width) solid var(--control-border-color);
         background-color: var(--control-bg-default);
         color: var(--neutral-text);
@@ -365,12 +373,37 @@ select option {
       /* Inputs con iconos - El padding se maneja automáticamente por el componente Input */
       /* No necesitamos reglas adicionales aquí ya que el componente Input maneja el padding */
 
-      /* Responsive - Ajustes para mobile */
+      /* Responsive Mobile - Ajustes específicos */
       @media (max-width: 640px) {
         :root {
-          --control-height-base: 48px;  /* Más grande en mobile para mejor accesibilidad táctil */
-          --control-padding-x: 14px;
-          --control-font-size: 16px;    /* Evitar zoom en iOS */
+          /* Aumentar ligeramente en pantallas muy pequeñas para evitar zoom en iOS */
+          --control-font-mobile: 16px;  /* Evitar zoom en iOS al enfocar */
+        }
+
+        /* Asegurar que inputs en modales no se desborden */
+        input, textarea, select {
+          max-width: 100%;
+        }
+      }
+
+      /* Responsive Desktop - Escalar a tamaños mayores */
+      @media (min-width: 768px) {
+        :root {
+          --control-height-base: var(--control-height-desktop);
+          --control-font-size: var(--control-font-desktop);
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"],
+        input[type="tel"],
+        input[type="url"],
+        input[type="search"],
+        input[type="date"],
+        select {
+          height: var(--control-height-desktop);
+          font-size: var(--control-font-desktop);
         }
       }
 
