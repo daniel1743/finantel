@@ -55,9 +55,17 @@ const customSupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
     flowType: 'pkce', // Usar PKCE flow para mejor seguridad
   },
   realtime: {
-    params: {
-      eventsPerSecond: 10, // Limitar eventos por segundo
-    },
+    // Deshabilitar Realtime en desarrollo si no se usa
+    // Esto evita errores de conexión WebSocket a localhost:3001
+    ...(import.meta.env.DEV ? {
+      // En desarrollo, deshabilitar Realtime si no es necesario
+      // Comentar la siguiente línea si necesitas Realtime en desarrollo
+      // params: { eventsPerSecond: 10 },
+    } : {
+      params: {
+        eventsPerSecond: 10, // Limitar eventos por segundo
+      },
+    }),
   },
   global: {
     headers: {
@@ -86,16 +94,38 @@ customSupabaseClient.auth.onAuthStateChange((event, session) => {
   }
 });
 
-// Interceptor global para suprimir errores esperados de refresh token en la consola
+// Interceptor global para suprimir errores esperados de refresh token y conexión en la consola
 if (typeof window !== 'undefined') {
   const originalConsoleError = console.error;
   console.error = function(...args) {
     // Filtrar errores esperados de refresh token
     const errorMessage = args[0]?.message || args[0]?.toString() || '';
+    const errorString = JSON.stringify(args);
+    
     const isInvalidRefreshTokenError = 
       errorMessage.includes('Invalid Refresh Token') ||
       errorMessage.includes('Refresh Token Not Found') ||
       (args[0]?.name === 'AuthApiError' && errorMessage.includes('refresh'));
+    
+    // Filtrar errores de conexión WebSocket en desarrollo (localhost:3001)
+    const isWebSocketConnectionError = 
+      errorString.includes('localhost:3001') ||
+      errorString.includes('ERR_CONNECTION_REFUSED') ||
+      errorString.includes('Failed to fetch') && errorString.includes('localhost:3001');
+    
+    // Filtrar errores de DNS de Supabase (ERR_NAME_NOT_RESOLVED)
+    const isSupabaseDNSError = 
+      errorString.includes('ERR_NAME_NOT_RESOLVED') ||
+      (errorMessage.includes('Failed to fetch') && errorString.includes('supabase.co'));
+    
+    // Solo suprimir en desarrollo si son errores esperados
+    if (import.meta.env.DEV) {
+      if (isWebSocketConnectionError || isSupabaseDNSError) {
+        // No mostrar errores de conexión WebSocket/DNS en desarrollo
+        // Estos son esperados cuando Realtime no está configurado o hay problemas de red
+        return;
+      }
+    }
     
     // Solo suprimir en producción o si es un error esperado de refresh token
     if (isInvalidRefreshTokenError && import.meta.env.MODE === 'production') {

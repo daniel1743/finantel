@@ -66,10 +66,10 @@ const Hero = () => {
       <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#1C8FA0]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 -z-10" />
       
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="grid lg:grid-cols-12 gap-16 items-center">
+        <div className="flex flex-col gap-12 lg:gap-16">
           
-          {/* Text Content */}
-          <div className="lg:col-span-7 space-y-8 relative z-10">
+          {/* Text Content - Bloque Superior Completo */}
+          <div className="w-full space-y-8 relative z-10 text-center lg:text-left">
             <motion.h1 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -83,7 +83,7 @@ const Hero = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-lg sm:text-xl text-[#6E6E73] dark:text-gray-400 max-w-xl leading-relaxed"
+              className="text-lg sm:text-xl text-[#6E6E73] dark:text-gray-400 max-w-3xl mx-auto lg:mx-0 leading-relaxed"
             >
               Gestiona tus gastos sin entregar tus claves bancarias. IA financiera privada, moderna y hecha para personas reales.
             </motion.p>
@@ -92,7 +92,7 @@ const Hero = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="flex flex-col sm:flex-row gap-4 pt-4"
+              className="flex flex-col sm:flex-row gap-4 pt-4 justify-center lg:justify-start"
             >
               <Button
                 onClick={handleCTAClick}
@@ -104,25 +104,25 @@ const Hero = () => {
             </motion.div>
           </div>
 
-          {/* Visual Content - Interactive Dashboard Mockup */}
-          <div className="lg:col-span-5 relative flex items-center justify-center">
+          {/* Visual Content - Interactive Dashboard Mockup - Ancho Completo */}
+          <div className="w-full relative flex items-center justify-center">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="relative z-10 w-full"
             >
-              {/* Dashboard Mockup Card */}
+              {/* Dashboard Mockup Card - Ancho Completo */}
               <motion.div 
                 initial={{ opacity: 0, y: 20, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-xl rounded-[32px] p-6 shadow-[0_30px_60px_-12px_rgba(0,0,0,0.12)] dark:shadow-black/50 border border-white/50 dark:border-white/10 relative overflow-hidden w-full max-w-2xl mx-auto"
+                className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-xl rounded-[32px] p-6 lg:p-8 shadow-[0_30px_60px_-12px_rgba(0,0,0,0.12)] dark:shadow-black/50 border border-white/50 dark:border-white/10 relative overflow-hidden w-full"
               >
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#1C8FA0] to-[#E47B45]" />
                 
                 {/* Horizontal Layout: Balance + Chart on left, Transactions on right */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
                   {/* Left Side: Balance & Chart */}
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
