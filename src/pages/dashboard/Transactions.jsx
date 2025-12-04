@@ -34,7 +34,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 
 const FilterButton = ({ label, active }) => (
   <button className={cn(
-    "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all",
+    "flex items-center gap-2 px-4 h-[var(--control-height-mobile)] rounded-[var(--control-radius)] text-sm font-medium transition-all",
     active
       ? "bg-[#1C8FA0]/10 text-[#1C8FA0] border border-[#1C8FA0]/20"
       : "bg-white border border-gray-200 text-[#6E6E73] hover:border-gray-300 hover:text-[#1a1a1a]"
@@ -624,7 +624,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
               value={formData.amount}
               onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
               disabled={isLoading}
-              icon={DollarSign}
+              // icon={DollarSign} // Icono comentado por solicitud del usuario
             />
           </div>
 
@@ -696,7 +696,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
               disabled={isLoading}
-              icon={Calendar}
+              // icon={Calendar} // Icono comentado por solicitud del usuario
             />
           </div>
 
@@ -940,14 +940,14 @@ const Transactions = () => {
           <FilterButton label="Categoría" />
         </div>
         <div className="relative w-full lg:w-72">
-          <Icon component={Search} size="sm" color="default" className="absolute left-3 top-1/2 -translate-y-1/2" />
           <input 
             type="text" 
             placeholder="Buscar transacciones..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all"
+            className="w-full h-[var(--control-height-mobile)] pl-4 pr-11 bg-gray-50 border border-gray-200 rounded-[var(--control-radius)] text-sm focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all"
           />
+          <Icon component={Search} size="sm" color="default" className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>
       </div>
 

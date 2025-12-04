@@ -795,7 +795,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
               value={formData.amount}
               onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
               disabled={isLoading}
-              icon={DollarSign}
+              // icon={DollarSign} // Icono comentado por solicitud del usuario
             />
           </div>
 
@@ -885,7 +885,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
               disabled={isLoading}
-              icon={Calendar}
+              // icon={Calendar} // Icono comentado por solicitud del usuario
             />
           </div>
 

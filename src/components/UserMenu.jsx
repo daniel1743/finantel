@@ -77,7 +77,7 @@ const UserMenu = ({
   ];
 
   const renderMenuItem = (item, index) => {
-    const Icon = item.icon;
+    const ItemIcon = item.icon;
     const isHovered = hoveredItem === index;
 
     const content = (
@@ -85,7 +85,7 @@ const UserMenu = ({
         onHoverStart={() => setHoveredItem(index)}
         onHoverEnd={() => setHoveredItem(null)}
         className={cn(
-          "group relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer",
+          "group relative flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 cursor-pointer",
           isHovered
             ? "bg-[#1C8FA0]/10 text-[#1C8FA0]"
             : "text-[#6E6E73] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5"
@@ -96,13 +96,14 @@ const UserMenu = ({
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#1C8FA0] rounded-r-full" />
         )}
 
-        {/* Icono - EXACTO tamaño sidebar: w-5 h-5 */}
+        {/* Icono - usa tokens de iconografía (mismo que sidebar) */}
         <Icon
+          component={ItemIcon}
+          size="md"
+          color={isHovered ? "primary" : "default"}
           className={cn(
-            "w-5 h-5 transition-all duration-300",
-            isHovered
-              ? "text-[#1C8FA0] drop-shadow-[0_0_8px_rgba(28,143,160,0.5)]"
-              : "group-hover:scale-110"
+            "transition-all duration-300",
+            isHovered ? "drop-shadow-[0_0_8px_rgba(28,143,160,0.5)]" : "group-hover:scale-110"
           )}
         />
 

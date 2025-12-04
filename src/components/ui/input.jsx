@@ -44,12 +44,13 @@ const Input = React.forwardRef(({
   const hasRightIcon = !!iconRight;
 
   // Padding calculado con tokens para evitar solapamiento de iconos y texto
+  // Aumentado el espaciado entre icono y texto para mejor legibilidad
   const paddingWithIcon = {
     paddingLeft: hasLeftIcon
-      ? `calc(var(--control-padding-x) + var(--icon-size-md) + 14px)`
+      ? `calc(var(--control-padding-x) + var(--icon-size-md) + 20px)`
       : undefined,
     paddingRight: hasRightIcon
-      ? `calc(var(--control-padding-x) + var(--icon-size-md) + 14px)`
+      ? `calc(var(--control-padding-x) + var(--icon-size-md) + 20px)`
       : undefined,
   };
 
@@ -59,7 +60,7 @@ const Input = React.forwardRef(({
         <div
           className={cn(
             'absolute top-1/2 -translate-y-1/2 z-10 pointer-events-none',
-            size === 'sm' ? 'left-3' : size === 'lg' ? 'left-4' : 'left-3'
+            size === 'sm' ? 'left-3' : size === 'lg' ? 'left-4' : 'left-4'
           )}
         >
           <Icon component={icon} size="xs" color="muted" />
