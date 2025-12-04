@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import SeoHead from '@/components/SeoHead';
 import { Check, Rocket } from 'lucide-react';
@@ -56,7 +57,7 @@ const Roadmap = () => {
                 {completed.map((item, index) => (
                   <li key={index} className="flex items-center gap-3">
                     <div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
-                      <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
+                      <Icon component={Check} size="sm" color="success" className="dark:" />
                     </div>
                     <span className="text-[#6E6E73] dark:text-gray-400">{item}</span>
                   </li>
@@ -78,7 +79,7 @@ const Roadmap = () => {
                 {upcoming.map((item, index) => (
                   <li key={index} className="flex items-center gap-3">
                     <div className="w-6 h-6 rounded-full bg-[#1C8FA0]/10 dark:bg-[#1C8FA0]/20 flex items-center justify-center flex-shrink-0">
-                      <Rocket className="w-4 h-4 text-[#1C8FA0]" />
+                      <Icon component={Rocket} size="sm" color="primary" />
                     </div>
                     <span className="text-[#6E6E73] dark:text-gray-400">{item}</span>
                   </li>

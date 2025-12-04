@@ -5,6 +5,7 @@
 // =====================================================
 
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { CheckCircle2, XCircle, Loader2, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useFinance } from '@/hooks/useFinance';
@@ -116,15 +117,15 @@ const DiagnosticPanel = () => {
   const getStatusIcon = (status) => {
     switch (status) {
       case 'success':
-        return <CheckCircle2 className="w-5 h-5 text-green-500" />;
+        return <Icon component={CheckCircle2} size="md" color="default" />;
       case 'error':
-        return <XCircle className="w-5 h-5 text-red-500" />;
+        return <Icon component={XCircle} size="md" color="default" />;
       case 'warning':
-        return <AlertCircle className="w-5 h-5 text-yellow-500" />;
+        return <Icon component={AlertCircle} size="md" color="default" />;
       case 'checking':
-        return <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />;
+        return <Icon component={Loader2} size="md" color="default" className="animate-spin" />;
       default:
-        return <AlertCircle className="w-5 h-5 text-gray-500" />;
+        return <Icon component={AlertCircle} size="md" color="muted" />;
     }
   };
 
@@ -147,7 +148,7 @@ const DiagnosticPanel = () => {
     <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-white/10 p-6 shadow-sm">
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center">
-          <AlertCircle className="w-5 h-5 text-[#1C8FA0]" />
+          <Icon component={AlertCircle} size="md" color="primary" />
         </div>
         <div>
           <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white">Diagnóstico del Sistema</h3>

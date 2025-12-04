@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import Icon from '@/components/ui/Icon';
 import { Mic, Square, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -332,11 +333,11 @@ const VoiceInput = ({ onTransactionCreated, userId, currency = 'USD' }) => {
 
           <div className="relative z-10">
             {isProcessing ? (
-              <Loader2 className="w-5 h-5 text-white animate-spin" />
+              <Icon component={Loader2} size="md" color="white" className="animate-spin" />
             ) : isRecording ? (
-              <Square className="w-5 h-5 text-white" />
+              <Icon component={Square} size="md" color="white" />
             ) : (
-              <Mic className="w-5 h-5 text-white" />
+              <Icon component={Mic} size="md" color="white" />
             )}
           </div>
         </Button>

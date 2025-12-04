@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/customSupabaseClient';
 import { Loader2 } from 'lucide-react';
@@ -80,7 +81,7 @@ const AuthCallback = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F5F7F9]">
       <div className="text-center">
-        <Loader2 className="w-12 h-12 text-[#1C8FA0] animate-spin mx-auto mb-4" />
+        <Icon component={Loader2} size="md" color="primary" className="animate-spin mx-auto mb-4" />
         <h2 className="text-xl font-bold text-[#1a1a1a] mb-2">Completando inicio de sesión...</h2>
         <p className="text-[#6E6E73]">Por favor espera mientras te redirigimos</p>
       </div>

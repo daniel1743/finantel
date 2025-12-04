@@ -5,6 +5,7 @@
 // =====================================================
 
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { Droplet, AlertTriangle, DollarSign, TrendingUp, Calendar } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -19,13 +20,13 @@ const LeakageCard = ({ leakages = [] }) => {
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-green-500/10 border border-green-500/20">
-            <Droplet className="w-5 h-5 text-green-600 dark:text-green-400" />
+            <Icon component={Droplet} size="md" color="success" className="dark:" />
           </div>
           <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white">Fugas Financieras</h3>
         </div>
         <div className="text-center py-6">
           <div className="inline-flex p-3 rounded-full bg-green-500/10 mb-3">
-            <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
+            <Icon component={TrendingUp} size="lg" color="success" className="dark:" />
           </div>
           <p className="text-sm font-medium text-[#1a1a1a] dark:text-white mb-1">
             ¡Excelente! No se detectaron fugas
@@ -108,7 +109,7 @@ const LeakageCard = ({ leakages = [] }) => {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-red-500/10 border border-red-500/20">
-            <Droplet className="w-5 h-5 text-red-600 dark:text-red-400" />
+            <Icon component={Droplet} size="md" color="error" className="dark:" />
           </div>
           <div>
             <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white">Fugas Financieras</h3>

@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { Lock, Users, ArrowRight, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -15,7 +16,7 @@ const UpgradeRequired = ({ featureName = "esta funcionalidad", planName = "Plan 
       >
         <div className="flex justify-center mb-6">
           <div className="w-24 h-24 bg-gradient-to-br from-[#1C8FA0] to-[#167a8a] rounded-full flex items-center justify-center shadow-lg shadow-[#1C8FA0]/20">
-            <Lock className="w-12 h-12 text-white" />
+            <Icon component={Lock} size="md" color="white" />
           </div>
         </div>
         
@@ -29,38 +30,38 @@ const UpgradeRequired = ({ featureName = "esta funcionalidad", planName = "Plan 
 
         <div className="bg-gradient-to-r from-[#1C8FA0]/10 to-[#E47B45]/10 dark:from-[#1C8FA0]/20 dark:to-[#E47B45]/20 rounded-2xl p-6 mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Users className="w-6 h-6 text-[#1C8FA0]" />
+            <Icon component={Users} size="lg" color="primary" />
             <h3 className="text-xl font-bold text-[#1a1a1a] dark:text-white">
               Beneficios del Plan Familiar
             </h3>
           </div>
           <ul className="space-y-3 text-left max-w-md mx-auto">
             <li className="flex items-start gap-3">
-              <Sparkles className="w-5 h-5 text-[#1C8FA0] mt-0.5 flex-shrink-0" />
+              <Icon component={Sparkles} size="md" color="primary" className="mt-0.5 flex-shrink-0" />
               <span className="text-[#6E6E73] dark:text-gray-400">
                 Hasta 5 miembros de familia
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <Sparkles className="w-5 h-5 text-[#1C8FA0] mt-0.5 flex-shrink-0" />
+              <Icon component={Sparkles} size="md" color="primary" className="mt-0.5 flex-shrink-0" />
               <span className="text-[#6E6E73] dark:text-gray-400">
                 Gastos compartidos y división automática
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <Sparkles className="w-5 h-5 text-[#1C8FA0] mt-0.5 flex-shrink-0" />
+              <Icon component={Sparkles} size="md" color="primary" className="mt-0.5 flex-shrink-0" />
               <span className="text-[#6E6E73] dark:text-gray-400">
                 Dashboard familiar con métricas compartidas
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <Sparkles className="w-5 h-5 text-[#1C8FA0] mt-0.5 flex-shrink-0" />
+              <Icon component={Sparkles} size="md" color="primary" className="mt-0.5 flex-shrink-0" />
               <span className="text-[#6E6E73] dark:text-gray-400">
                 Gestión de deudas entre miembros
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <Sparkles className="w-5 h-5 text-[#1C8FA0] mt-0.5 flex-shrink-0" />
+              <Icon component={Sparkles} size="md" color="primary" className="mt-0.5 flex-shrink-0" />
               <span className="text-[#6E6E73] dark:text-gray-400">
                 Roles y permisos personalizables
               </span>
@@ -72,7 +73,7 @@ const UpgradeRequired = ({ featureName = "esta funcionalidad", planName = "Plan 
           <Link to="/dashboard/billing">
             <Button className="bg-[#1C8FA0] hover:bg-[#167a8a] text-white px-8 py-6 text-lg rounded-xl shadow-lg shadow-[#1C8FA0]/20">
               Actualizar a Plan Familiar
-              <ArrowRight className="w-5 h-5 ml-2" />
+              <Icon component={ArrowRight} size="md" color="default" className="ml-2" />
             </Button>
           </Link>
           <Link to="/pricing">

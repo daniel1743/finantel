@@ -6,6 +6,7 @@
 // ============================================================================
 
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AlertTriangle,
@@ -185,9 +186,9 @@ function LeakCard({ leak, onResolve, onIgnore, currency }) {
 
           <button className="p-2 hover:bg-white/50 dark:hover:bg-black/20 rounded-lg transition-colors">
             {expanded ? (
-              <ChevronUp className="w-5 h-5 text-[#6E6E73]" />
+              <Icon component={ChevronUp} size="md" color="default" />
             ) : (
-              <ChevronDown className="w-5 h-5 text-[#6E6E73]" />
+              <Icon component={ChevronDown} size="md" color="default" />
             )}
           </button>
         </div>
@@ -212,7 +213,7 @@ function LeakCard({ leak, onResolve, onIgnore, currency }) {
               ) : aiExplanation ? (
                 <div className="bg-white/50 dark:bg-black/20 rounded-lg p-4">
                   <div className="flex items-start gap-3">
-                    <Sparkles className="w-5 h-5 text-[#1C8FA0] mt-0.5 flex-shrink-0" />
+                    <Icon component={Sparkles} size="md" color="primary" className="mt-0.5 flex-shrink-0" />
                     <p className="text-sm text-[#1a1a1a] dark:text-white leading-relaxed">
                       {aiExplanation}
                     </p>
@@ -290,7 +291,7 @@ function LeakCard({ leak, onResolve, onIgnore, currency }) {
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                   size="sm"
                 >
-                  <Check className="w-4 h-4 mr-2" />
+                  <Icon component={Check} size="sm" color="default" className="mr-2" />
                   Marcar como Resuelto
                 </Button>
                 <Button
@@ -299,7 +300,7 @@ function LeakCard({ leak, onResolve, onIgnore, currency }) {
                   className="flex-1"
                   size="sm"
                 >
-                  <X className="w-4 h-4 mr-2" />
+                  <Icon component={X} size="sm" color="default" className="mr-2" />
                   Ignorar
                 </Button>
               </div>
@@ -650,7 +651,7 @@ export default function LeakHunterPanel() {
 
         {filteredLeaks.length === 0 && (
           <div className="bg-white dark:bg-[#1a1a1a] rounded-[22px] border border-gray-100 dark:border-white/5 p-12 text-center">
-            <AlertTriangle className="w-12 h-12 text-[#6E6E73] dark:text-gray-400 mx-auto mb-4" />
+            <Icon component={AlertTriangle} size="md" color="default" className="dark: mx-auto mb-4" />
             <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white mb-2">
               {filter === 'active' ? 'Sin fugas activas' : 'Sin fugas detectadas'}
             </h3>

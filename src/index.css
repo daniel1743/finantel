@@ -74,6 +74,60 @@
   --status-success: #10B981;
   --status-warning: #F59E0B;
   --status-error: #EF4444;
+
+  /* =====================================================
+     SISTEMA DE ICONOGRAFÍA - Tokens
+     ===================================================== */
+  --icon-size-xs: 12px;
+  --icon-size-sm: 16px;
+  --icon-size-md: 20px;  /* Tamaño por defecto (referencia sidebar) */
+  --icon-size-lg: 24px;
+  --icon-size-xl: 32px;
+  
+  --icon-stroke-width: 1.5;
+  --icon-color-default: #6E6E73;
+  --icon-color-primary: #1C8FA0;
+  --icon-color-active: #1C8FA0;
+
+  /* =====================================================
+     SISTEMA DE CONTROLES (INPUTS Y BOTONES) - Tokens
+     ===================================================== */
+  /* Alturas estándar (mínimo 44px para accesibilidad táctil) */
+  --control-height-base: 44px;      /* Altura base para inputs y botones */
+  --control-height-sm: 36px;       /* Variante pequeña */
+  --control-height-lg: 52px;        /* Variante grande */
+  
+  /* Padding horizontal */
+  --control-padding-x: 16px;       /* Padding horizontal base */
+  --control-padding-x-sm: 12px;    /* Padding horizontal pequeño */
+  --control-padding-x-lg: 20px;    /* Padding horizontal grande */
+  
+  /* Border radius */
+  --control-radius: 10px;          /* Border radius estándar */
+  --control-radius-sm: 8px;        /* Border radius pequeño */
+  --control-radius-lg: 12px;       /* Border radius grande */
+  
+  /* Tipografía */
+  --control-font-size: 15px;       /* Tamaño de fuente base */
+  --control-font-size-sm: 14px;    /* Tamaño de fuente pequeño */
+  --control-font-size-lg: 16px;    /* Tamaño de fuente grande */
+  --control-font-weight: 500;      /* Peso de fuente */
+  
+  /* Bordes */
+  --control-border-width: 1px;
+  --control-border-color: #E5E7EB;
+  --control-border-color-dark: rgba(255, 255, 255, 0.1);
+  --control-border-color-focus: #1C8FA0;
+  
+  /* Estados */
+  --control-bg-default: #F9FAFB;
+  --control-bg-default-dark: rgba(255, 255, 255, 0.05);
+  --control-bg-hover: #FFFFFF;
+  --control-bg-hover-dark: rgba(255, 255, 255, 0.08);
+  --control-shadow-focus: 0 0 0 3px rgba(28, 143, 160, 0.1);
+  
+  /* Transiciones */
+  --control-transition: all 0.2s ease-in-out;
 }
 
 .dark {
@@ -100,13 +154,29 @@
   --input: 0 0% 14.9%;
   --ring: 0 0% 83.1%;
 
-  /* =====================================================
-     DESIGN TOKENS 2025 - Dark Mode
-     ===================================================== */
-  --dark-background: #0F0F11;
-  --dark-text: #F5F7F9;
-  --dark-border: #2D2D33;
-}
+        /* =====================================================
+           DESIGN TOKENS 2025 - Dark Mode
+           ===================================================== */
+        --dark-background: #0F0F11;
+        --dark-text: #F5F7F9;
+        --dark-border: #2D2D33;
+
+        /* =====================================================
+           SISTEMA DE ICONOGRAFÍA - Dark Mode
+           ===================================================== */
+        --icon-color-default: #9CA3AF;
+        --icon-color-primary: #1C8FA0;
+        --icon-color-active: #1C8FA0;
+
+        /* =====================================================
+           SISTEMA DE CONTROLES - Dark Mode
+           ===================================================== */
+        --control-border-color: rgba(255, 255, 255, 0.1);
+        --control-bg-default: rgba(255, 255, 255, 0.05);
+        --control-bg-hover: rgba(255, 255, 255, 0.08);
+        --control-border-color-focus: #1C8FA0;
+        --control-shadow-focus: 0 0 0 3px rgba(28, 143, 160, 0.2);
+      }
 
 body {
   @apply bg-white text-[#1a1a1a];
@@ -139,19 +209,19 @@ h1, h2, h3, h4, h5, h6 {
   -ms-overflow-style: none; /* IE and Edge */
 }
 
-/* Dropdown styles - Esquinas redondeadas y responsive */
+/* Dropdown styles - Usa el sistema de controles */
 select {
-  border-radius: 12px !important;
+  border-radius: var(--control-radius) !important;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
+  /* El sistema de controles ya aplica altura, padding, etc. */
 }
 
 /* Asegurar que los dropdowns no sobresalgan en responsive */
 select:focus {
   outline: none;
-  box-shadow: 0 0 0 2px var(--primary-500);
-  box-shadow: 0 0 0 2px rgba(46, 125, 140, 0.2); /* primary-500 con opacidad */
+  /* El sistema de controles ya maneja el focus */
 }
 
 /* Animación Shimmer para Verified Finantel Badge */
@@ -185,16 +255,223 @@ select option {
   padding: 8px;
 }
 
-/* Prevenir que los selects sobresalgan en mobile */
-@media (max-width: 640px) {
-  select {
-    max-width: 100%;
-    width: 100%;
+      /* Prevenir que los selects sobresalgan en mobile */
+      @media (max-width: 640px) {
+        select {
+          max-width: 100%;
+          width: 100%;
+        }
+        
+        /* Asegurar que el modal no se desborde */
+        .modal-container {
+          max-width: calc(100vw - 2rem);
+          margin: 1rem;
+        }
+      }
+
+      /* =====================================================
+         SISTEMA DE CONTROLES - Clases Base Globales
+         ===================================================== */
+      
+      /* Input Base - Aplicar a todos los inputs */
+      input[type="text"],
+      input[type="email"],
+      input[type="password"],
+      input[type="number"],
+      input[type="tel"],
+      input[type="url"],
+      input[type="search"],
+      textarea,
+      select {
+        height: var(--control-height-base);
+        padding: 0 var(--control-padding-x);
+        border-radius: var(--control-radius);
+        font-size: var(--control-font-size);
+        font-weight: var(--control-font-weight);
+        border: var(--control-border-width) solid var(--control-border-color);
+        background-color: var(--control-bg-default);
+        color: var(--neutral-text);
+        transition: var(--control-transition);
+        width: 100%;
+      }
+
+      .dark input[type="text"],
+      .dark input[type="email"],
+      .dark input[type="password"],
+      .dark input[type="number"],
+      .dark input[type="tel"],
+      .dark input[type="url"],
+      .dark input[type="search"],
+      .dark textarea,
+      .dark select {
+        border-color: var(--control-border-color-dark);
+        background-color: var(--control-bg-default-dark);
+        color: var(--dark-text);
+      }
+
+      /* Estados de Input */
+      input:focus,
+      textarea:focus,
+      select:focus {
+        outline: none;
+        border-color: var(--control-border-color-focus);
+        box-shadow: var(--control-shadow-focus);
+        background-color: var(--control-bg-hover);
+      }
+
+      .dark input:focus,
+      .dark textarea:focus,
+      .dark select:focus {
+        background-color: var(--control-bg-hover-dark);
+      }
+
+      input:hover,
+      textarea:hover,
+      select:hover {
+        border-color: var(--control-border-color-focus);
+        background-color: var(--control-bg-hover);
+      }
+
+      .dark input:hover,
+      .dark textarea:hover,
+      .dark select:hover {
+        background-color: var(--control-bg-hover-dark);
+      }
+
+      /* Textarea - Altura flexible */
+      textarea {
+        height: auto;
+        min-height: var(--control-height-base);
+        padding-top: 12px;
+        padding-bottom: 12px;
+        resize: vertical;
+      }
+
+      /* Variantes de tamaño para inputs */
+      .input-sm {
+        height: var(--control-height-sm);
+        padding: 0 var(--control-padding-x-sm);
+        font-size: var(--control-font-size-sm);
+        border-radius: var(--control-radius-sm);
+      }
+
+      .input-lg {
+        height: var(--control-height-lg);
+        padding: 0 var(--control-padding-x-lg);
+        font-size: var(--control-font-size-lg);
+        border-radius: var(--control-radius-lg);
+      }
+
+      /* Inputs con iconos - El padding se maneja automáticamente por el componente Input */
+      /* No necesitamos reglas adicionales aquí ya que el componente Input maneja el padding */
+
+      /* Responsive - Ajustes para mobile */
+      @media (max-width: 640px) {
+        :root {
+          --control-height-base: 48px;  /* Más grande en mobile para mejor accesibilidad táctil */
+          --control-padding-x: 14px;
+          --control-font-size: 16px;    /* Evitar zoom en iOS */
+        }
+      }
+
+/* =====================================================
+   SISTEMA DE ICONOGRAFÍA - RESPONSIVE
+   =====================================================
+   Reglas globales para ajustar iconos automáticamente
+   en dispositivos móviles usando CSS custom properties
+   ===================================================== */
+
+/* Mobile: Reducir iconos grandes para mejor proporción */
+@media (max-width: 768px) {
+  /* Ajustar variables CSS de iconos para mobile */
+  :root {
+    --icon-size-xl: 24px;  /* 32px -> 24px */
+    --icon-size-lg: 20px;  /* 24px -> 20px */
   }
-  
-  /* Asegurar que el modal no se desborde */
-  .modal-container {
-    max-width: calc(100vw - 2rem);
-    margin: 1rem;
+}
+
+/* Small Mobile: Optimizar para pantallas muy pequeñas */
+@media (max-width: 480px) {
+  /* Ajustar variables CSS de iconos para pantallas pequeñas */
+  :root {
+    --icon-size-xl: 20px;  /* 32px -> 20px */
+    --icon-size-lg: 18px;  /* 24px -> 18px */
+    --icon-size-md: 16px;  /* 20px -> 16px */
+  }
+}
+
+/* Tablet: Mantener tamaños balanceados */
+@media (min-width: 769px) and (max-width: 1024px) {
+  :root {
+    --icon-size-xl: 28px;  /* 32px -> 28px */
+  }
+}
+
+/* =====================================================
+   CLASES UTILITARIAS RESPONSIVE PARA ICONOS
+   ===================================================== */
+
+/* Clases para forzar tamaños responsivos explícitos usando CSS directo */
+.icon-xs-responsive {
+  width: 0.75rem;   /* 12px */
+  height: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .icon-xs-responsive {
+    width: 0.625rem; /* 10px */
+    height: 0.625rem;
+  }
+}
+
+/* Icon size responsive: sm */
+.icon-sm-responsive {
+  width: 1rem;     /* 16px */
+  height: 1rem;
+}
+
+@media (max-width: 640px) {
+  .icon-sm-responsive {
+    width: 0.875rem; /* 14px */
+    height: 0.875rem;
+  }
+}
+
+/* Icon size responsive: md (default) */
+.icon-md-responsive {
+  width: 1.25rem;  /* 20px */
+  height: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .icon-md-responsive {
+    width: 1rem;     /* 16px */
+    height: 1rem;
+  }
+}
+
+/* Icon size responsive: lg */
+.icon-lg-responsive {
+  width: 1.5rem;   /* 24px */
+  height: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .icon-lg-responsive {
+    width: 1.25rem;  /* 20px */
+    height: 1.25rem;
+  }
+}
+
+/* Icon size responsive: xl */
+.icon-xl-responsive {
+  width: 2rem;     /* 32px */
+  height: 2rem;
+}
+
+@media (max-width: 640px) {
+  .icon-xl-responsive {
+    width: 1.5rem;   /* 24px */
+    height: 1.5rem;
   }
 }

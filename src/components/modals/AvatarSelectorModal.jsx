@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check } from 'lucide-react';
 
@@ -79,7 +80,7 @@ const AvatarSelectorModal = ({ isOpen, onClose, onSelect, currentAvatar }) => {
             onClick={onClose}
             className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors"
           >
-            <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+            <Icon component={X} size="md" color="default" className="dark:" />
           </button>
         </div>
 
@@ -111,7 +112,7 @@ const AvatarSelectorModal = ({ isOpen, onClose, onSelect, currentAvatar }) => {
                     animate={{ scale: 1 }}
                     className="absolute top-2 right-2 w-6 h-6 bg-[#1C8FA0] rounded-full flex items-center justify-center shadow-lg"
                   >
-                    <Check className="w-4 h-4 text-white" />
+                    <Icon component={Check} size="sm" color="white" />
                   </motion.div>
                 )}
                 <div className="absolute inset-0 bg-[#1C8FA0]/0 group-hover:bg-[#1C8FA0]/10 transition-colors rounded-xl" />

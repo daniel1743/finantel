@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { 
   BarChart3, 
@@ -29,7 +30,7 @@ const ChartCard = ({ title, children, className }) => (
     <div className="flex justify-between items-center mb-6">
       <h3 className="font-bold text-[#1a1a1a] dark:text-white text-sm">{title}</h3>
       <button className="p-1.5 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg text-[#6E6E73] dark:text-gray-400 transition-colors">
-        <Download className="w-4 h-4" />
+        <Icon component={Download} size="sm" color="default" />
       </button>
     </div>
     {children}
@@ -320,7 +321,7 @@ const Analysis = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-10 h-10 text-[#1C8FA0] animate-spin" />
+        <Icon component={Loader2} size="md" color="primary" className="animate-spin" />
       </div>
     );
   }
@@ -355,7 +356,7 @@ const Analysis = () => {
             })}
           </div>
           <button className="p-3 bg-[#1a1a1a] dark:bg-white text-white dark:text-black rounded-xl shadow-lg hover:opacity-90 transition-opacity">
-            <Filter className="w-5 h-5" />
+            <Icon component={Filter} size="md" color="default" />
           </button>
         </div>
       </div>

@@ -4,11 +4,11 @@ import { cva } from 'class-variance-authority';
 import React from 'react';
 
 const buttonVariants = cva(
-	'inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+	'inline-flex items-center justify-center font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
 	{
 		variants: {
 			variant: {
-				default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+				default: 'bg-[#1C8FA0] text-white hover:bg-[#167a8a] shadow-sm hover:shadow-md',
 				destructive:
           'bg-destructive text-destructive-foreground hover:bg-destructive/90',
 				outline:
@@ -19,10 +19,10 @@ const buttonVariants = cva(
 				link: 'text-primary underline-offset-4 hover:underline',
 			},
 			size: {
-				default: 'h-10 px-4 py-2',
-				sm: 'h-9 rounded-md px-3',
-				lg: 'h-11 rounded-md px-8',
-				icon: 'h-10 w-10',
+				default: 'h-[var(--control-height-base)] px-[var(--control-padding-x)] rounded-[var(--control-radius)] text-[var(--control-font-size)]',
+				sm: 'h-[var(--control-height-sm)] px-[var(--control-padding-x-sm)] rounded-[var(--control-radius-sm)] text-[var(--control-font-size-sm)]',
+				lg: 'h-[var(--control-height-lg)] px-[var(--control-padding-x-lg)] rounded-[var(--control-radius-lg)] text-[var(--control-font-size-lg)]',
+				icon: 'h-[var(--control-height-base)] w-[var(--control-height-base)] rounded-[var(--control-radius)]',
 			},
 		},
 		defaultVariants: {

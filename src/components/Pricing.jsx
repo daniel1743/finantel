@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
@@ -105,7 +106,7 @@ const Pricing = () => {
               >
                 {loading === 'Starter' ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    <Icon component={Loader2} size="sm" color="default" className="animate-spin mr-2" />
                     Procesando...
                   </>
                 ) : (
@@ -115,7 +116,7 @@ const Pricing = () => {
               <ul className="mt-8 space-y-4">
                 {['Gastos ilimitados', '5 categorías', 'Exportación básica'].map((item) => (
                   <li key={item} className="flex items-center gap-3 text-sm text-[#6E6E73] group-hover:text-[#1a1a1a] transition-colors">
-                    <Check className="w-4 h-4 text-[#1C8FA0] group-hover:scale-105 transition-transform" /> {item}
+                    <Icon component={Check} size="sm" color="primary" className="group-hover:scale-105 transition-transform" /> {item}
                   </li>
                 ))}
               </ul>
@@ -154,7 +155,7 @@ const Pricing = () => {
                   <span className="relative z-10">
                     {loading === 'Pro' ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
+                        <Icon component={Loader2} size="sm" color="default" className="animate-spin inline mr-2" />
                         Procesando...
                       </>
                     ) : (
@@ -177,7 +178,7 @@ const Pricing = () => {
                     key={item}
                     className="flex items-center gap-3 text-sm text-gray-300 group-hover:text-white transition-colors"
                   >
-                    <Check className="w-4 h-4 text-[#1C8FA0] group-hover:scale-105 transition-transform" />
+                    <Icon component={Check} size="sm" color="primary" className="group-hover:scale-105 transition-transform" />
                     {item}
                   </li>
                 ))}
@@ -209,7 +210,7 @@ const Pricing = () => {
               >
                 {loading === 'Family' ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    <Icon component={Loader2} size="sm" color="default" className="animate-spin mr-2" />
                     Procesando...
                   </>
                 ) : (
@@ -219,7 +220,7 @@ const Pricing = () => {
               <ul className="mt-8 space-y-4">
                 {['Todo en Pro', 'Hasta 5 miembros', 'Presupuestos compartidos', 'Roles y permisos', 'Asesor financiero IA'].map((item) => (
                   <li key={item} className="flex items-center gap-3 text-sm text-[#6E6E73] group-hover:text-[#1a1a1a] transition-colors">
-                    <Check className="w-4 h-4 text-[#1C8FA0] group-hover:scale-110 transition-transform" /> {item}
+                    <Icon component={Check} size="sm" color="primary" className="group-hover:scale-110 transition-transform" /> {item}
                   </li>
                 ))}
               </ul>

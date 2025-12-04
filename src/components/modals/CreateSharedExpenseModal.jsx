@@ -5,6 +5,7 @@
 // =====================================================
 
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, DollarSign, FileText, Users, Percent, Equal, Coins } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -237,7 +238,7 @@ const CreateSharedExpenseModal = ({
               onClick={onClose}
               className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
             >
-              <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+              <Icon component={X} size="md" color="default" className="dark:" />
             </button>
           </div>
 
@@ -261,7 +262,7 @@ const CreateSharedExpenseModal = ({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-[#1a1a1a] dark:text-white mb-2">
-                  <DollarSign className="w-4 h-4 inline mr-1" />
+                  <Icon component={DollarSign} size="sm" color="default" className="inline mr-1" />
                   Monto total *
                 </label>
                 <input
@@ -290,7 +291,7 @@ const CreateSharedExpenseModal = ({
 
               <div>
                 <label className="block text-sm font-semibold text-[#1a1a1a] dark:text-white mb-2">
-                  <Calendar className="w-4 h-4 inline mr-1" />
+                  <Icon component={Calendar} size="sm" color="default" className="inline mr-1" />
                   Fecha *
                 </label>
                 <input
@@ -350,7 +351,7 @@ const CreateSharedExpenseModal = ({
             {/* Nota opcional */}
             <div>
               <label className="block text-sm font-semibold text-[#1a1a1a] dark:text-white mb-2">
-                <FileText className="w-4 h-4 inline mr-1" />
+                <Icon component={FileText} size="sm" color="default" className="inline mr-1" />
                 Nota (opcional)
               </label>
               <textarea
@@ -365,7 +366,7 @@ const CreateSharedExpenseModal = ({
             {/* Miembros que participan */}
             <div>
               <label className="block text-sm font-semibold text-[#1a1a1a] dark:text-white mb-3">
-                <Users className="w-4 h-4 inline mr-1" />
+                <Icon component={Users} size="sm" color="default" className="inline mr-1" />
                 Miembros que participan *
               </label>
               <div className="grid grid-cols-2 gap-3">
@@ -424,7 +425,7 @@ const CreateSharedExpenseModal = ({
                       : "border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 hover:border-[#1C8FA0]/50"
                   )}
                 >
-                  <Equal className="w-5 h-5 mx-auto mb-2 text-[#1C8FA0]" />
+                  <Icon component={Equal} size="md" color="primary" className="mx-auto mb-2" />
                   <span className="text-xs font-semibold text-[#1a1a1a] dark:text-white">Equitativa</span>
                 </button>
 
@@ -438,7 +439,7 @@ const CreateSharedExpenseModal = ({
                       : "border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 hover:border-[#1C8FA0]/50"
                   )}
                 >
-                  <Percent className="w-5 h-5 mx-auto mb-2 text-[#1C8FA0]" />
+                  <Icon component={Percent} size="md" color="primary" className="mx-auto mb-2" />
                   <span className="text-xs font-semibold text-[#1a1a1a] dark:text-white">Por %</span>
                 </button>
 
@@ -452,7 +453,7 @@ const CreateSharedExpenseModal = ({
                       : "border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 hover:border-[#1C8FA0]/50"
                   )}
                 >
-                  <Coins className="w-5 h-5 mx-auto mb-2 text-[#1C8FA0]" />
+                  <Icon component={Coins} size="md" color="primary" className="mx-auto mb-2" />
                   <span className="text-xs font-semibold text-[#1a1a1a] dark:text-white">Montos</span>
                 </button>
               </div>

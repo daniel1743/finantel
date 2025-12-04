@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -135,7 +136,7 @@ const AdminSupport = () => {
   if (checkingStaff) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
+        <Icon component={Loader2} size="xl" color="primary" className="animate-spin" />
       </div>
     );
   }
@@ -143,7 +144,7 @@ const AdminSupport = () => {
   if (!isStaff) {
     return (
       <div className="text-center py-12">
-        <AlertTriangle className="w-16 h-16 text-amber-500 mx-auto mb-4" />
+        <Icon component={AlertTriangle} size="md" color="default" className="mx-auto mb-4" />
         <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white mb-2">
           Acceso Restringido
         </h2>
@@ -163,7 +164,7 @@ const AdminSupport = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <p className="text-sm uppercase font-semibold text-[#1C8FA0] flex items-center gap-2">
-            <LifeBuoy className="w-4 h-4" />
+            <Icon component={LifeBuoy} size="sm" color="default" />
             Panel de Administración
           </p>
           <h1 className="text-3xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">
@@ -207,7 +208,7 @@ const AdminSupport = () => {
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white flex items-center gap-2">
-              <Filter className="w-5 h-5" />
+              <Icon component={Filter} size="md" color="default" />
               Filtros
             </h3>
             <Button
@@ -216,7 +217,7 @@ const AdminSupport = () => {
               onClick={() => setShowFilters(!showFilters)}
               className="gap-2"
             >
-              {showFilters ? <X className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              {showFilters ? <Icon component={X} size="sm" color="default" /> : <Icon component={ChevronDown} size="sm" color="default" />}
             </Button>
           </div>
 
@@ -278,7 +279,7 @@ const AdminSupport = () => {
                   Buscar
                 </label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6E6E73]" />
+                  <Icon component={Search} size="sm" color="default" className="absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={filters.search}
@@ -297,11 +298,11 @@ const AdminSupport = () => {
       <div className="bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/5 rounded-2xl shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
+            <Icon component={Loader2} size="xl" color="primary" className="animate-spin" />
           </div>
         ) : tickets.length === 0 ? (
           <div className="text-center py-20 text-[#6E6E73] dark:text-gray-400">
-            <LifeBuoy className="w-16 h-16 mx-auto mb-4 text-[#1C8FA0]" />
+            <Icon component={LifeBuoy} size="md" color="primary" className="mx-auto mb-4" />
             <p>No hay tickets que coincidan con los filtros.</p>
           </div>
         ) : (
@@ -333,7 +334,7 @@ const AdminSupport = () => {
 
                       <div className="flex flex-wrap items-center gap-3 mt-3">
                         <div className="flex items-center gap-2 text-sm text-[#6E6E73] dark:text-gray-400">
-                          <User className="w-4 h-4" />
+                          <Icon component={User} size="sm" color="default" />
                           <span>{userName}</span>
                           <span className="text-xs">({userEmail})</span>
                         </div>
@@ -388,7 +389,7 @@ const AdminSupport = () => {
                           }}
                           className="flex-1 bg-[#1C8FA0] hover:bg-[#167a8a] text-white"
                         >
-                          <Send className="w-4 h-4" />
+                          <Icon component={Send} size="sm" color="default" />
                         </Button>
                       </div>
 
@@ -432,7 +433,7 @@ const AdminSupport = () => {
                   setResponseMessage('');
                 }}
               >
-                <X className="w-5 h-5" />
+                <Icon component={X} size="md" color="default" />
               </Button>
             </div>
 
@@ -490,12 +491,12 @@ const AdminSupport = () => {
               >
                 {sendingResponse ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    <Icon component={Loader2} size="sm" color="default" className="animate-spin mr-2" />
                     Enviando...
                   </>
                 ) : (
                   <>
-                    <Send className="w-4 h-4 mr-2" />
+                    <Icon component={Send} size="sm" color="default" className="mr-2" />
                     Enviar Respuesta
                   </>
                 )}

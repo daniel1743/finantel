@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, Settings, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -109,7 +110,7 @@ const Notifications = () => {
             className="p-2 hover:bg-white/5 dark:hover:bg-white/5 rounded-xl transition-colors flex-shrink-0 self-start sm:self-auto"
             title="Ir a preferencias"
           >
-            <Settings className="w-6 h-6 text-[#6E6E73] dark:text-gray-400" />
+            <Icon component={Settings} size="lg" color="default" className="dark:" />
           </button>
         </div>
 
@@ -158,7 +159,7 @@ const Notifications = () => {
             <div className="space-y-4">
               {loading ? (
                 <div className="text-center py-16 text-[#6E6E73] dark:text-gray-400">
-                  <Bell className="w-16 h-16 mx-auto mb-4 opacity-50 animate-pulse" />
+                  <Icon component={Bell} size="md" color="default" className="mx-auto mb-4 opacity-50 animate-pulse" />
                   <p className="text-lg">Cargando notificaciones...</p>
                 </div>
               ) : filteredNotifications.length > 0 ? (
@@ -173,7 +174,7 @@ const Notifications = () => {
                 ))
               ) : (
                 <div className="text-center py-16 text-[#6E6E73] dark:text-gray-400">
-                  <Bell className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <Icon component={Bell} size="md" color="default" className="mx-auto mb-4 opacity-50" />
                   <p className="text-lg font-medium">No hay notificaciones en esta categoría</p>
                 </div>
               )}
@@ -215,13 +216,13 @@ const Notifications = () => {
                 onClick={() => setIsDetailModalOpen(false)}
                 className="absolute top-6 right-6 p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors"
               >
-                <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+                <Icon component={X} size="md" color="default" className="dark:" />
               </button>
 
               {/* Header */}
               <div className="flex items-start gap-4 mb-6 pr-8">
                 <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#1C8FA0] to-[#167a8a] flex items-center justify-center shrink-0 shadow-lg shadow-[#1C8FA0]/30">
-                  <Bell className="w-8 h-8 text-white" />
+                  <Icon component={Bell} size="xl" color="white" />
                 </div>
                 <div className="flex-1">
                   <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white mb-2">

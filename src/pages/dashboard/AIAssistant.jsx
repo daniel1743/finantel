@@ -1,5 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, useLocation } from 'react-router-dom';
 import { 
@@ -45,7 +46,7 @@ const MessageBubble = ({ message }) => {
         "w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm",
         isUser ? "bg-[#1a1a1a] text-white" : "bg-white border border-gray-100 text-[#1C8FA0]"
       )}>
-        {isUser ? <span className="font-bold text-sm">YO</span> : <Bot className="w-6 h-6" />}
+        {isUser ? <span className="font-bold text-sm">YO</span> : <Icon component={Bot} size="lg" color="default" />}
       </div>
 
       {/* Content */}
@@ -63,7 +64,7 @@ const MessageBubble = ({ message }) => {
         {!isUser && message.content.includes('[SHOW_CHART]') && (
           <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
             <div className="flex items-center gap-2 mb-3 text-xs font-bold text-[#6E6E73] uppercase tracking-wider">
-              <TrendingUp className="w-4 h-4" />
+              <Icon component={TrendingUp} size="sm" color="default" />
               Tendencia de Gastos
             </div>
             <div className="h-24 flex items-end gap-1">
@@ -294,7 +295,7 @@ El usuario está en el Coach Financiero. Responde como coach-amigo usando SOLO l
           <div className="flex items-center gap-3">
             {isSupportMode ? (
               <>
-                <LifeBuoy className="w-6 h-6 text-[#1C8FA0]" />
+                <Icon component={LifeBuoy} size="lg" color="primary" />
                 <h1 className="text-2xl font-bold text-[#1a1a1a] font-['Inter_Tight']">FinanBot - Soporte</h1>
               </>
             ) : (
@@ -332,7 +333,7 @@ El usuario está en el Coach Financiero. Responde como coach-amigo usando SOLO l
               className="flex gap-4 mr-auto max-w-3xl mb-6"
             >
               <div className="w-10 h-10 rounded-full bg-white border border-gray-100 text-[#1C8FA0] flex items-center justify-center shadow-sm">
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Icon component={Loader2} size="md" color="default" className="animate-spin" />
               </div>
               <div className="bg-white/50 backdrop-blur-sm p-4 rounded-2xl rounded-tl-none flex items-center gap-2 text-sm text-[#6E6E73]">
                 <span className="animate-pulse">Analizando tus finanzas...</span>
@@ -377,7 +378,7 @@ El usuario está en el Coach Financiero. Responde como coach-amigo usando SOLO l
               disabled={!input.trim() || isLoading}
               className="p-2.5 bg-[#1a1a1a] text-white rounded-xl hover:bg-[#1C8FA0] disabled:opacity-50 disabled:hover:bg-[#1a1a1a] transition-colors shadow-lg shadow-black/5 mb-0.5"
             >
-              <Send className="w-4 h-4" />
+              <Icon component={Send} size="sm" color="default" />
             </button>
           </div>
           <p className="text-center text-[10px] text-gray-400 mt-2">

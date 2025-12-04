@@ -1,4 +1,5 @@
 import React, { Suspense, lazy } from 'react';
+import Icon from '@/components/ui/Icon';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from '@/contexts/SupabaseAuthContext';
@@ -69,7 +70,7 @@ const DeepFinanceAnalysis = lazy(() => import('@/pages/dashboard/DeepFinanceAnal
 
 const PageLoader = () => (
   <div className="h-screen w-full flex items-center justify-center bg-[#F5F7F9] dark:bg-[#0f0f11]">
-    <Loader2 className="w-10 h-10 text-[#1C8FA0] animate-spin" />
+    <Icon component={Loader2} size="md" color="primary" className="animate-spin" />
   </div>
 );
 

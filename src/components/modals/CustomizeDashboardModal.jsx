@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
@@ -189,7 +190,7 @@ const CustomizeDashboardModal = ({ isOpen, onClose }) => {
             disabled={isSaving}
             className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors disabled:opacity-50"
           >
-            <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+            <Icon component={X} size="md" color="default" className="dark:" />
           </button>
         </div>
 
@@ -197,7 +198,7 @@ const CustomizeDashboardModal = ({ isOpen, onClose }) => {
           {/* Sección: Tarjetas Visibles */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Eye className="w-5 h-5 text-[#1C8FA0]" />
+              <Icon component={Eye} size="md" color="primary" />
               <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white">Tarjetas de Métricas</h3>
             </div>
             <p className="text-sm text-[#6E6E73] dark:text-gray-400 mb-4">
@@ -215,7 +216,7 @@ const CustomizeDashboardModal = ({ isOpen, onClose }) => {
                   )}
                 >
                   <div className="flex items-center gap-3 flex-1">
-                    <GripVertical className="w-5 h-5 text-[#6E6E73] dark:text-gray-400 cursor-move" />
+                    <Icon component={GripVertical} size="md" color="default" className="dark: cursor-move" />
                     <div className="flex-1">
                       <p className="font-medium text-[#1a1a1a] dark:text-white">
                         {cardLabels[cardKey]}
@@ -260,9 +261,9 @@ const CustomizeDashboardModal = ({ isOpen, onClose }) => {
                       )}
                     >
                       {visibleCards[cardKey] ? (
-                        <Eye className="w-4 h-4" />
+                        <Icon component={Eye} size="sm" color="default" />
                       ) : (
-                        <EyeOff className="w-4 h-4" />
+                        <Icon component={EyeOff} size="sm" color="default" />
                       )}
                     </button>
                   </div>
@@ -274,7 +275,7 @@ const CustomizeDashboardModal = ({ isOpen, onClose }) => {
           {/* Sección: Período de Tiempo */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Calendar className="w-5 h-5 text-[#1C8FA0]" />
+              <Icon component={Calendar} size="md" color="primary" />
               <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white">Período de Tiempo</h3>
             </div>
             <p className="text-sm text-[#6E6E73] dark:text-gray-400 mb-4">
@@ -301,7 +302,7 @@ const CustomizeDashboardModal = ({ isOpen, onClose }) => {
           {/* Información adicional */}
           <div className="bg-[#1C8FA0]/5 dark:bg-[#1C8FA0]/10 rounded-xl p-4 border border-[#1C8FA0]/10">
             <div className="flex items-start gap-3">
-              <Settings className="w-5 h-5 text-[#1C8FA0] shrink-0 mt-0.5" />
+              <Icon component={Settings} size="md" color="primary" className="shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-bold text-[#1a1a1a] dark:text-white mb-1">Nota</p>
                 <p className="text-xs text-[#6E6E73] dark:text-gray-400 leading-relaxed">
@@ -327,12 +328,12 @@ const CustomizeDashboardModal = ({ isOpen, onClose }) => {
             >
               {isSaving ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
                   Guardando...
                 </>
               ) : (
                 <>
-                  <Save className="w-4 h-4" />
+                  <Icon component={Save} size="sm" color="default" />
                   Guardar Cambios
                 </>
               )}

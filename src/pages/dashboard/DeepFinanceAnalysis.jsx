@@ -5,6 +5,7 @@
 // =====================================================
 
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -122,7 +123,7 @@ const DeepFinanceAnalysis = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
+        <Icon component={Loader2} size="xl" color="primary" className="animate-spin" />
       </div>
     );
   }
@@ -138,7 +139,7 @@ const DeepFinanceAnalysis = () => {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-xl bg-gradient-to-br from-[#1C8FA0]/10 to-purple-500/10 border border-[#1C8FA0]/20">
-              <BarChart3 className="w-6 h-6 text-[#1C8FA0]" />
+              <Icon component={BarChart3} size="lg" color="primary" />
             </div>
             <h1 className="text-3xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">
               DeepFinance Analysis Dashboard
@@ -166,12 +167,12 @@ const DeepFinanceAnalysis = () => {
           >
             {runningNewAnalysis || analysisLoading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
                 Ejecutando...
               </>
             ) : (
               <>
-                <Zap className="w-4 h-4" />
+                <Icon component={Zap} size="sm" color="default" />
                 Ejecutar nuevo análisis
               </>
             )}
@@ -187,7 +188,7 @@ const DeepFinanceAnalysis = () => {
           className="bg-white dark:bg-[#1a1a1a] rounded-2xl border-2 border-gray-200 dark:border-white/10 p-12 text-center"
         >
           <div className="inline-flex p-4 rounded-2xl bg-[#1C8FA0]/10 border border-[#1C8FA0]/20 mb-6">
-            <BarChart3 className="w-12 h-12 text-[#1C8FA0]" />
+            <Icon component={BarChart3} size="md" color="primary" />
           </div>
           <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white mb-3">
             No hay análisis disponibles
@@ -202,12 +203,12 @@ const DeepFinanceAnalysis = () => {
           >
             {runningNewAnalysis || analysisLoading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
                 Ejecutando análisis...
               </>
             ) : (
               <>
-                <Zap className="w-4 h-4" />
+                <Icon component={Zap} size="sm" color="default" />
                 Ejecutar primer análisis
               </>
             )}
@@ -254,7 +255,7 @@ const DeepFinanceAnalysis = () => {
             className="bg-white dark:bg-[#1a1a1a] rounded-2xl border-2 border-gray-200 dark:border-white/10 p-6 shadow-lg"
           >
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-[#1C8FA0] mt-0.5 flex-shrink-0" />
+              <Icon component={AlertCircle} size="md" color="primary" className="mt-0.5 flex-shrink-0" />
               <div className="flex-1">
                 <h3 className="text-sm font-semibold text-[#1a1a1a] dark:text-white mb-2">
                   Información del análisis

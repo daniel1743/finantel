@@ -5,6 +5,7 @@
 // =====================================================
 
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { TrendingUp, DollarSign, Calendar, Target, Zap, ArrowRight } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -19,7 +20,7 @@ const SavingsProjection = ({ projections = {} }) => {
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-green-500/10 border border-green-500/20">
-            <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+            <Icon component={TrendingUp} size="md" color="success" className="dark:" />
           </div>
           <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white">Proyecciones de Ahorro</h3>
         </div>
@@ -54,7 +55,7 @@ const SavingsProjection = ({ projections = {} }) => {
     >
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-xl bg-green-500/10 border border-green-500/20">
-          <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+          <Icon component={TrendingUp} size="md" color="success" className="dark:" />
         </div>
         <div>
           <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white">Proyecciones de Ahorro</h3>
@@ -132,7 +133,7 @@ const ProjectionPeriodCard = ({ period, amount, breakdown, delay = 0 }) => (
     className="p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-2 border-green-200 dark:border-green-800"
   >
     <div className="flex items-center gap-2 mb-2">
-      <Calendar className="w-4 h-4 text-green-600 dark:text-green-400" />
+      <Icon component={Calendar} size="sm" color="success" className="dark:" />
       <span className="text-xs font-semibold text-green-900 dark:text-green-100">
         {period}
       </span>

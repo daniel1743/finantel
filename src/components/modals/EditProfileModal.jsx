@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Mail, Lock, Camera, Loader2, CheckCircle2, AlertCircle, Upload, Crown, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -518,7 +519,7 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
             disabled={loading || uploading || verifying}
             className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors disabled:opacity-50"
           >
-            <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+            <Icon component={X} size="md" color="default" className="dark:" />
           </button>
         </div>
 
@@ -581,7 +582,7 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
                       className="p-2 rounded-full bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors border border-gray-200 dark:border-white/10"
                       title="Avatares"
                     >
-                      <UserCircle className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+                      <Icon component={UserCircle} size="md" color="default" className="dark:" />
                     </button>
                     <div className="absolute bottom-full right-0 mb-2 px-2 py-1 bg-[#1a1a1a] dark:bg-white text-white dark:text-[#1a1a1a] text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
                       Avatares
@@ -593,7 +594,7 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
                 {isFreePlan ? (
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border border-yellow-200 dark:border-yellow-900/20">
-                      <Crown className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                      <Icon component={Crown} size="md" color="warning" className="dark:" />
                       <p className="text-sm text-yellow-800 dark:text-yellow-200">
                         Actualiza a un plan de pago para subir tu foto de perfil
                       </p>
@@ -670,7 +671,7 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
                       <div className="relative">
                         {verifying ? (
                           <div className="w-24 h-24 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center border-2 border-dashed border-[#1C8FA0]">
-                            <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
+                            <Icon component={Loader2} size="xl" color="primary" className="animate-spin" />
                           </div>
                         ) : selectedPremiumAvatar || photoUrl || photoPreview ? (
                           <img
@@ -691,9 +692,9 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
                             title="Subir foto"
                           >
                             {uploading || verifying ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
                             ) : (
-                              <Camera className="w-4 h-4" />
+                              <Icon component={Camera} size="sm" color="default" />
                             )}
                           </button>
                         </div>
@@ -710,7 +711,7 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
 
                     {verifying && (
                       <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-200 dark:border-blue-900/20">
-                        <Loader2 className="w-4 h-4 text-blue-600 dark:text-blue-400 animate-spin" />
+                        <Icon component={Loader2} size="sm" color="default" className="dark: animate-spin" />
                         <p className="text-sm text-blue-800 dark:text-blue-200">
                           Estamos verificando tu foto. En breve la podrás ver.
                         </p>
@@ -726,7 +727,7 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
                   Nombre Completo
                 </label>
                 <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+                  <Icon component={User} size="md" color="default" className="absolute left-4 top-1/2 -translate-y-1/2    dark:" />
                   <input
                     type="text"
                     value={formData.fullName}
@@ -771,7 +772,7 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
                   Correo Electrónico
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+                  <Icon component={Mail} size="md" color="default" className="absolute left-4 top-1/2 -translate-y-1/2    dark:" />
                   <input
                     type="email"
                     value={formData.email}
@@ -819,7 +820,7 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
                   Contraseña Actual
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+                  <Icon component={Lock} size="md" color="default" className="absolute left-4 top-1/2 -translate-y-1/2    dark:" />
                   <input
                     type="password"
                     value={formData.currentPassword}
@@ -836,7 +837,7 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
                   Nueva Contraseña
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+                  <Icon component={Lock} size="md" color="default" className="absolute left-4 top-1/2 -translate-y-1/2    dark:" />
                   <input
                     type="password"
                     value={formData.newPassword}
@@ -853,7 +854,7 @@ const EditProfileModal = ({ isOpen, onClose, onUpdate, initialTab = 'profile' })
                   Confirmar Nueva Contraseña
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+                  <Icon component={Lock} size="md" color="default" className="absolute left-4 top-1/2 -translate-y-1/2    dark:" />
                   <input
                     type="password"
                     value={formData.confirmPassword}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Shield, CheckCircle2, AlertCircle, Loader2, Copy, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -194,18 +195,18 @@ const TwoFactorAuthModal = ({ isOpen, onClose }) => {
             disabled={enabling || verifying}
             className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors disabled:opacity-50"
           >
-            <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+            <Icon component={X} size="md" color="default" className="dark:" />
           </button>
         </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
+            <Icon component={Loader2} size="xl" color="primary" className="animate-spin" />
           </div>
         ) : step === 'info' ? (
           <div className="space-y-6">
             <div className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/20">
-              <Shield className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <Icon component={Shield} size="lg" color="default" className="dark:" />
               <div>
                 <p className="font-bold text-[#1a1a1a] dark:text-white text-sm">
                   Protege tu cuenta
@@ -223,12 +224,12 @@ const TwoFactorAuthModal = ({ isOpen, onClose }) => {
             >
               {enabling ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Icon component={Loader2} size="sm" color="default" className="mr-2 animate-spin" />
                   Habilitando...
                 </>
               ) : (
                 <>
-                  <Shield className="w-4 h-4 mr-2" />
+                  <Icon component={Shield} size="sm" color="default" className="mr-2" />
                   Habilitar Autenticación en 2 Pasos
                 </>
               )}
@@ -237,7 +238,7 @@ const TwoFactorAuthModal = ({ isOpen, onClose }) => {
         ) : step === 'verify' ? (
           <div className="space-y-6">
             <div className="text-center">
-              <QrCode className="w-16 h-16 text-[#1C8FA0] mx-auto mb-4" />
+              <Icon component={QrCode} size="md" color="primary" className="mx-auto mb-4" />
               <h3 className="font-bold text-[#1a1a1a] dark:text-white mb-2">
                 Escanea el código QR
               </h3>
@@ -269,7 +270,7 @@ const TwoFactorAuthModal = ({ isOpen, onClose }) => {
                   size="sm"
                   className="shrink-0"
                 >
-                  <Copy className="w-4 h-4" />
+                  <Icon component={Copy} size="sm" color="default" />
                 </Button>
               </div>
             </div>
@@ -309,7 +310,7 @@ const TwoFactorAuthModal = ({ isOpen, onClose }) => {
               >
                 {verifying ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Icon component={Loader2} size="sm" color="default" className="mr-2 animate-spin" />
                     Verificando...
                   </>
                 ) : (
@@ -321,7 +322,7 @@ const TwoFactorAuthModal = ({ isOpen, onClose }) => {
         ) : step === 'enabled' ? (
           <div className="space-y-6">
             <div className="flex items-center gap-4 p-4 bg-green-50 dark:bg-green-900/10 rounded-xl border border-green-100 dark:border-green-900/20">
-              <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
+              <Icon component={CheckCircle2} size="lg" color="success" className="dark:" />
               <div>
                 <p className="font-bold text-[#1a1a1a] dark:text-white text-sm">
                   Autenticación en 2 Pasos Activada
@@ -340,7 +341,7 @@ const TwoFactorAuthModal = ({ isOpen, onClose }) => {
             >
               {enabling ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Icon component={Loader2} size="sm" color="default" className="mr-2 animate-spin" />
                   Desactivando...
                 </>
               ) : (

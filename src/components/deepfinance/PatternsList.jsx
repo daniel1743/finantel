@@ -5,6 +5,7 @@
 // =====================================================
 
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Repeat, Calendar, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -19,7 +20,7 @@ const PatternsList = ({ patterns = [] }) => {
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-[#1C8FA0]/10 border border-[#1C8FA0]/20">
-            <Repeat className="w-5 h-5 text-[#1C8FA0]" />
+            <Icon component={Repeat} size="md" color="primary" />
           </div>
           <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white">
             Patrones Detectados
@@ -81,7 +82,7 @@ const PatternsList = ({ patterns = [] }) => {
     >
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-xl bg-[#1C8FA0]/10 border border-[#1C8FA0]/20">
-          <Repeat className="w-5 h-5 text-[#1C8FA0]" />
+          <Icon component={Repeat} size="md" color="primary" />
         </div>
         <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white">
           Patrones Detectados
@@ -125,7 +126,7 @@ const PatternsList = ({ patterns = [] }) => {
                   </p>
                   {frequency !== 'N/A' && (
                     <div className="flex items-center gap-1 text-xs text-[#6E6E73] dark:text-gray-400">
-                      <Calendar className="w-3 h-3" />
+                      <Icon component={Calendar} size="xs" color="default" />
                       <span>Frecuencia: {frequency}</span>
                     </div>
                   )}

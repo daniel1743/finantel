@@ -5,6 +5,7 @@
 // =====================================================
 
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, X, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -48,7 +49,7 @@ const UpdateNotification = () => {
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 flex-1">
               <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                <Download className="w-5 h-5" />
+                <Icon component={Download} size="md" color="default" />
               </div>
               <div>
                 <p className="font-semibold text-sm">Nueva actualización disponible</p>
@@ -65,7 +66,7 @@ const UpdateNotification = () => {
                 onClick={handleUpdate}
                 className="bg-white text-[#1C8FA0] hover:bg-white/90 px-4 py-2 h-auto text-sm font-semibold"
               >
-                <RefreshCw className="w-4 h-4 mr-2" />
+                <Icon component={RefreshCw} size="sm" color="default" className="mr-2" />
                 Actualizar
               </Button>
               <button
@@ -73,7 +74,7 @@ const UpdateNotification = () => {
                 className="p-2 hover:bg-white/10 rounded-lg transition-colors"
                 aria-label="Cerrar"
               >
-                <X className="w-5 h-5" />
+                <Icon component={X} size="md" color="default" />
               </button>
             </div>
           </div>

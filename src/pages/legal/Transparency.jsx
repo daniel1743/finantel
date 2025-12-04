@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShieldCheck, Eye, Lock, FileCheck, Users, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
@@ -65,7 +66,7 @@ const Transparency = () => {
           <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-[#1C8FA0]/10 via-transparent to-[#E47B45]/10" />
           <div className="relative z-10">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1C8FA0]/10 text-[#1C8FA0] text-xs font-semibold uppercase tracking-widest">
-              <ShieldCheck className="w-4 h-4" />
+              <Icon component={ShieldCheck} size="sm" color="default" />
               Política de Transparencia
             </div>
             <h1 className="mt-6 text-4xl md:text-5xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight'] leading-tight">
@@ -116,7 +117,7 @@ const Transparency = () => {
         {/* How we keep it transparent */}
         <section className="bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/10 rounded-[28px] p-8 space-y-6 shadow-sm">
           <div className="flex items-center gap-3">
-            <Sparkles className="w-6 h-6 text-[#E47B45]" />
+            <Icon component={Sparkles} size="lg" color="default" />
             <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white">Cómo lo garantizamos</h2>
           </div>
           <div className="grid md:grid-cols-2 gap-6">
@@ -124,15 +125,15 @@ const Transparency = () => {
               <h3 className="text-lg font-semibold text-[#1a1a1a] dark:text-white">Dentro del producto</h3>
               <ul className="space-y-3 text-sm text-[#6E6E73] dark:text-gray-400">
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#1C8FA0] mt-0.5" />
+                  <Icon component={CheckCircle2} size="sm" color="primary" className="mt-0.5" />
                   Banner permanente en Dashboard explicando que Finantel no retiene fondos.
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#1C8FA0] mt-0.5" />
+                  <Icon component={CheckCircle2} size="sm" color="primary" className="mt-0.5" />
                   Onboarding con recordatorios claros de privacidad y uso de datos.
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#1C8FA0] mt-0.5" />
+                  <Icon component={CheckCircle2} size="sm" color="primary" className="mt-0.5" />
                   Botón directo para exportar tus datos y revisar auditorías.
                 </li>
               </ul>
@@ -141,15 +142,15 @@ const Transparency = () => {
               <h3 className="text-lg font-semibold text-[#1a1a1a] dark:text-white">A nivel operativo</h3>
               <ul className="space-y-3 text-sm text-[#6E6E73] dark:text-gray-400">
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#1C8FA0] mt-0.5" />
+                  <Icon component={CheckCircle2} size="sm" color="primary" className="mt-0.5" />
                   Contratos y términos públicos sin letras chicas.
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#1C8FA0] mt-0.5" />
+                  <Icon component={CheckCircle2} size="sm" color="primary" className="mt-0.5" />
                   Infraestructura en Supabase + Vercel con cifrado y monitoreo continuo.
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#1C8FA0] mt-0.5" />
+                  <Icon component={CheckCircle2} size="sm" color="primary" className="mt-0.5" />
                   Equipo de soporte humano con SLA público y registro de solicitudes.
                 </li>
               </ul>
@@ -160,7 +161,7 @@ const Transparency = () => {
         {/* FAQ */}
         <section className="space-y-6">
           <div className="flex items-center gap-3">
-            <Users className="w-6 h-6 text-[#1C8FA0]" />
+            <Icon component={Users} size="lg" color="primary" />
             <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white">Preguntas clave</h2>
           </div>
           <div className="space-y-4">

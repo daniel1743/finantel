@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import SeoHead from '@/components/SeoHead';
 import { Shield, Database, Lock, Eye, Trash2, Mail, AlertCircle, CheckCircle, XCircle, FileText, Globe, Cookie, Users, CreditCard, Bell, Ban, Zap, BarChart3 } from 'lucide-react';
@@ -19,7 +20,7 @@ const PrivacyPolicy = () => {
             className="mb-12"
           >
             <div className="flex items-center gap-3 mb-6">
-              <Shield className="w-8 h-8 text-[#1C8FA0]" />
+              <Icon component={Shield} size="xl" color="primary" />
               <h1 className="text-4xl md:text-5xl font-bold text-[#1a1a1a] dark:text-white">
                 Política de Privacidad
               </h1>
@@ -94,7 +95,7 @@ const PrivacyPolicy = () => {
                   "Cumplimiento normativo: LOPDGDD (Chile), GDPR (UE si aplica), CCPA (California si aplica)"
                 ].map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-[#1C8FA0] mt-0.5 flex-shrink-0" />
+                    <Icon component={CheckCircle} size="md" color="primary" className="mt-0.5 flex-shrink-0" />
                     <span className="text-[#6E6E73] dark:text-gray-400">{item}</span>
                   </li>
                 ))}
@@ -115,7 +116,7 @@ const PrivacyPolicy = () => {
                   "Datos biométricos: si en futuro se implementan (datos de voz, huella dactilar)"
                 ].map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <Database className="w-5 h-5 text-[#1C8FA0] mt-0.5 flex-shrink-0" />
+                    <Icon component={Database} size="md" color="primary" className="mt-0.5 flex-shrink-0" />
                     <span className="text-[#6E6E73] dark:text-gray-400">{item}</span>
                   </li>
                 ))}
@@ -146,7 +147,7 @@ const PrivacyPolicy = () => {
                   "Datos de verificación de identidad (si aplica)"
                 ].map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <CheckCircle className="w-4 h-4 text-[#1C8FA0] mt-1 flex-shrink-0" />
+                    <Icon component={CheckCircle} size="sm" color="primary" className="mt-1 flex-shrink-0" />
                     <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
                   </li>
                 ))}
@@ -164,7 +165,7 @@ const PrivacyPolicy = () => {
                   "Datos de ingresos y gastos (declarados o importados)"
                 ].map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <CreditCard className="w-4 h-4 text-[#1C8FA0] mt-1 flex-shrink-0" />
+                    <Icon component={CreditCard} size="sm" color="primary" className="mt-1 flex-shrink-0" />
                     <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
                   </li>
                 ))}
@@ -181,7 +182,7 @@ const PrivacyPolicy = () => {
                   "Métodos de pago registrados"
                 ].map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <CreditCard className="w-4 h-4 text-[#1C8FA0] mt-1 flex-shrink-0" />
+                    <Icon component={CreditCard} size="sm" color="primary" className="mt-1 flex-shrink-0" />
                     <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
                   </li>
                 ))}
@@ -197,7 +198,7 @@ const PrivacyPolicy = () => {
                   "Datos de autenticación (Google OAuth, etc.)"
                 ].map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <Zap className="w-4 h-4 text-[#1C8FA0] mt-1 flex-shrink-0" />
+                    <Icon component={Zap} size="sm" color="primary" className="mt-1 flex-shrink-0" />
                     <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
                   </li>
                 ))}
@@ -213,7 +214,7 @@ const PrivacyPolicy = () => {
                   "Documentos adjuntos"
                 ].map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <FileText className="w-4 h-4 text-[#1C8FA0] mt-1 flex-shrink-0" />
+                    <Icon component={FileText} size="sm" color="primary" className="mt-1 flex-shrink-0" />
                     <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
                   </li>
                 ))}
@@ -232,7 +233,7 @@ const PrivacyPolicy = () => {
                   "Identificadores únicos del navegador"
                 ].map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <Eye className="w-4 h-4 text-[#1C8FA0] mt-1 flex-shrink-0" />
+                    <Icon component={Eye} size="sm" color="primary" className="mt-1 flex-shrink-0" />
                     <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
                   </li>
                 ))}
@@ -250,7 +251,7 @@ const PrivacyPolicy = () => {
                   "Logs de inicio de sesión"
                 ].map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <Database className="w-4 h-4 text-[#1C8FA0] mt-1 flex-shrink-0" />
+                    <Icon component={Database} size="sm" color="primary" className="mt-1 flex-shrink-0" />
                     <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
                   </li>
                 ))}
@@ -267,7 +268,7 @@ const PrivacyPolicy = () => {
                   "Categorías consultadas"
                 ].map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <BarChart3 className="w-4 h-4 text-[#1C8FA0] mt-1 flex-shrink-0" />
+                    <Icon component={BarChart3} size="sm" color="primary" className="mt-1 flex-shrink-0" />
                     <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
                   </li>
                 ))}
@@ -284,7 +285,7 @@ const PrivacyPolicy = () => {
                   "preferences: Tus preferencias (idioma, tema)"
                 ].map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <Lock className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
+                    <Icon component={Lock} size="sm" color="default" className="mt-1 flex-shrink-0" />
                     <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
                   </li>
                 ))}
@@ -302,7 +303,7 @@ const PrivacyPolicy = () => {
                   "Sentry: Monitoreo de errores"
                 ].map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <Cookie className="w-4 h-4 text-amber-500 mt-1 flex-shrink-0" />
+                    <Icon component={Cookie} size="sm" color="default" className="mt-1 flex-shrink-0" />
                     <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
                   </li>
                 ))}
@@ -321,7 +322,7 @@ const PrivacyPolicy = () => {
                   "Cookies de terceros asociados"
                 ].map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <Bell className="w-4 h-4 text-purple-500 mt-1 flex-shrink-0" />
+                    <Icon component={Bell} size="sm" color="default" className="mt-1 flex-shrink-0" />
                     <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
                   </li>
                 ))}
@@ -342,7 +343,7 @@ const PrivacyPolicy = () => {
                   "Aceptación implícita de cookies esenciales"
                 ].map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <Shield className="w-4 h-4 text-[#1C8FA0] mt-1 flex-shrink-0" />
+                    <Icon component={Shield} size="sm" color="primary" className="mt-1 flex-shrink-0" />
                     <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
                   </li>
                 ))}
@@ -468,7 +469,7 @@ const PrivacyPolicy = () => {
                   "Algoritmos anti-abuso"
                 ].map((item, index) => (
                   <li key={index} className="flex items-center gap-3">
-                    <Lock className="w-5 h-5 text-[#1C8FA0] flex-shrink-0" />
+                    <Icon component={Lock} size="md" color="primary" className="flex-shrink-0" />
                     <span className="text-[#6E6E73] dark:text-gray-400">{item}</span>
                   </li>
                 ))}
@@ -503,7 +504,7 @@ const PrivacyPolicy = () => {
                 Envía un correo a:
               </p>
               <div className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-[#1C8FA0]" />
+                <Icon component={Mail} size="md" color="primary" />
                 <a
                   href="mailto:privacy@finantel.net"
                   className="text-[#1C8FA0] hover:underline font-medium"
@@ -538,7 +539,7 @@ const PrivacyPolicy = () => {
                   "Backups relacionados"
                 ].map((item, index) => (
                   <li key={index} className="flex items-center gap-3">
-                    <Trash2 className="w-5 h-5 text-red-500 flex-shrink-0" />
+                    <Icon component={Trash2} size="md" color="default" className="flex-shrink-0" />
                     <span className="text-[#6E6E73] dark:text-gray-400">{item}</span>
                   </li>
                 ))}

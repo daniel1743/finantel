@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import SeoHead from '@/components/SeoHead';
 import { Cookie, Shield, BarChart3, Settings, AlertCircle, Mail } from 'lucide-react';
@@ -64,7 +65,7 @@ const Cookies = () => {
             className="mb-12"
           >
             <div className="flex items-center gap-3 mb-6">
-              <Cookie className="w-8 h-8 text-[#1C8FA0]" />
+              <Icon component={Cookie} size="xl" color="primary" />
               <h1 className="text-4xl md:text-5xl font-bold text-[#1a1a1a] dark:text-white">
                 Política de Cookies
               </h1>
@@ -160,7 +161,7 @@ const Cookies = () => {
               <ul className="space-y-3">
                 {notUsed.map((item, index) => (
                   <li key={index} className="flex items-center gap-3">
-                    <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                    <Icon component={AlertCircle} size="md" color="default" className="flex-shrink-0" />
                     <span className="text-[#6E6E73] dark:text-gray-400">{item}</span>
                   </li>
                 ))}
@@ -211,7 +212,7 @@ const Cookies = () => {
                 7. Contacto
               </h2>
               <div className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-[#1C8FA0]" />
+                <Icon component={Mail} size="md" color="primary" />
                 <a
                   href="mailto:privacy@finantel.net"
                   className="text-[#1C8FA0] hover:underline font-medium"

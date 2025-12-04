@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Loader2, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
@@ -99,7 +100,7 @@ const CreateTicketModal = ({ isOpen, onClose, defaultSubject = '', defaultMessag
           <div className="sticky top-0 bg-white dark:bg-[#1a1a1a] border-b border-gray-100 dark:border-white/10 p-6 flex items-center justify-between z-10">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-[#1C8FA0]/10 flex items-center justify-center">
-                <MessageSquare className="w-5 h-5 text-[#1C8FA0]" />
+                <Icon component={MessageSquare} size="md" color="primary" />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-[#1a1a1a] dark:text-white">Escribir al equipo</h2>
@@ -110,7 +111,7 @@ const CreateTicketModal = ({ isOpen, onClose, defaultSubject = '', defaultMessag
               onClick={onClose}
               className="w-10 h-10 rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 flex items-center justify-center transition-colors"
             >
-              <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+              <Icon component={X} size="md" color="default" className="dark:" />
             </button>
           </div>
 
@@ -195,12 +196,12 @@ const CreateTicketModal = ({ isOpen, onClose, defaultSubject = '', defaultMessag
               >
                 {creating ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
                     Enviando...
                   </>
                 ) : (
                   <>
-                    <Send className="w-4 h-4" />
+                    <Icon component={Send} size="sm" color="default" />
                     Enviar mensaje
                   </>
                 )}

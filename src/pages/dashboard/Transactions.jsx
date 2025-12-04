@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import Icon from '@/components/ui/Icon';
+import { Input } from '@/components/ui/input';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
@@ -38,7 +40,7 @@ const FilterButton = ({ label, active }) => (
       : "bg-white border border-gray-200 text-[#6E6E73] hover:border-gray-300 hover:text-[#1a1a1a]"
   )}>
     {label}
-    <ChevronDown className="w-3 h-3" />
+    <Icon component={ChevronDown} size="xs" color="default" />
   </button>
 );
 
@@ -537,7 +539,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
             disabled={isLoading}
             className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors disabled:opacity-50"
           >
-            <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+            <Icon component={X} size="md" color="default" className="dark:" />
           </button>
         </div>
 
@@ -547,14 +549,13 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
             <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
               Descripción
             </label>
-            <input
+            <Input
               type="text"
               placeholder="Ej. Compra de supermercado"
               required
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               disabled={isLoading}
-              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50"
             />
           </div>
 
@@ -598,20 +599,17 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
             <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
               Monto
             </label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                required
-                value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                disabled={isLoading}
-                className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50"
-              />
-            </div>
+            <Input
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="0.00"
+              required
+              value={formData.amount}
+              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+              disabled={isLoading}
+              icon={DollarSign}
+            />
           </div>
 
           {/* Categoría */}
@@ -639,14 +637,13 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
               <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
                 Nombre de Categoría Personalizada
               </label>
-              <input
+              <Input
                 type="text"
                 placeholder="Ej. Entretenimiento, Mascotas..."
                 required
                 value={formData.custom_category}
                 onChange={(e) => setFormData({ ...formData, custom_category: e.target.value })}
                 disabled={isLoading}
-                className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50"
               />
             </motion.div>
           )}
@@ -677,17 +674,14 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
             <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
               Fecha
             </label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
-              <input
-                type="date"
-                required
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                disabled={isLoading}
-                className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50"
-              />
-            </div>
+            <Input
+              type="date"
+              required
+              value={formData.date}
+              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              disabled={isLoading}
+              icon={Calendar}
+            />
           </div>
 
           {/* Notas (Opcional) */}
@@ -701,7 +695,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               disabled={isLoading}
-              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50 resize-none"
+              className="w-full disabled:opacity-50 resize-none"
             />
           </div>
 
@@ -729,7 +723,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess, mode = 'add', transac
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
                   Guardando...
                 </>
               ) : (
@@ -907,13 +901,13 @@ const Transactions = () => {
           {/* Botones tradicionales */}
         <div className="flex gap-3">
             <button className="p-2.5 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-xl text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white transition-colors shadow-sm">
-            <Download className="w-5 h-5" />
+            <Icon component={Download} size="md" color="default" />
           </button>
           <button
               onClick={openNewTransactionModal}
               className="px-4 py-2.5 bg-[#1a1a1a] dark:bg-white text-white dark:text-[#1a1a1a] rounded-xl text-sm font-medium hover:bg-black dark:hover:bg-gray-100 transition-colors shadow-lg shadow-black/10 flex items-center gap-2"
           >
-            <Plus className="w-4 h-4" />
+            <Icon component={Plus} size="sm" color="default" />
             Nueva Transacción
           </button>
           </div>
@@ -928,7 +922,7 @@ const Transactions = () => {
           <FilterButton label="Categoría" />
         </div>
         <div className="relative w-full lg:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6E6E73]" />
+          <Icon component={Search} size="sm" color="default" className="absolute left-3 top-1/2 -translate-y-1/2" />
           <input 
             type="text" 
             placeholder="Buscar transacciones..." 
@@ -954,7 +948,7 @@ const Transactions = () => {
         <div className="overflow-y-auto flex-1">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
+              <Icon component={Loader2} size="xl" color="primary" className="animate-spin" />
             </div>
           ) : filteredTransactions && filteredTransactions.length > 0 ? (
             filteredTransactions.map((tx, index) => {
@@ -1070,7 +1064,7 @@ const Transactions = () => {
                       className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-md text-[#6E6E73] dark:text-gray-400 hover:text-[#1C8FA0] transition-colors"
                       title="Editar"
                     >
-                  <Edit2 className="w-4 h-4" />
+                  <Icon component={Edit2} size="sm" color="default" />
                 </button>
                     <button
                       onClick={(e) => {
@@ -1080,7 +1074,7 @@ const Transactions = () => {
                       className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-md text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white transition-colors"
                       title="Duplicar"
                     >
-                  <Copy className="w-4 h-4" />
+                  <Icon component={Copy} size="sm" color="default" />
                 </button>
                     <button
                       onClick={(e) => {
@@ -1090,7 +1084,7 @@ const Transactions = () => {
                       className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md text-[#6E6E73] dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                       title="Eliminar"
                     >
-                  <Trash2 className="w-4 h-4" />
+                  <Icon component={Trash2} size="sm" color="default" />
                 </button>
               </div>
             </motion.div>
@@ -1098,7 +1092,7 @@ const Transactions = () => {
             })
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <DollarSign className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-4" />
+              <Icon component={DollarSign} size="md" color="default" className="dark: mb-4" />
               <p className="text-[#6E6E73] dark:text-gray-400 font-medium">
                 {debouncedSearchQuery.trim() ? 'No se encontraron transacciones' : 'No hay transacciones aún'}
               </p>

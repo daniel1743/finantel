@@ -14,6 +14,7 @@ import { useUserCurrency } from '@/hooks/useUserCurrency';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useNavigate } from 'react-router-dom';
 import UserMenu from '@/components/UserMenu';
+import Icon from '@/components/ui/Icon';
 
 const DashboardTopNav = ({ onMenuClick }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -77,7 +78,7 @@ const DashboardTopNav = ({ onMenuClick }) => {
           onClick={onMenuClick}
           className="lg:hidden p-1 rounded-full border border-transparent hover:border-gray-100 dark:hover:border-white/5 hover:bg-white dark:hover:bg-white/5 transition-all hover:-translate-y-0.5 hover:shadow-md text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white flex-shrink-0"
         >
-          <Menu className="w-3 h-3" />
+          <Icon component={Menu} size="xs" color="default" />
         </button>
       </div>
 
@@ -87,14 +88,18 @@ const DashboardTopNav = ({ onMenuClick }) => {
             onClick={toggleTheme}
             className="p-1 rounded-full border border-transparent hover:border-gray-100 dark:hover:border-white/5 hover:bg-white dark:hover:bg-white/5 transition-all hover:-translate-y-0.5 hover:shadow-md text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white flex-shrink-0"
           >
-            {theme === 'dark' ? <Sun className="w-3 h-3" /> : <Moon className="w-3 h-3" />}
+            {theme === 'dark' ? (
+              <Icon component={Sun} size="xs" color="default" />
+            ) : (
+              <Icon component={Moon} size="xs" color="default" />
+            )}
           </button>
 
           <button 
             onClick={() => navigate('/dashboard/notifications')}
             className="relative p-1 rounded-full border border-transparent hover:border-gray-100 dark:hover:border-white/5 hover:bg-white dark:hover:bg-white/5 transition-all hover:-translate-y-0.5 hover:shadow-md group flex-shrink-0"
           >
-            <Bell className="w-3 h-3 text-[#6E6E73] dark:text-gray-400 group-hover:text-[#1a1a1a] dark:group-hover:text-white transition-colors" />
+            <Icon component={Bell} size="xs" color="default" />
             {/* Mostrar punto rojo solo si hay notificaciones no leídas */}
             {unreadCount > 0 && (
               <span className="absolute top-1.5 right-1.5 w-1 h-1 bg-[#E47B45] rounded-full border border-white dark:border-[#1a1a1a]" />

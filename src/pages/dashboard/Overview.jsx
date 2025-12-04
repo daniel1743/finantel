@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -70,7 +71,7 @@ const NavCard = ({ title, description, icon: Icon, to, color, delay }) => (
         <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white mb-2">{title}</h3>
         <p className="text-sm text-[#6E6E73] dark:text-gray-400 mb-4">{description}</p>
         <div className="flex items-center text-sm font-medium text-[#1C8FA0] group-hover:gap-2 transition-all">
-          Explorar <ChevronRight className="w-4 h-4 ml-1" />
+          Explorar <Icon component={ChevronRight} size="sm" color="default" className="ml-1" />
         </div>
       </div>
     </Link>
@@ -406,7 +407,7 @@ const Overview = () => {
         </div>
         <div className="flex gap-3">
           <button className="px-4 py-2 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white hover:border-gray-300 dark:hover:border-white/20 transition-colors shadow-sm">
-            <Download className="w-4 h-4 inline mr-2" />
+            <Icon component={Download} size="sm" color="default" className="inline mr-2" />
             Descargar Reporte
           </button>
           <button 
@@ -421,11 +422,11 @@ const Overview = () => {
       {/* Estado de carga */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
+          <Icon component={Loader2} size="xl" color="primary" className="animate-spin" />
         </div>
       ) : !chartData.hasData ? (
         <div className="bg-white dark:bg-[#1a1a1a] rounded-[26px] p-12 border border-gray-100 dark:border-white/5 shadow-sm text-center">
-          <DollarSign className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+          <Icon component={DollarSign} size="md" color="default" className="dark: mx-auto mb-4" />
           <h3 className="text-xl font-bold text-[#1a1a1a] dark:text-white mb-2">No hay datos aún</h3>
           <p className="text-[#6E6E73] dark:text-gray-400">
             Comienza agregando tus primeras transacciones para ver tu resumen completo
@@ -492,7 +493,7 @@ const Overview = () => {
             >
               <div className="flex justify-between items-center mb-6">
                 <h3 className="font-bold text-[#1a1a1a] dark:text-white">Distribución por Categoría</h3>
-                <Activity className="w-5 h-5 text-[#1C8FA0]" />
+                <Icon component={Activity} size="md" color="primary" />
               </div>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
@@ -543,7 +544,7 @@ const Overview = () => {
             >
               <div className="flex justify-between items-center mb-6">
                 <h3 className="font-bold text-[#1a1a1a] dark:text-white">Clasificación de Categorías</h3>
-                <Target className="w-5 h-5 text-[#E47B45]" />
+                <Icon component={Target} size="md" color="default" />
               </div>
               <ResponsiveContainer width="100%" height={300}>
                 <RadarChart data={chartData.radarData}>
@@ -586,7 +587,7 @@ const Overview = () => {
           >
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-bold text-[#1a1a1a] dark:text-white">Tendencias Mensuales</h3>
-              <TrendingUp className="w-5 h-5 text-[#8B5CF6]" />
+              <Icon component={TrendingUp} size="md" color="default" />
             </div>
             <ResponsiveContainer width="100%" height={300}>
               <ComposedChart data={chartData.trendData}>
@@ -635,7 +636,7 @@ const Overview = () => {
           >
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-bold text-[#1a1a1a] dark:text-white">Top Categorías de Gastos</h3>
-              <Activity className="w-5 h-5 text-[#F59E0B]" />
+              <Icon component={Activity} size="md" color="default" />
             </div>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart 
@@ -687,7 +688,7 @@ const Overview = () => {
               <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-white/80 text-sm font-medium uppercase tracking-wider">
-                    <Activity className="w-4 h-4" />
+                    <Icon component={Activity} size="sm" color="default" />
                     Insight Semanal
                   </div>
                   <h3 className="text-2xl font-bold">{weeklyInsight.title}</h3>

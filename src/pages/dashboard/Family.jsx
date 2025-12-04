@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { 
   Users, 
@@ -34,7 +35,7 @@ const MemberCard = ({ name, role, status, amount, image }) => (
         {amount > 0 ? `Te debe $${amount}` : `Debes $${Math.abs(amount)}`}
       </p>
       <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 dark:hover:bg-white/10 rounded text-[#6E6E73] transition-all">
-        <MoreHorizontal className="w-4 h-4" />
+        <Icon component={MoreHorizontal} size="sm" color="default" />
       </button>
     </div>
   </div>
@@ -49,7 +50,7 @@ const Family = () => {
           <p className="text-[#6E6E73] dark:text-gray-400 mt-1 text-lg">Gestiona gastos compartidos y deudas</p>
         </div>
         <Button className="bg-[#1a1a1a] dark:bg-white text-white dark:text-black px-6 py-6 h-auto rounded-xl shadow-lg transition-transform hover:-translate-y-1">
-          <Plus className="w-5 h-5 mr-2" />
+          <Icon component={Plus} size="md" color="default" className="mr-2" />
           Invitar miembro
         </Button>
       </div>
@@ -107,7 +108,7 @@ const Family = () => {
              <div className="mt-6 flex gap-3">
                <Button className="flex-1 bg-[#1a1a1a] dark:bg-white text-white dark:text-black shadow-lg h-10 text-sm">Registrar Pago</Button>
                <Button variant="outline" className="bg-white dark:bg-transparent border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 h-10 w-10 p-0 flex items-center justify-center">
-                 <MessageCircle className="w-5 h-5" />
+                 <Icon component={MessageCircle} size="md" color="default" />
                </Button>
              </div>
           </div>
@@ -150,7 +151,7 @@ const Family = () => {
                 <div className="text-right">
                   <p className="font-bold text-[#1a1a1a] dark:text-white">${tx.amount}</p>
                   <div className="flex items-center gap-1 text-xs text-[#6E6E73] dark:text-gray-400 justify-end">
-                    <Share2 className="w-3 h-3" />
+                    <Icon component={Share2} size="xs" color="default" />
                     {tx.split}
                   </div>
                 </div>

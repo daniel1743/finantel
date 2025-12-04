@@ -1,5 +1,6 @@
 
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { 
   AlertTriangle, 
@@ -35,7 +36,7 @@ const AlertCard = ({ type, title, subtitle, icon: Icon, color, recommendation })
     {recommendation && (
       <div className="ml-14 bg-gray-50 dark:bg-white/5 rounded-xl p-4 border border-gray-100 dark:border-white/5 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Zap className="w-4 h-4 text-[#E47B45]" />
+          <Icon component={Zap} size="sm" color="default" />
           <p className="text-xs font-medium text-[#1a1a1a] dark:text-white">{recommendation}</p>
         </div>
         <button className="text-xs font-bold text-[#1C8FA0] hover:underline whitespace-nowrap">
@@ -78,7 +79,7 @@ const Alerts = () => {
         
         <div className="relative z-10 flex items-start gap-6">
           <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/10">
-            <Activity className="w-8 h-8 text-white" />
+            <Icon component={Activity} size="xl" color="white" />
           </div>
           <div>
             <h2 className="text-2xl font-bold mb-2">Tu ritmo de gasto es estable</h2>
@@ -140,7 +141,7 @@ const Alerts = () => {
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-white dark:bg-[#1a1a1a] rounded-[26px] p-6 border border-gray-100 dark:border-white/5 shadow-sm">
             <h3 className="font-bold text-[#1a1a1a] dark:text-white mb-6 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-[#1C8FA0]" />
+              <Icon component={TrendingUp} size="md" color="primary" />
               Tendencias del Mes
             </h3>
             <div className="space-y-4">
@@ -162,7 +163,7 @@ const Alerts = () => {
           <div className="bg-red-50 dark:bg-red-900/10 rounded-[26px] p-6 border border-red-100 dark:border-red-900/20 relative overflow-hidden">
              <div className="relative z-10">
                <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs font-bold uppercase tracking-wider mb-2">
-                 <AlertTriangle className="w-4 h-4" />
+                 <Icon component={AlertTriangle} size="sm" color="default" />
                  Anomalía
                </div>
                <h3 className="font-bold text-[#1a1a1a] dark:text-white mb-2">Transacción inusualmente alta</h3>

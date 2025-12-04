@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Icon from '@/components/ui/Icon';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -209,7 +210,7 @@ const SupportTicketDetail = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
+        <Icon component={Loader2} size="xl" color="primary" className="animate-spin" />
       </div>
     );
   }
@@ -217,7 +218,7 @@ const SupportTicketDetail = () => {
   if (!ticket) {
     return (
       <div className="text-center py-12">
-        <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+        <Icon component={AlertCircle} size="md" color="muted" className="mx-auto mb-4" />
         <p className="text-gray-600 dark:text-gray-400">Ticket no encontrado</p>
         <Button
           onClick={() => navigate('/dashboard/support')}
@@ -250,7 +251,7 @@ const SupportTicketDetail = () => {
           onClick={handleGoBack}
           className="gap-2 text-[#1a1a1a] dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <Icon component={ArrowLeft} size="sm" color="default" />
           Volver
         </Button>
         <Button
@@ -260,7 +261,7 @@ const SupportTicketDetail = () => {
           className="gap-2 text-[#1a1a1a] dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10"
           title="Cerrar"
         >
-          <X className="w-5 h-5" />
+          <Icon component={X} size="md" color="default" />
         </Button>
       </div>
 
@@ -278,7 +279,7 @@ const SupportTicketDetail = () => {
           className="absolute top-4 right-4 text-[#1a1a1a] dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10"
           title="Cerrar"
         >
-          <X className="w-5 h-5" />
+          <Icon component={X} size="md" color="default" />
         </Button>
         
         <div className="flex items-start justify-between gap-4 mb-4 pr-8">
@@ -321,7 +322,7 @@ const SupportTicketDetail = () => {
         <div className="p-6 space-y-4 max-h-[500px] overflow-y-auto">
           {responses.length === 0 ? (
             <div className="text-center py-8">
-              <MessageSquare className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+              <Icon component={MessageSquare} size="md" color="default" className="dark: mx-auto mb-3" />
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Aún no hay respuestas. Nuestro equipo responderá pronto.
               </p>
@@ -347,7 +348,7 @@ const SupportTicketDetail = () => {
                     'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
                     'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                   )}>
-                    <User className="w-4 h-4" />
+                    <Icon component={User} size="sm" color="default" />
                   </div>
                 )}
 
@@ -421,10 +422,10 @@ const SupportTicketDetail = () => {
                 className="bg-[#1C8FA0] hover:bg-[#167a8a] text-white px-6"
               >
                 {sending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
                 ) : (
                   <>
-                    <Send className="w-4 h-4 mr-2" />
+                    <Icon component={Send} size="sm" color="default" className="mr-2" />
                     {isStaff ? 'Responder como Staff' : 'Enviar'}
                   </>
                 )}
@@ -436,7 +437,7 @@ const SupportTicketDetail = () => {
         {(ticket.status === 'resuelto' || ticket.status === 'archivado') && (
           <div className="bg-emerald-50 dark:bg-emerald-900/20 border-t border-emerald-200 dark:border-emerald-800 p-4">
             <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
-              <CheckCircle2 className="w-5 h-5" />
+              <Icon component={CheckCircle2} size="md" color="default" />
               <p className="text-sm font-medium">
                 Este ticket está {ticket.status === 'resuelto' ? 'resuelto' : 'archivado'}
               </p>

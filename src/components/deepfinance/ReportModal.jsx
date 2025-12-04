@@ -5,6 +5,7 @@
 // =====================================================
 
 import React, { useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Download, FileText, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { ReportGenerator } from '@/lib/deepfinance/reportGenerator';
@@ -74,7 +75,7 @@ const ReportModal = ({ isOpen, onClose, analysis, userName, userEmail }) => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-white/20">
-                  <FileText className="w-6 h-6 text-white" />
+                  <Icon component={FileText} size="lg" color="white" />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-white">Generar Reporte PDF</h3>
@@ -86,7 +87,7 @@ const ReportModal = ({ isOpen, onClose, analysis, userName, userEmail }) => {
                 className="p-2 rounded-lg hover:bg-white/20 transition-colors"
                 disabled={isGenerating}
               >
-                <X className="w-5 h-5 text-white" />
+                <Icon component={X} size="md" color="white" />
               </button>
             </div>
           </div>
@@ -152,7 +153,7 @@ const ReportModal = ({ isOpen, onClose, analysis, userName, userEmail }) => {
                 className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800"
               >
                 <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+                  <Icon component={AlertCircle} size="md" color="error" className="dark: shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-red-900 dark:text-red-100">
                       Error al generar reporte
@@ -173,7 +174,7 @@ const ReportModal = ({ isOpen, onClose, analysis, userName, userEmail }) => {
                 className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800"
               >
                 <div className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+                  <Icon component={CheckCircle2} size="md" color="success" className="dark: shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-green-900 dark:text-green-100">
                       Reporte generado exitosamente
@@ -215,17 +216,17 @@ const ReportModal = ({ isOpen, onClose, analysis, userName, userEmail }) => {
               >
                 {isGenerating ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
                     Generando...
                   </>
                 ) : success ? (
                   <>
-                    <CheckCircle2 className="w-4 h-4" />
+                    <Icon component={CheckCircle2} size="sm" color="default" />
                     Descargado
                   </>
                 ) : (
                   <>
-                    <Download className="w-4 h-4" />
+                    <Icon component={Download} size="sm" color="default" />
                     Generar PDF
                   </>
                 )}

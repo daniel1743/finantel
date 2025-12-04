@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import SeoHead from '@/components/SeoHead';
 import { FileText, CheckCircle, XCircle, Shield, AlertCircle, Mail, CreditCard, DollarSign, Lock, Users, Zap, TrendingUp, BarChart3, Bell, Eye, Ban } from 'lucide-react';
@@ -19,7 +20,7 @@ const Terms = () => {
             className="mb-12"
           >
             <div className="flex items-center gap-3 mb-6">
-              <FileText className="w-8 h-8 text-[#1C8FA0]" />
+              <Icon component={FileText} size="xl" color="primary" />
               <h1 className="text-4xl md:text-5xl font-bold text-[#1a1a1a] dark:text-white">
                 Términos de Servicio
               </h1>
@@ -181,7 +182,7 @@ const Terms = () => {
                   'Cumplir todas las leyes aplicables'
                 ].map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                    <Icon component={CheckCircle} size="md" color="default" className="mt-0.5 flex-shrink-0" />
                     <span className="text-[#6E6E73] dark:text-gray-400">{item}</span>
                   </li>
                 ))}
@@ -208,7 +209,7 @@ const Terms = () => {
                   'Eludir medidas de seguridad'
                 ].map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <XCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+                    <Icon component={XCircle} size="md" color="default" className="mt-0.5 flex-shrink-0" />
                     <span className="text-[#6E6E73] dark:text-gray-400">{item}</span>
                   </li>
                 ))}
@@ -464,7 +465,7 @@ const Terms = () => {
                   'Cualquier contenido de terceros'
                 ].map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <XCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+                    <Icon component={XCircle} size="md" color="default" className="mt-0.5 flex-shrink-0" />
                     <span className="text-[#6E6E73] dark:text-gray-400">{item}</span>
                   </li>
                 ))}
@@ -783,7 +784,7 @@ const Terms = () => {
               </p>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-[#1C8FA0]" />
+                  <Icon component={Mail} size="md" color="primary" />
                   <a
                     href="mailto:legal@finantel.com"
                     className="text-[#1C8FA0] hover:underline font-medium"

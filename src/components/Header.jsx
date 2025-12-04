@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
@@ -115,9 +116,9 @@ const Header = () => {
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? (
-              <X className="w-6 h-6 text-[#1a1a1a]" />
+              <Icon component={X} size="lg" color="dark" />
             ) : (
-              <Menu className="w-6 h-6 text-[#1a1a1a]" />
+              <Icon component={Menu} size="lg" color="dark" />
             )}
           </button>
         </nav>
@@ -158,7 +159,7 @@ const Header = () => {
                     className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
                     aria-label="Close menu"
                   >
-                    <X className="w-6 h-6 text-[#1a1a1a]" />
+                    <Icon component={X} size="lg" color="dark" />
                   </button>
                 </div>
 

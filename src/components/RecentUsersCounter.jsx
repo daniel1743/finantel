@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { Users, Clock } from 'lucide-react';
 
@@ -85,7 +86,7 @@ const RecentUsersCounter = () => {
       <div className="bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-200 dark:border-white/10 p-4 min-w-[280px]">
         <div className="flex items-center gap-2 mb-3">
           <div className="w-8 h-8 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center">
-            <Users className="w-4 h-4 text-[#1C8FA0]" />
+            <Icon component={Users} size="sm" color="primary" />
           </div>
           <div>
             <p className="text-xs font-semibold text-[#1a1a1a] dark:text-white">
@@ -119,7 +120,7 @@ const RecentUsersCounter = () => {
                 </p>
               </div>
               <div className="flex items-center gap-1 text-[#6E6E73] dark:text-gray-400">
-                <Clock className="w-3 h-3" />
+                <Icon component={Clock} size="xs" color="default" />
                 <span>{user.minutesAgo}m</span>
               </div>
             </motion.div>

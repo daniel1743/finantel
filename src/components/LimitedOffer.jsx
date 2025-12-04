@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { Clock, Sparkles, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -85,14 +86,14 @@ const LimitedOffer = () => {
         >
           {/* Sparkle Effect */}
           <div className="absolute top-4 right-4">
-            <Sparkles className="w-8 h-8 text-[#1C8FA0] animate-pulse" />
+            <Icon component={Sparkles} size="xl" color="primary" className="animate-pulse" />
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 items-center">
             {/* Left: Content */}
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1C8FA0]/10 text-[#1C8FA0] text-sm font-bold mb-4">
-                <Sparkles className="w-4 h-4" />
+                <Icon component={Sparkles} size="sm" color="default" />
                 OFERTA LIMITADA
               </div>
 
@@ -132,7 +133,7 @@ const LimitedOffer = () => {
                 className="bg-[#1C8FA0] hover:bg-[#167a8a] text-white rounded-full px-8 py-6 text-lg font-medium shadow-xl shadow-[#1C8FA0]/20 transition-all hover:shadow-[#1C8FA0]/30 hover:-translate-y-1"
               >
                 Aprovechar Oferta
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <Icon component={ArrowRight} size="md" color="default" className="ml-2" />
               </Button>
 
               <p className="text-xs text-[#6E6E73] dark:text-gray-400 mt-4">
@@ -144,7 +145,7 @@ const LimitedOffer = () => {
             <div className="flex flex-col items-center justify-center">
               <div className="mb-6">
                 <div className="flex items-center gap-2 text-[#6E6E73] dark:text-gray-400 mb-4">
-                  <Clock className="w-5 h-5" />
+                  <Icon component={Clock} size="md" color="default" />
                   <span className="text-sm font-medium">La oferta termina en:</span>
                 </div>
 

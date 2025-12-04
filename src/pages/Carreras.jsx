@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import SeoHead from '@/components/SeoHead';
 import { Users, Heart, Zap } from 'lucide-react';
@@ -38,7 +39,7 @@ const Carreras = () => {
             <ul className="space-y-6">
               <li className="flex items-start gap-4">
                 <div className="w-12 h-12 rounded-xl bg-[#1C8FA0]/10 dark:bg-[#1C8FA0]/20 flex items-center justify-center flex-shrink-0">
-                  <Heart className="w-6 h-6 text-[#1C8FA0]" />
+                  <Icon component={Heart} size="lg" color="primary" />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-[#1a1a1a] dark:text-white mb-2">
@@ -51,7 +52,7 @@ const Carreras = () => {
               </li>
               <li className="flex items-start gap-4">
                 <div className="w-12 h-12 rounded-xl bg-[#1C8FA0]/10 dark:bg-[#1C8FA0]/20 flex items-center justify-center flex-shrink-0">
-                  <Users className="w-6 h-6 text-[#1C8FA0]" />
+                  <Icon component={Users} size="lg" color="primary" />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-[#1a1a1a] dark:text-white mb-2">
@@ -64,7 +65,7 @@ const Carreras = () => {
               </li>
               <li className="flex items-start gap-4">
                 <div className="w-12 h-12 rounded-xl bg-[#1C8FA0]/10 dark:bg-[#1C8FA0]/20 flex items-center justify-center flex-shrink-0">
-                  <Zap className="w-6 h-6 text-[#1C8FA0]" />
+                  <Icon component={Zap} size="lg" color="primary" />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-[#1a1a1a] dark:text-white mb-2">

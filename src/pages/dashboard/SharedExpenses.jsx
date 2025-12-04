@@ -5,6 +5,7 @@
 // =====================================================
 
 import React, { useState, useMemo } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, 
@@ -231,7 +232,7 @@ const SharedExpenses = () => {
   if (groupsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-[#1C8FA0]" />
+        <Icon component={Loader2} size="xl" color="primary" className="animate-spin" />
       </div>
     );
   }
@@ -247,7 +248,7 @@ const SharedExpenses = () => {
         </div>
 
         <div className="bg-white dark:bg-[#1a1a1a] rounded-[26px] p-12 border border-gray-100 dark:border-white/5 text-center">
-          <Users className="w-16 h-16 mx-auto mb-4 text-[#6E6E73] dark:text-gray-400" />
+          <Icon component={Users} size="md" color="default" className="mx-auto mb-4  dark:" />
           <h3 className="text-xl font-bold text-[#1a1a1a] dark:text-white mb-2">
             No tienes grupos familiares
           </h3>
@@ -272,7 +273,7 @@ const SharedExpenses = () => {
             onClick={() => setShowCreateModal(true)}
             className="bg-[#1a1a1a] dark:bg-white text-white dark:text-black px-6 py-6 h-auto rounded-xl shadow-lg transition-transform hover:-translate-y-1"
           >
-            <Plus className="w-5 h-5 mr-2" />
+            <Icon component={Plus} size="md" color="default" className="mr-2" />
             Nuevo Gasto
           </Button>
         )}
@@ -346,10 +347,10 @@ const SharedExpenses = () => {
             <h3 className="font-bold text-[#1a1a1a] dark:text-white text-lg">Actividad Reciente</h3>
             <div className="flex gap-2">
               <button className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg text-[#6E6E73] dark:text-gray-400 transition-colors">
-                <Filter className="w-4 h-4" />
+                <Icon component={Filter} size="sm" color="default" />
               </button>
               <button className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg text-[#6E6E73] dark:text-gray-400 transition-colors">
-                <Calendar className="w-4 h-4" />
+                <Icon component={Calendar} size="sm" color="default" />
               </button>
             </div>
           </div>
@@ -357,11 +358,11 @@ const SharedExpenses = () => {
           <div className="bg-white dark:bg-[#1a1a1a] rounded-[26px] p-8 border border-gray-100 dark:border-white/5 shadow-sm">
             {expensesLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-[#1C8FA0]" />
+                <Icon component={Loader2} size="xl" color="primary" className="animate-spin" />
               </div>
             ) : expenses.length === 0 ? (
               <div className="text-center py-12">
-                <Receipt className="w-12 h-12 mx-auto mb-4 text-[#6E6E73] dark:text-gray-400" />
+                <Icon component={Receipt} size="md" color="default" className="mx-auto mb-4  dark:" />
                 <p className="text-[#6E6E73] dark:text-gray-400">No hay gastos compartidos aún</p>
               </div>
             ) : (
@@ -396,7 +397,7 @@ const SharedExpenses = () => {
             <div className="bg-[#1C8FA0]/5 rounded-[26px] p-6 border border-[#1C8FA0]/10">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center">
-                  <Users className="w-5 h-5 text-[#1C8FA0]" />
+                  <Icon component={Users} size="md" color="primary" />
                 </div>
                 <h3 className="font-bold text-[#1a1a1a] dark:text-white">
                   {groups.find(g => g.id === selectedGroupId)?.name || 'Grupo Familiar'}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, ShoppingBag, Coffee, DollarSign, Home, Zap, Plane, Car } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -99,7 +100,7 @@ const Hero = () => {
                 className="bg-[#1C8FA0] hover:bg-[#167a8a] text-white text-base px-8 py-3.5 h-auto rounded-full shadow-xl shadow-[#1C8FA0]/20 transition-all hover:shadow-[#1C8FA0]/30 hover:-translate-y-1 font-medium"
               >
                 Comenzar Gratis
-                <ArrowRight className="ml-2 w-5 h-5" />
+                <Icon component={ArrowRight} size="md" color="default" className="ml-2" />
               </Button>
             </motion.div>
           </div>

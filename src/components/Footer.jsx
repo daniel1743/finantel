@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
@@ -84,7 +85,7 @@ const Footer = () => {
                 className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-[#6E6E73] hover:bg-[#1C8FA0] hover:text-white transition-all"
                 aria-label="Twitter de Finantel"
               >
-                <Twitter className="w-4 h-4" />
+                <Icon component={Twitter} size="sm" color="default" />
               </a>
               <a
                 href="https://instagram.com/finantelapp"
@@ -93,7 +94,7 @@ const Footer = () => {
                 className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-[#6E6E73] hover:bg-[#1C8FA0] hover:text-white transition-all"
                 aria-label="Instagram de Finantel"
               >
-                <Instagram className="w-4 h-4" />
+                <Icon component={Instagram} size="sm" color="default" />
               </a>
               <a
                 href="https://linkedin.com/company/finantel"
@@ -102,7 +103,7 @@ const Footer = () => {
                 className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-[#6E6E73] hover:bg-[#1C8FA0] hover:text-white transition-all"
                 aria-label="LinkedIn de Finantel"
               >
-                <Linkedin className="w-4 h-4" />
+                <Icon component={Linkedin} size="sm" color="default" />
               </a>
             </div>
           </div>
@@ -152,12 +153,12 @@ const Footer = () => {
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    <Icon component={Loader2} size="sm" color="default" className="animate-spin mr-2" />
                     Suscribiendo...
                   </>
                 ) : subscribed ? (
                   <>
-                    <Check className="w-4 h-4 mr-2" />
+                    <Icon component={Check} size="sm" color="default" className="mr-2" />
                     ¡Suscrito!
                   </>
                 ) : (

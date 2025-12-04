@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { Mail, CheckCircle2, Loader2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -35,7 +36,7 @@ const NewsletterSignup = ({ variant = 'default' }) => {
         className="bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/20 rounded-2xl p-6 text-center"
       >
         <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-3 text-green-600 dark:text-green-400">
-          <CheckCircle2 className="w-6 h-6" />
+          <Icon component={CheckCircle2} size="lg" color="default" />
         </div>
         <h3 className="font-bold text-[#1a1a1a] dark:text-white">¡Suscripción Confirmada!</h3>
         <p className="text-sm text-[#6E6E73] dark:text-gray-400 mt-1">Gracias por unirte a Finantel.</p>
@@ -54,7 +55,7 @@ const NewsletterSignup = ({ variant = 'default' }) => {
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#1C8FA0]/10 flex items-center justify-center text-[#1C8FA0]">
-            <Mail className="w-5 h-5" />
+            <Icon component={Mail} size="md" color="default" />
           </div>
           <div>
             <h3 className="font-bold text-[#1a1a1a] dark:text-white">
@@ -84,7 +85,7 @@ const NewsletterSignup = ({ variant = 'default' }) => {
             disabled={status === 'loading'}
             className="h-12 w-12 rounded-xl bg-[#1a1a1a] dark:bg-white text-white dark:text-black hover:opacity-90 p-0 flex items-center justify-center"
           >
-            {status === 'loading' ? <Loader2 className="w-5 h-5 animate-spin" /> : <ArrowRight className="w-5 h-5" />}
+            {status === 'loading' ? <Icon component={Loader2} size="md" color="default" className="animate-spin" /> : <Icon component={ArrowRight} size="md" color="default" />}
           </Button>
         </form>
         

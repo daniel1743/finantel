@@ -1,5 +1,6 @@
 
 import React, { useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
@@ -48,7 +49,7 @@ const ProtectedRoute = ({ children }) => {
             alt="Finantel Logo"
             className="h-12 w-auto animate-pulse"
           />
-          <Loader2 className="w-6 h-6 text-[#1C8FA0] animate-spin" />
+          <Icon component={Loader2} size="lg" color="primary" className="animate-spin" />
           <p className="text-sm text-[#6E6E73]">Verificando sesión...</p>
         </div>
       </div>

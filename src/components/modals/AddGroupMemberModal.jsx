@@ -5,6 +5,7 @@
 // =====================================================
 
 import React, { useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, UserPlus, Mail, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -84,7 +85,7 @@ const AddGroupMemberModal = ({
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center">
-                <UserPlus className="w-5 h-5 text-[#1C8FA0]" />
+                <Icon component={UserPlus} size="md" color="primary" />
               </div>
               <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white">
                 Agregar Miembro
@@ -94,7 +95,7 @@ const AddGroupMemberModal = ({
               onClick={onClose}
               className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
             >
-              <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+              <Icon component={X} size="md" color="default" className="dark:" />
             </button>
           </div>
 
@@ -102,7 +103,7 @@ const AddGroupMemberModal = ({
             {/* Email */}
             <div>
               <label className="block text-sm font-semibold text-[#1a1a1a] dark:text-white mb-2">
-                <Mail className="w-4 h-4 inline mr-1" />
+                <Icon component={Mail} size="sm" color="default" className="inline mr-1" />
                 Email del usuario *
               </label>
               <input
@@ -121,7 +122,7 @@ const AddGroupMemberModal = ({
             {/* Rol */}
             <div>
               <label className="block text-sm font-semibold text-[#1a1a1a] dark:text-white mb-2">
-                <User className="w-4 h-4 inline mr-1" />
+                <Icon component={User} size="sm" color="default" className="inline mr-1" />
                 Rol *
               </label>
               <div className="grid grid-cols-2 gap-3">

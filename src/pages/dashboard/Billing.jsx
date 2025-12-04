@@ -1,5 +1,6 @@
 
 import React, { useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { useBilling } from '@/hooks/useBilling';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { Button } from '@/components/ui/button';
@@ -47,7 +48,7 @@ const Billing = () => {
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto p-6 flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-[#1C8FA0]" />
+        <Icon component={Loader2} size="xl" color="primary" className="animate-spin" />
       </div>
     );
   }
@@ -83,7 +84,7 @@ const Billing = () => {
               </span>
               {subscription?.status === 'active' && (
                 <span className="flex items-center gap-1 text-green-600 text-xs font-medium">
-                  <ShieldCheck className="w-3 h-3" /> Activo
+                  <Icon component={ShieldCheck} size="xs" color="default" /> Activo
                 </span>
               )}
             </div>
@@ -105,7 +106,7 @@ const Billing = () => {
                 >
                   {processing ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Icon component={Loader2} size="sm" color="default" className="mr-2 animate-spin" />
                       Procesando...
                     </>
                   ) : (
@@ -119,7 +120,7 @@ const Billing = () => {
                 >
                   {processing ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Icon component={Loader2} size="sm" color="default" className="mr-2 animate-spin" />
                       Procesando...
                     </>
                   ) : (
@@ -134,7 +135,7 @@ const Billing = () => {
                 >
                   {processing ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Icon component={Loader2} size="sm" color="default" className="mr-2 animate-spin" />
                       Procesando...
                     </>
                   ) : (
@@ -152,7 +153,7 @@ const Billing = () => {
                 >
                   {processing ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Icon component={Loader2} size="sm" color="default" className="mr-2 animate-spin" />
                       Procesando...
                     </>
                   ) : (
@@ -167,7 +168,7 @@ const Billing = () => {
              <div>
                <h3 className="font-bold text-[#1a1a1a] dark:text-white mb-4">Método de Pago</h3>
                <div className="flex items-center gap-3 text-[#6E6E73] mb-4">
-                 <CreditCard className="w-5 h-5" />
+                 <Icon component={CreditCard} size="md" color="default" />
                  <span>•••• •••• •••• 4242</span>
                </div>
                <div className="flex items-center gap-2 flex-wrap">
@@ -270,7 +271,7 @@ const Billing = () => {
                       <td className="px-6 py-4 text-right">
                         {payment.status === 'approved' && (
                           <Button size="sm" variant="ghost" className="h-8 w-8 p-0" title="Descargar factura">
-                            <Download className="w-4 h-4 text-[#6E6E73]" />
+                            <Icon component={Download} size="sm" color="default" />
                           </Button>
                         )}
                       </td>

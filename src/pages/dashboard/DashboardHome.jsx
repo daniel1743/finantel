@@ -37,6 +37,7 @@ import {
   Square
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useFinance } from '@/hooks/useFinance';
@@ -735,14 +736,13 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
             <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
               Descripción
             </label>
-            <input
+            <Input
               type="text"
               placeholder="Ej. Compra de supermercado"
               required
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               disabled={isLoading}
-              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50"
             />
           </div>
 
@@ -786,20 +786,17 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
             <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
               Monto
             </label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                required
-                value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                disabled={isLoading}
-                className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50"
-              />
-            </div>
+            <Input
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="0.00"
+              required
+              value={formData.amount}
+              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+              disabled={isLoading}
+              icon={DollarSign}
+            />
           </div>
 
           {/* Categoría */}
@@ -812,7 +809,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
               onChange={(e) => handleCategoryChange(e.target.value)}
               disabled={isLoading}
               required
-              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50"
+              className="w-full disabled:opacity-50"
             >
               <option value="">Selecciona una categoría</option>
               {formData.type === 'income'
@@ -839,14 +836,13 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
               <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
                 Nombre de Categoría Personalizada
               </label>
-              <input
+              <Input
                 type="text"
                 placeholder="Ej. Entretenimiento, Mascotas..."
                 required
                 value={formData.custom_category}
                 onChange={(e) => setFormData({ ...formData, custom_category: e.target.value })}
                 disabled={isLoading}
-                className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50"
               />
   </motion.div>
           )}
@@ -866,7 +862,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
                 onChange={(e) => setFormData({ ...formData, necessity_level: e.target.value })}
                 disabled={isLoading}
                 required
-                className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50"
+                className="w-full disabled:opacity-50"
               >
                 <option value="">Selecciona nivel de necesidad</option>
                 {NECESSITY_LEVELS.map((level) => (
@@ -883,21 +879,18 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
             <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
               Fecha
             </label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6E6E73] dark:text-gray-400 pointer-events-none" />
-              <input
-                type="date"
-                required
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                disabled={isLoading}
-                className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50"
-              />
-      </div>
+            <Input
+              type="date"
+              required
+              value={formData.date}
+              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              disabled={isLoading}
+              icon={Calendar}
+            />
           </div>
 
           {/* Notas (Opcional) */}
-      <div>
+          <div>
             <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
               Notas <span className="text-xs">(opcional)</span>
             </label>
@@ -907,21 +900,22 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               disabled={isLoading}
-              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50 resize-none"
+              className="w-full disabled:opacity-50 resize-none"
             />
-      </div>
+          </div>
 
           {/* Botones */}
           <div className="pt-4 flex gap-3">
-            <button
+            <Button
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-white/10 text-[#6E6E73] dark:text-gray-400 font-medium hover:bg-gray-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
+              variant="outline"
+              className="flex-1"
             >
               Cancelar
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={
                 isLoading ||
@@ -931,7 +925,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
                 (showCustomCategory && !formData.custom_category.trim()) ||
                 (formData.type === 'expense' && !formData.necessity_level)
               }
-              className="flex-1 py-3 rounded-xl bg-[#1a1a1a] dark:bg-white text-white dark:text-black font-medium hover:bg-black dark:hover:bg-gray-100 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1"
             >
               {isLoading ? (
                 <>
@@ -941,7 +935,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
               ) : (
                 'Guardar Transacción'
               )}
-            </button>
+            </Button>
     </div>
         </form>
   </motion.div>
@@ -1549,20 +1543,113 @@ const DashboardHome = () => {
           </div>
         </div>
 
-        {/* Contenido dividido en dos columnas: izquierda=Balance+gráfico, derecha=lista */}
-        <div className="p-4 md:p-6">
+        {/* Contenido dividido en dos columnas: izquierda=Balance+gráfico, derecha=lista - MOBILE-FIRST */}
+        <div className="px-4 py-4 sm:px-6 sm:py-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* IZQUIERDA: Balance Total + gráfico pequeño */}
-            <div className="flex flex-col items-start gap-4">
-              <p className="text-sm font-semibold text-[#6E6E73] dark:text-gray-400 uppercase tracking-wide">Balance Total</p>
-              <div className="text-3xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">{`$${((realData.totalIncome || 0) - (realData.totalExpenses || 0)).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</div>
-              <div className="w-full max-w-xs bg-gray-50 dark:bg-white/5 rounded-lg p-3">
-                <div className="h-20 flex items-end gap-2">
+            {/* IZQUIERDA: Balance Total + gráfico pequeño - MOBILE-FIRST OPTIMIZADO */}
+            <div className="flex flex-col w-full">
+              {/* Título - Mobile-first tipography */}
+              <p 
+                className="font-semibold text-[#6E6E73] dark:text-gray-400 uppercase tracking-wide mb-3 sm:mb-4"
+                style={{
+                  fontSize: 'clamp(0.75rem, 3vw, 0.875rem)',
+                  lineHeight: '1.4',
+                }}
+              >
+                Balance Total
+              </p>
+              
+              {/* Contenedor del valor numérico con espacio reservado y padding horizontal aumentado */}
+              <div 
+                className="w-full mb-4 sm:mb-6"
+                style={{
+                  paddingLeft: 'clamp(0.5rem, 2vw, 0rem)',
+                  paddingRight: 'clamp(0.5rem, 2vw, 0rem)',
+                }}
+              >
+                <div 
+                  className="relative overflow-hidden"
+                  style={{
+                    minHeight: 'clamp(3rem, 10vw, 3.5rem)',
+                    lineHeight: '1.3',
+                    width: '100%',
+                  }}
+                >
+                  {/* Valor numérico con tipografía responsive, espacio garantizado y formato inteligente */}
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={`${realData.totalIncome}-${realData.totalExpenses}`}
+                      initial={{ opacity: 0, y: 4, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                      transition={{ 
+                        duration: 0.15,
+                        ease: [0.4, 0, 0.2, 1]
+                      }}
+                      className="font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']"
+                      style={{
+                        fontSize: 'clamp(1.5rem, 7vw, 1.875rem)',
+                        lineHeight: '1.3',
+                        willChange: 'transform, opacity',
+                        transform: 'translateZ(0)',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        width: '100%',
+                        display: 'block',
+                      }}
+                    >
+                      {(() => {
+                        const balance = ((realData.totalIncome || 0) - (realData.totalExpenses || 0));
+                        // Formato inteligente: abreviar números muy grandes para evitar overflow
+                        if (Math.abs(balance) >= 1000000) {
+                          return `$${(balance / 1000000).toFixed(2)}M`;
+                        } else if (Math.abs(balance) >= 1000) {
+                          return `$${(balance / 1000).toFixed(1)}K`;
+                        }
+                        return `$${balance.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                      })()}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+              </div>
+              
+              {/* Gráfico pequeño - Optimizado para evitar reflow */}
+              <div 
+                className="w-full bg-gray-50 dark:bg-white/5 rounded-lg"
+                style={{
+                  padding: 'clamp(0.5rem, 2vw, 0.75rem)',
+                  minHeight: 'clamp(4rem, 12vw, 5rem)',
+                }}
+              >
+                <div 
+                  className="flex items-end"
+                  style={{
+                    height: 'clamp(4rem, 12vw, 5rem)',
+                    gap: 'clamp(0.25rem, 1vw, 0.5rem)',
+                  }}
+                >
                   {(realData.monthlyData && realData.monthlyData.length > 0 ? realData.monthlyData : Array.from({length:6},(_,i)=>({value:0}))).map((d, idx) => {
                     const v = Math.max(0, Math.min(1, d.value || 0));
                     const heightPerc = Math.max(6, Math.round(v * 100));
                     return (
-                      <div key={idx} className="flex-1 rounded-t-sm" style={{ height: `${heightPerc}%`, background: 'linear-gradient(180deg,#1C8FA0, #167a8a)' }} />
+                      <motion.div
+                        key={idx}
+                        initial={{ scaleY: 0 }}
+                        animate={{ scaleY: heightPerc / 100 }}
+                        transition={{ 
+                          duration: 0.3,
+                          delay: idx * 0.03,
+                          ease: [0.4, 0, 0.2, 1]
+                        }}
+                        className="flex-1 rounded-t-sm origin-bottom"
+                        style={{ 
+                          background: 'linear-gradient(180deg,#1C8FA0, #167a8a)',
+                          willChange: 'transform',
+                          transform: 'translateZ(0) scaleY(1)',
+                          minHeight: '6%',
+                        }}
+                      />
                     );
                   })}
                 </div>

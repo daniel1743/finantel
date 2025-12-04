@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { Mail, Smartphone, Check } from 'lucide-react';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { cn } from '@/lib/utils';
@@ -51,7 +52,7 @@ const PreferencesPanel = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1">
             <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center">
-              <Mail className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+              <Icon component={Mail} size="md" color="default" className="dark:" />
             </div>
             <span className="text-sm font-medium text-[#1a1a1a] dark:text-white">Email</span>
           </div>
@@ -67,7 +68,7 @@ const PreferencesPanel = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1">
             <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center">
-              <Smartphone className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+              <Icon component={Smartphone} size="md" color="default" className="dark:" />
             </div>
             <span className="text-sm font-medium text-[#1a1a1a] dark:text-white">Push</span>
           </div>
@@ -110,7 +111,7 @@ const PreferencesPanel = ({
                     ? "bg-[#1C8FA0] border-[#1C8FA0]"
                     : "border-gray-300 dark:border-gray-600 group-hover:border-[#1C8FA0]"
                 )}>
-                  {isChecked && <Check className="w-3 h-3 text-white" />}
+                  {isChecked && <Icon component={Check} size="xs" color="white" />}
                 </div>
                 <span className="text-sm text-[#6E6E73] dark:text-gray-400 group-hover:text-[#1a1a1a] dark:group-hover:text-white transition-colors">
                   {type}

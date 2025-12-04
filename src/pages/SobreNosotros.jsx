@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import SeoHead from '@/components/SeoHead';
 import { Target, Eye } from 'lucide-react';
@@ -50,7 +51,7 @@ const SobreNosotros = () => {
               className="bg-white dark:bg-[#1a1a1a] p-8 rounded-[24px] border border-gray-100 dark:border-white/10"
             >
               <div className="w-14 h-14 rounded-2xl bg-[#1C8FA0]/10 dark:bg-[#1C8FA0]/20 flex items-center justify-center mb-6">
-                <Target className="w-7 h-7 text-[#1C8FA0]" />
+                <Icon component={Target} size="md" color="primary" />
               </div>
               <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white mb-4">
                 Nuestra misión
@@ -67,7 +68,7 @@ const SobreNosotros = () => {
               className="bg-white dark:bg-[#1a1a1a] p-8 rounded-[24px] border border-gray-100 dark:border-white/10"
             >
               <div className="w-14 h-14 rounded-2xl bg-[#1C8FA0]/10 dark:bg-[#1C8FA0]/20 flex items-center justify-center mb-6">
-                <Eye className="w-7 h-7 text-[#1C8FA0]" />
+                <Icon component={Eye} size="md" color="primary" />
               </div>
               <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white mb-4">
                 Nuestra visión

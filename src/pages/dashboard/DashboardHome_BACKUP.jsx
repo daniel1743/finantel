@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { 
@@ -64,7 +65,7 @@ const KPICard = ({ title, value, subtitle, trend, trendValue, trendUp, icon: Ico
           <Icon className="w-6 h-6" />
             </div>
         <div className={`flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${trendUp ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'}`}>
-          {trendUp ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+          {trendUp ? <Icon component={TrendingUp} size="xs" color="default" /> : <Icon component={TrendingDown} size="xs" color="default" />}
           {trendValue}
           </div>
             </div>
@@ -777,7 +778,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
             disabled={isLoading}
             className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors disabled:opacity-50"
           >
-            <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+            <Icon component={X} size="md" color="default" className="dark:" />
           </button>
     </div>
 
@@ -839,7 +840,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
               Monto
             </label>
             <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+              <Icon component={DollarSign} size="md" color="default" className="absolute left-3 top-1/2 -translate-y-1/2    dark:" />
               <input
                 type="number"
                 step="0.01"
@@ -936,7 +937,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
               Fecha
             </label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6E6E73] dark:text-gray-400 pointer-events-none" />
+              <Icon component={Calendar} size="md" color="default" className="absolute left-3 top-1/2 -translate-y-1/2    dark: pointer-events-none" />
               <input
                 type="date"
                 required
@@ -987,7 +988,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
                   Guardando...
                 </>
               ) : (
@@ -1296,7 +1297,7 @@ const DashboardHome = () => {
       <div className="bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/5 rounded-[22px] p-4 md:p-5 flex flex-col md:flex-row items-start md:items-center gap-4 shadow-sm">
         <div className="flex items-start gap-3">
           <div className="w-11 h-11 rounded-2xl bg-[#1C8FA0]/10 flex items-center justify-center">
-            <ShieldCheck className="w-5 h-5 text-[#1C8FA0]" />
+            <Icon component={ShieldCheck} size="md" color="primary" />
           </div>
           <div>
             <p className="text-sm font-semibold text-[#1a1a1a] dark:text-white uppercase tracking-wide">Compromiso de Transparencia</p>
@@ -1310,18 +1311,18 @@ const DashboardHome = () => {
           className="ml-auto inline-flex items-center gap-2 text-sm font-semibold text-[#1C8FA0] hover:text-[#167a8a]"
         >
           Conoce más
-          <ArrowUpRight className="w-4 h-4" />
+          <Icon component={ArrowUpRight} size="sm" color="default" />
         </Link>
       </div>
 
       {/* Estado de carga o sin datos */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
+          <Icon component={Loader2} size="xl" color="primary" className="animate-spin" />
         </div>
       ) : !realData.hasData ? (
         <div className="bg-white dark:bg-[#1a1a1a] rounded-[26px] p-12 border border-gray-100 dark:border-white/5 shadow-sm text-center">
-          <DollarSign className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+          <Icon component={DollarSign} size="md" color="default" className="dark: mx-auto mb-4" />
           <h3 className="text-xl font-bold text-[#1a1a1a] dark:text-white mb-2">No hay datos aún</h3>
           <p className="text-[#6E6E73] dark:text-gray-400 mb-6">
             Comienza agregando tus primeras transacciones para ver tu dashboard completo
@@ -1330,7 +1331,7 @@ const DashboardHome = () => {
             onClick={() => setIsModalOpen(true)}
             className="bg-[#1C8FA0] hover:bg-[#167a8a] text-white"
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <Icon component={Plus} size="sm" color="default" className="mr-2" />
             Agregar Primera Transacción
           </Button>
         </div>
@@ -1438,7 +1439,7 @@ const DashboardHome = () => {
         >
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-bold text-[#1a1a1a] dark:text-white">Tasa de Ahorro</h3>
-            <CheckCircle2 className="w-5 h-5 text-green-500" />
+            <Icon component={CheckCircle2} size="md" color="default" />
           </div>
           <GaugeChart 
             value={isNaN(realData.savingsRate) ? 0 : Math.max(0, Math.min(100, realData.savingsRate))} 
@@ -1471,7 +1472,7 @@ const DashboardHome = () => {
         >
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-bold text-[#1a1a1a] dark:text-white">Gastos por Categoría</h3>
-            <PieChart className="w-5 h-5 text-[#1C8FA0]" />
+            <Icon component={PieChart} size="md" color="primary" />
           </div>
           <BarChart 
             data={realData.departmentData.length > 0 ? realData.departmentData : defaultDepartmentData} 
@@ -1489,7 +1490,7 @@ const DashboardHome = () => {
         >
           <div className="flex justify-between items-center w-full mb-6">
             <h3 className="font-bold text-[#1a1a1a] dark:text-white">Distribución</h3>
-            <BarChart3 className="w-5 h-5 text-[#E47B45]" />
+            <Icon component={BarChart3} size="md" color="default" />
               </div>
           <DonutChart 
             data={realData.categoryData.length > 0 ? realData.categoryData : defaultCategoryData} 
@@ -1527,7 +1528,7 @@ const DashboardHome = () => {
         >
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-bold text-[#1a1a1a] dark:text-white">Tendencia de Ahorro</h3>
-            <LineChart className="w-5 h-5 text-[#1C8FA0]" />
+            <Icon component={LineChart} size="md" color="primary" />
           </div>
           <LineChartComponent 
             data={realData.monthlyData.length > 0 
@@ -1548,7 +1549,7 @@ const DashboardHome = () => {
         >
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-bold text-[#1a1a1a] dark:text-white">Presupuesto vs Real</h3>
-            <Activity className="w-5 h-5 text-[#E47B45]" />
+            <Icon component={Activity} size="md" color="default" />
         </div>
           <div className="space-y-4">
             {realData.departmentData.length > 0 ? (
@@ -1613,10 +1614,10 @@ const DashboardHome = () => {
           <h3 className="font-bold text-[#1a1a1a] dark:text-white">Transacciones Recientes</h3>
           <div className="flex gap-2">
             <button className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors text-[#6E6E73] dark:text-gray-400">
-              <Search className="w-4 h-4" />
+              <Icon component={Search} size="sm" color="default" />
             </button>
             <button className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors text-[#6E6E73] dark:text-gray-400">
-              <MoreHorizontal className="w-4 h-4" />
+              <Icon component={MoreHorizontal} size="sm" color="default" />
             </button>
           </div>
         </div>
@@ -1686,7 +1687,7 @@ const DashboardHome = () => {
             ))
           ) : (
             <div className="text-center py-8 text-[#6E6E73] dark:text-gray-400">
-              <DollarSign className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <Icon component={DollarSign} size="md" color="default" className="mx-auto mb-4 opacity-50" />
               <p>No hay transacciones recientes</p>
               <p className="text-sm mt-2">Agrega tu primera transacción para comenzar</p>
             </div>
@@ -1705,7 +1706,7 @@ const DashboardHome = () => {
         }}
         className="fixed bottom-8 right-8 w-[68px] h-[68px] bg-[#1C8FA0] hover:bg-[#167a8a] text-white rounded-full shadow-[0_20px_40px_-12px_rgba(28,143,160,0.5)] flex items-center justify-center hover:scale-110 transition-all duration-300 z-50 group"
       >
-        <Mic className="w-8 h-8 group-hover:scale-110 transition-transform duration-300" />
+        <Icon component={Mic} size="xl" color="default" className="group-hover:scale-110 transition-transform duration-300" />
       </motion.button>
     </div>
   );

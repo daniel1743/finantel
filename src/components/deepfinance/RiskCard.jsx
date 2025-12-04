@@ -5,6 +5,7 @@
 // =====================================================
 
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { Shield, AlertTriangle, CheckCircle2, XCircle, TrendingDown, TrendingUp } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -142,9 +143,9 @@ const RiskCard = ({ risk = {} }) => {
                 )}
               >
                 {isCritical ? (
-                  <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+                  <Icon component={AlertTriangle} size="md" color="error" className="dark: shrink-0 mt-0.5" />
                 ) : (
-                  <CheckCircle2 className="w-5 h-5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
+                  <Icon component={CheckCircle2} size="md" color="warning" className="dark: shrink-0 mt-0.5" />
                 )}
                 <div className="flex-1">
                   <p className="text-sm text-[#1a1a1a] dark:text-white">
@@ -163,7 +164,7 @@ const RiskCard = ({ risk = {} }) => {
       ) : (
         <div className="text-center py-6">
           <div className="inline-flex p-3 rounded-full bg-green-500/10 mb-3">
-            <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
+            <Icon component={CheckCircle2} size="lg" color="success" className="dark:" />
           </div>
           <p className="text-sm font-medium text-[#1a1a1a] dark:text-white mb-1">
             No se detectaron factores de riesgo críticos
@@ -191,7 +192,7 @@ const RiskCard = ({ risk = {} }) => {
           className="mt-6 p-4 rounded-xl bg-[#1C8FA0]/10 border-2 border-[#1C8FA0]/20"
         >
           <div className="flex items-start gap-3">
-            <TrendingUp className="w-5 h-5 text-[#1C8FA0] shrink-0 mt-0.5" />
+            <Icon component={TrendingUp} size="md" color="primary" className="shrink-0 mt-0.5" />
             <div>
               <h5 className="text-sm font-semibold text-[#1a1a1a] dark:text-white mb-1">
                 Recomendación General

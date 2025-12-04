@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -31,9 +32,9 @@ const ScenarioCard = ({ title, description, impact, type, delay, onClick }) => (
         type === 'warning' ? 'bg-orange-50 text-orange-600' : 
         'bg-[#1C8FA0]/10 text-[#1C8FA0]'
       }`}>
-        {type === 'positive' ? <TrendingUp className="w-5 h-5" /> : 
-         type === 'warning' ? <AlertTriangle className="w-5 h-5" /> : 
-         <Sparkles className="w-5 h-5" />}
+        {type === 'positive' ? <Icon component={TrendingUp} size="md" color="default" /> : 
+         type === 'warning' ? <Icon component={AlertTriangle} size="md" color="default" /> : 
+         <Icon component={Sparkles} size="md" color="default" />}
       </div>
       <span className={`text-xs font-bold px-2 py-1 rounded-full ${
         type === 'positive' ? 'bg-green-100 text-green-700' : 
@@ -46,7 +47,7 @@ const ScenarioCard = ({ title, description, impact, type, delay, onClick }) => (
     <h3 className="font-bold text-[#1a1a1a] mb-2">{title}</h3>
     <p className="text-sm text-[#6E6E73] leading-relaxed mb-4 flex-1">{description}</p>
     <div className="flex items-center text-sm font-medium text-[#1a1a1a] group-hover:gap-2 transition-all mt-auto">
-      Simular escenario <ArrowRight className="w-4 h-4 ml-1" />
+      Simular escenario <Icon component={ArrowRight} size="sm" color="default" className="ml-1" />
     </div>
   </motion.div>
 );
@@ -444,7 +445,7 @@ const Predictions = () => {
           <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-red-600 text-sm font-bold uppercase tracking-wider">
-                <AlertTriangle className="w-4 h-4" />
+                <Icon component={AlertTriangle} size="sm" color="default" />
                 Riesgos Detectados
               </div>
               <h3 className="text-2xl font-bold text-[#1a1a1a]">{detectedRisk.title}</h3>
@@ -456,7 +457,7 @@ const Predictions = () => {
               onClick={handleTalkToAI}
               className="bg-white text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-300 shadow-sm h-12 px-6 rounded-xl font-bold transition-all"
             >
-              <Zap className="w-4 h-4 mr-2" />
+              <Icon component={Zap} size="sm" color="default" className="mr-2" />
               Hablar con la IA sobre esto
             </Button>
           </div>

@@ -5,6 +5,7 @@
 // =====================================================
 
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { ErrorBoundary as SentryErrorBoundary } from '@sentry/react';
 import { AlertCircle, RefreshCw, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -20,7 +21,7 @@ const ErrorFallbackNoRouter = ({ error, resetError }) => {
       <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-white/10 shadow-lg max-w-2xl w-full p-8">
         <div className="flex flex-col items-center text-center">
           <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mb-6">
-            <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
+            <Icon component={AlertCircle} size="xl" color="error" className="dark:" />
           </div>
           
           <h1 className="text-2xl font-bold text-[#1a1a1a] dark:text-white mb-2">
@@ -49,7 +50,7 @@ const ErrorFallbackNoRouter = ({ error, resetError }) => {
               onClick={resetError}
               className="px-6 py-3 bg-[#1C8FA0] text-white rounded-xl font-medium hover:bg-[#167a8a] transition-colors flex items-center gap-2"
             >
-              <RefreshCw className="w-4 h-4" />
+              <Icon component={RefreshCw} size="sm" color="default" />
               Intentar de nuevo
             </button>
             
@@ -57,7 +58,7 @@ const ErrorFallbackNoRouter = ({ error, resetError }) => {
               onClick={handleGoHome}
               className="px-6 py-3 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 text-[#1a1a1a] dark:text-white rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-white/5 transition-colors flex items-center gap-2"
             >
-              <Home className="w-4 h-4" />
+              <Icon component={Home} size="sm" color="default" />
               Volver al inicio
             </button>
           </div>
@@ -91,7 +92,7 @@ const ErrorFallbackWithRouter = ({ error, resetError }) => {
       <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-white/10 shadow-lg max-w-2xl w-full p-8">
         <div className="flex flex-col items-center text-center">
           <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mb-6">
-            <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
+            <Icon component={AlertCircle} size="xl" color="error" className="dark:" />
           </div>
           
           <h1 className="text-2xl font-bold text-[#1a1a1a] dark:text-white mb-2">
@@ -120,7 +121,7 @@ const ErrorFallbackWithRouter = ({ error, resetError }) => {
               onClick={resetError}
               className="px-6 py-3 bg-[#1C8FA0] text-white rounded-xl font-medium hover:bg-[#167a8a] transition-colors flex items-center gap-2"
             >
-              <RefreshCw className="w-4 h-4" />
+              <Icon component={RefreshCw} size="sm" color="default" />
               Intentar de nuevo
             </button>
             
@@ -128,7 +129,7 @@ const ErrorFallbackWithRouter = ({ error, resetError }) => {
               onClick={handleGoHome}
               className="px-6 py-3 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 text-[#1a1a1a] dark:text-white rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-white/5 transition-colors flex items-center gap-2"
             >
-              <Home className="w-4 h-4" />
+              <Icon component={Home} size="sm" color="default" />
               Volver al inicio
             </button>
           </div>

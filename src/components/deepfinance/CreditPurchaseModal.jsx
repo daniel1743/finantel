@@ -5,6 +5,7 @@
 // =====================================================
 
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -191,7 +192,7 @@ const CreditPurchaseModal = ({ isOpen, onClose, userId, currentCredits = 0, onPu
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-white/20">
-                  <ShoppingCart className="w-6 h-6 text-white" />
+                  <Icon component={ShoppingCart} size="lg" color="white" />
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold text-white">Comprar Créditos DeepFinance™</h3>
@@ -205,7 +206,7 @@ const CreditPurchaseModal = ({ isOpen, onClose, userId, currentCredits = 0, onPu
                 className="p-2 rounded-lg hover:bg-white/20 transition-colors"
                 disabled={loading}
               >
-                <X className="w-5 h-5 text-white" />
+                <Icon component={X} size="md" color="white" />
               </button>
             </div>
 
@@ -213,7 +214,7 @@ const CreditPurchaseModal = ({ isOpen, onClose, userId, currentCredits = 0, onPu
             <div className="mt-4 p-4 rounded-xl bg-white/10 backdrop-blur-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Zap className="w-5 h-5 text-white" />
+                  <Icon component={Zap} size="md" color="white" />
                   <span className="text-white font-semibold">Créditos disponibles:</span>
                 </div>
                 <span className="text-2xl font-bold text-white">{currentCredits || 0}</span>
@@ -231,7 +232,7 @@ const CreditPurchaseModal = ({ isOpen, onClose, userId, currentCredits = 0, onPu
                 className="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800"
               >
                 <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+                  <Icon component={AlertCircle} size="md" color="error" className="dark: shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-red-900 dark:text-red-100">
                       Error en la compra
@@ -290,7 +291,7 @@ const CreditPurchaseModal = ({ isOpen, onClose, userId, currentCredits = 0, onPu
                   <ul className="space-y-2 mb-6">
                     {pkg.features.map((feature, idx) => (
                       <li key={idx} className="flex items-start gap-2 text-sm text-[#1a1a1a] dark:text-gray-300">
-                        <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+                        <Icon component={CheckCircle2} size="sm" color="success" className="dark: shrink-0 mt-0.5" />
                         <span>{feature}</span>
                       </li>
                     ))}
@@ -309,12 +310,12 @@ const CreditPurchaseModal = ({ isOpen, onClose, userId, currentCredits = 0, onPu
                   >
                     {loading && selectedPackage?.id === pkg.id ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
                         Procesando...
                       </>
                     ) : (
                       <>
-                        <CreditCard className="w-4 h-4" />
+                        <Icon component={CreditCard} size="sm" color="default" />
                         Comprar ahora
                       </>
                     )}
@@ -326,7 +327,7 @@ const CreditPurchaseModal = ({ isOpen, onClose, userId, currentCredits = 0, onPu
             {/* Security & Info */}
             <div className="grid md:grid-cols-3 gap-4 mb-6">
               <div className="p-4 rounded-xl bg-gray-50 dark:bg-[#1a1a2e] border border-gray-200 dark:border-[#1C8FA0]/20">
-                <Shield className="w-5 h-5 text-[#1C8FA0] mb-2" />
+                <Icon component={Shield} size="md" color="primary" className="mb-2" />
                 <h5 className="font-semibold text-[#1a1a1a] dark:text-white text-sm mb-1">
                   Pago Seguro
                 </h5>
@@ -335,7 +336,7 @@ const CreditPurchaseModal = ({ isOpen, onClose, userId, currentCredits = 0, onPu
                 </p>
               </div>
               <div className="p-4 rounded-xl bg-gray-50 dark:bg-[#1a1a2e] border border-gray-200 dark:border-[#1C8FA0]/20">
-                <Clock className="w-5 h-5 text-[#1C8FA0] mb-2" />
+                <Icon component={Clock} size="md" color="primary" className="mb-2" />
                 <h5 className="font-semibold text-[#1a1a1a] dark:text-white text-sm mb-1">
                   Inmediato
                 </h5>
@@ -344,7 +345,7 @@ const CreditPurchaseModal = ({ isOpen, onClose, userId, currentCredits = 0, onPu
                 </p>
               </div>
               <div className="p-4 rounded-xl bg-gray-50 dark:bg-[#1a1a2e] border border-gray-200 dark:border-[#1C8FA0]/20">
-                <TrendingUp className="w-5 h-5 text-[#1C8FA0] mb-2" />
+                <Icon component={TrendingUp} size="md" color="primary" className="mb-2" />
                 <h5 className="font-semibold text-[#1a1a1a] dark:text-white text-sm mb-1">
                   Sin Vencimiento
                 </h5>

@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -122,13 +123,13 @@ const PricingPage = () => {
                 <div className="space-y-4">
                   {plan.features.map(feat => (
                     <div key={feat} className="flex items-start gap-3">
-                      <div className="mt-0.5 bg-green-100 rounded-full p-0.5"><Check className="w-3 h-3 text-green-600" /></div>
+                      <div className="mt-0.5 bg-green-100 rounded-full p-0.5"><Icon component={Check} size="xs" color="success" /></div>
                       <span className="text-sm text-gray-600 dark:text-gray-300">{feat}</span>
                     </div>
                   ))}
                   {plan.notIncluded.map(feat => (
                     <div key={feat} className="flex items-start gap-3 opacity-50">
-                      <div className="mt-0.5 bg-gray-100 rounded-full p-0.5"><X className="w-3 h-3 text-gray-500" /></div>
+                      <div className="mt-0.5 bg-gray-100 rounded-full p-0.5"><Icon component={X} size="xs" color="muted" /></div>
                       <span className="text-sm text-gray-500 dark:text-gray-400">{feat}</span>
                     </div>
                   ))}

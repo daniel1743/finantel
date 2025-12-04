@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Mail, BellRing, Tag, Calendar } from 'lucide-react';
@@ -25,7 +26,7 @@ const EmailPreferences = () => {
         <div className="flex items-start justify-between gap-4">
           <div className="flex gap-4">
             <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
-              <Calendar className="w-5 h-5" />
+              <Icon component={Calendar} size="md" color="default" />
             </div>
             <div>
               <h3 className="font-bold text-[#1a1a1a] dark:text-white">Resumen Semanal</h3>
@@ -46,7 +47,7 @@ const EmailPreferences = () => {
         <div className="flex items-start justify-between gap-4">
           <div className="flex gap-4">
             <div className="w-10 h-10 rounded-full bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center text-purple-600 dark:text-purple-400">
-              <Tag className="w-5 h-5" />
+              <Icon component={Tag} size="md" color="default" />
             </div>
             <div>
               <h3 className="font-bold text-[#1a1a1a] dark:text-white">Nuevas Funcionalidades</h3>
@@ -67,7 +68,7 @@ const EmailPreferences = () => {
         <div className="flex items-start justify-between gap-4">
           <div className="flex gap-4">
             <div className="w-10 h-10 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-orange-600 dark:text-orange-400">
-              <Mail className="w-5 h-5" />
+              <Icon component={Mail} size="md" color="default" />
             </div>
             <div>
               <h3 className="font-bold text-[#1a1a1a] dark:text-white">Ofertas y Promociones</h3>

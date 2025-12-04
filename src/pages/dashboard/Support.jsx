@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -146,7 +147,7 @@ const Support = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <p className="text-sm uppercase font-semibold text-[#1C8FA0] flex items-center gap-2">
-            <LifeBuoy className="w-4 h-4" />
+            <Icon component={LifeBuoy} size="sm" color="default" />
             Centro de Ayuda
           </p>
           <h1 className="text-3xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">Estamos contigo 24/7</h1>
@@ -157,14 +158,14 @@ const Support = () => {
         <div className="flex flex-wrap gap-3">
           <Button asChild variant="outline" className="gap-2">
             <a href="mailto:soporte@finantel.app?subject=Necesito%20ayuda">
-              <Mail className="w-4 h-4" />
+              <Icon component={Mail} size="sm" color="default" />
               Escribir al equipo
             </a>
           </Button>
           {hasPremiumPlan ? (
             <Button asChild className="bg-[#1C8FA0] hover:bg-[#167a8a] gap-2">
               <a href="https://wa.me/51987654321?text=Necesito%20ayuda%20con%20mi%20cuenta%20Finantel" target="_blank" rel="noreferrer">
-                <PhoneCall className="w-4 h-4" />
+                <Icon component={PhoneCall} size="sm" color="default" />
                 Hablar con una persona
               </a>
             </Button>
@@ -174,7 +175,7 @@ const Support = () => {
               variant="outline"
               className="gap-2 border-[#1C8FA0] text-[#1C8FA0] hover:bg-[#1C8FA0]/10"
             >
-              <Sparkles className="w-4 h-4" />
+              <Icon component={Sparkles} size="sm" color="default" />
               Desbloquear WhatsApp (Premium)
             </Button>
           )}
@@ -215,7 +216,7 @@ const Support = () => {
           className="lg:col-span-2 bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/5 rounded-[26px] p-6 shadow-sm"
         >
           <div className="flex items-center gap-3 mb-4">
-            <ShieldCheck className="w-5 h-5 text-[#1C8FA0]" />
+            <Icon component={ShieldCheck} size="md" color="primary" />
             <div>
               <h2 className="text-lg font-bold text-[#1a1a1a] dark:text-white">Crear ticket</h2>
               <p className="text-sm text-[#6E6E73] dark:text-gray-400">Tiempo de respuesta estimado: 2 horas hábiles</p>
@@ -284,12 +285,12 @@ const Support = () => {
             >
               {creating ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
                   Enviando...
                 </>
               ) : (
                 <>
-                  <Send className="w-4 h-4" />
+                  <Icon component={Send} size="sm" color="default" />
                   Enviar ticket
                 </>
               )}
@@ -305,7 +306,7 @@ const Support = () => {
         >
           <div className="bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/10 rounded-[26px] p-5 shadow-sm">
             <div className="flex items-center gap-3 mb-3">
-              <Bot className="w-5 h-5 text-purple-500" />
+              <Icon component={Bot} size="md" color="default" />
               <div>
                 <p className="text-sm uppercase text-purple-500 font-semibold">IA con contexto</p>
                 <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white">Pregúntale a FinanBot</h3>
@@ -316,7 +317,7 @@ const Support = () => {
             </p>
             <Button asChild variant="outline" className="w-full justify-center gap-2">
               <Link to="/dashboard/ai-assistant?topic=support">
-                <Sparkles className="w-4 h-4" />
+                <Icon component={Sparkles} size="sm" color="default" />
                 Abrir FinanBot con contexto
               </Link>
             </Button>
@@ -324,19 +325,19 @@ const Support = () => {
 
           <div className="bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/10 rounded-[26px] p-5 shadow-sm">
             <div className="flex items-center gap-3 mb-3">
-              <MessageSquare className="w-5 h-5 text-[#1C8FA0]" />
+              <Icon component={MessageSquare} size="md" color="primary" />
               <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white">Contactos directos</h3>
             </div>
             <ul className="space-y-3 text-sm text-[#6E6E73] dark:text-gray-400">
               <li className="flex items-start gap-2">
-                <Mail className="w-4 h-4 text-[#1C8FA0] mt-1" />
+                <Icon component={Mail} size="sm" color="primary" className="mt-1" />
                 <div>
                   <p>soporte@finantel.app</p>
                   <span className="text-xs">Respuesta promedio: 2h</span>
                 </div>
               </li>
               <li className="flex items-start gap-2">
-                <PhoneCall className="w-4 h-4 text-[#1C8FA0] mt-1" />
+                <Icon component={PhoneCall} size="sm" color="primary" className="mt-1" />
                 <div>
                   <p>WhatsApp +51 987 654 321</p>
                   <span className="text-xs">
@@ -362,7 +363,7 @@ const Support = () => {
           </div>
           <Button asChild variant="ghost" className="gap-2">
             <Link to="/dashboard/alerts">
-              <AlertTriangle className="w-4 h-4" />
+              <Icon component={AlertTriangle} size="sm" color="default" />
               Revisar alertas automáticas
             </Link>
           </Button>
@@ -370,11 +371,11 @@ const Support = () => {
         <div className="p-6 space-y-3">
           {loading ? (
             <div className="flex items-center justify-center py-10">
-              <Loader2 className="w-6 h-6 text-[#1C8FA0] animate-spin" />
+              <Icon component={Loader2} size="lg" color="primary" className="animate-spin" />
             </div>
           ) : tickets.length === 0 ? (
             <div className="text-center py-10 text-[#6E6E73] dark:text-gray-400">
-              <LifeBuoy className="w-12 h-12 mx-auto mb-3 text-[#1C8FA0]" />
+              <Icon component={LifeBuoy} size="md" color="primary" className="mx-auto mb-3" />
               Aún no has creado tickets. Usa el formulario para enviarnos tu primera solicitud.
             </div>
           ) : (
@@ -392,7 +393,7 @@ const Support = () => {
                       </p>
                       <h4 className="text-lg font-semibold text-[#1a1a1a] dark:text-white group-hover:text-[#1C8FA0] transition-colors flex items-center gap-2">
                         {ticket.subject}
-                        <ExternalLink className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <Icon component={ExternalLink} size="sm" color="default" className="opacity-0 group-hover:opacity-100 transition-opacity" />
                       </h4>
                     </div>
                     <div className="flex flex-wrap gap-2">

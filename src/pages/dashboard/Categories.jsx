@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, 
@@ -79,7 +80,7 @@ const CategoryCard = ({ category, delay }) => {
             : React.createElement(category.icon, { className: "w-6 h-6" })}
         </div>
         <button className="p-2 text-gray-300 dark:text-gray-600 hover:text-[#1a1a1a] dark:hover:text-white transition-colors opacity-0 group-hover:opacity-100">
-          <MoreVertical className="w-5 h-5" />
+          <Icon component={MoreVertical} size="md" color="default" />
         </button>
       </div>
     
@@ -223,7 +224,7 @@ const AddCategoryModal = ({ isOpen, onClose, onSuccess }) => {
             disabled={isLoading}
             className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors disabled:opacity-50"
           >
-            <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+            <Icon component={X} size="md" color="default" className="dark:" />
           </button>
         </div>
 
@@ -290,7 +291,7 @@ const AddCategoryModal = ({ isOpen, onClose, onSuccess }) => {
                     isLoading && "opacity-50 cursor-not-allowed"
                   )}
                 >
-                  {selectedColorIndex === i && <Check className="w-4 h-4 text-white" />}
+                  {selectedColorIndex === i && <Icon component={Check} size="sm" color="white" />}
                 </button>
               ))}
             </div>
@@ -342,7 +343,7 @@ const AddCategoryModal = ({ isOpen, onClose, onSuccess }) => {
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
                   Guardando...
                 </>
               ) : (
@@ -386,14 +387,14 @@ const Categories = () => {
         </div>
         <div className="flex gap-3">
           <button className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[#6E6E73] font-medium text-sm hover:text-[#1a1a1a] transition-colors shadow-sm flex items-center gap-2">
-            <GripVertical className="w-4 h-4" />
+            <Icon component={GripVertical} size="sm" color="default" />
             Reordenar
           </button>
           <button 
             onClick={() => setIsModalOpen(true)}
             className="px-4 py-2.5 bg-[#1a1a1a] text-white rounded-xl text-sm font-medium hover:bg-black transition-colors shadow-lg shadow-black/10 flex items-center gap-2"
           >
-            <Plus className="w-4 h-4" />
+            <Icon component={Plus} size="sm" color="default" />
             Agregar Categoría
           </button>
         </div>
@@ -422,7 +423,7 @@ const Categories = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {loading ? (
           <div className="col-span-full flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
+            <Icon component={Loader2} size="xl" color="primary" className="animate-spin" />
           </div>
         ) : categories && categories.length > 0 ? (
           categories.map((cat, index) => {
@@ -465,7 +466,7 @@ const Categories = () => {
           className="border-2 border-dashed border-gray-200 rounded-[22px] p-6 flex flex-col items-center justify-center gap-3 text-[#6E6E73] hover:border-[#1C8FA0] hover:text-[#1C8FA0] hover:bg-[#1C8FA0]/5 transition-all group h-full min-h-[200px]"
         >
           <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-white group-hover:shadow-md transition-all">
-            <Plus className="w-6 h-6" />
+            <Icon component={Plus} size="lg" color="default" />
           </div>
           <span className="font-medium">Crear Nueva</span>
         </motion.button>

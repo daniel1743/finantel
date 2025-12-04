@@ -5,6 +5,7 @@
 // =====================================================
 
 import React, { useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Lightbulb, 
@@ -44,7 +45,7 @@ const RecommendationsCard = ({ recommendations = [], aiInsights = null }) => {
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
-            <Lightbulb className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+            <Icon component={Lightbulb} size="md" color="warning" className="dark:" />
           </div>
           <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white">Recomendaciones</h3>
         </div>
@@ -118,7 +119,7 @@ const RecommendationsCard = ({ recommendations = [], aiInsights = null }) => {
     >
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
-          <Sparkles className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+          <Icon component={Sparkles} size="md" color="warning" className="dark:" />
         </div>
         <div>
           <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white">Recomendaciones Personalizadas</h3>
@@ -267,7 +268,7 @@ const RecommendationsCard = ({ recommendations = [], aiInsights = null }) => {
       {allRecommendations.length > 0 && (
         <div className="mt-6 pt-6 border-t border-gray-200 dark:border-[#1C8FA0]/20">
           <div className="flex items-center gap-2 text-xs text-[#6E6E73] dark:text-gray-400">
-            <CheckCircle2 className="w-4 h-4" />
+            <Icon component={CheckCircle2} size="sm" color="default" />
             <span>
               Implementa estas recomendaciones para mejorar tu puntaje financiero y aumentar tus ahorros
             </span>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -203,7 +204,7 @@ const WebhookInbox = () => {
   if (checkingAdmin) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
+        <Icon component={Loader2} size="xl" color="primary" className="animate-spin" />
       </div>
     );
   }
@@ -211,7 +212,7 @@ const WebhookInbox = () => {
   if (!isAdmin) {
     return (
       <div className="text-center py-12">
-        <Inbox className="w-16 h-16 text-amber-500 mx-auto mb-4" />
+        <Icon component={Inbox} size="md" color="default" className="mx-auto mb-4" />
         <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white mb-2">
           Acceso Restringido
         </h2>
@@ -228,7 +229,7 @@ const WebhookInbox = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <p className="text-sm uppercase font-semibold text-[#1C8FA0] flex items-center gap-2">
-            <Inbox className="w-4 h-4" />
+            <Icon component={Inbox} size="sm" color="default" />
             Panel de Administración
           </p>
           <h1 className="text-3xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">
@@ -249,9 +250,9 @@ const WebhookInbox = () => {
           className="gap-2"
         >
           {refreshing ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
           ) : (
-            <RefreshCw className="w-4 h-4" />
+            <Icon component={RefreshCw} size="sm" color="default" />
           )}
           Actualizar
         </Button>
@@ -333,7 +334,7 @@ const WebhookInbox = () => {
               Buscar
             </label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6E6E73]" />
+              <Icon component={Search} size="sm" color="default" className="absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchTerm}
@@ -350,11 +351,11 @@ const WebhookInbox = () => {
       <div className="bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/5 rounded-2xl shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
+            <Icon component={Loader2} size="xl" color="primary" className="animate-spin" />
           </div>
         ) : webhooks.length === 0 ? (
           <div className="text-center py-20 text-[#6E6E73] dark:text-gray-400">
-            <Inbox className="w-16 h-16 mx-auto mb-4 text-[#1C8FA0]" />
+            <Icon component={Inbox} size="md" color="primary" className="mx-auto mb-4" />
             <p>No hay webhooks que coincidan con los filtros.</p>
           </div>
         ) : (
@@ -416,12 +417,12 @@ const WebhookInbox = () => {
                         >
                           {isExpanded ? (
                             <>
-                              <ChevronUp className="w-4 h-4 mr-2" />
+                              <Icon component={ChevronUp} size="sm" color="default" className="mr-2" />
                               Ocultar
                             </>
                           ) : (
                             <>
-                              <Eye className="w-4 h-4 mr-2" />
+                              <Icon component={Eye} size="sm" color="default" className="mr-2" />
                               Ver Detalle
                             </>
                           )}
@@ -446,7 +447,7 @@ const WebhookInbox = () => {
                               onClick={() => copyToClipboard(formatJSON(webhook.payload))}
                               className="h-8"
                             >
-                              <Copy className="w-4 h-4" />
+                              <Icon component={Copy} size="sm" color="default" />
                             </Button>
                           </div>
                           <pre className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl text-xs overflow-x-auto max-h-96 overflow-y-auto">

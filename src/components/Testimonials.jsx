@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { Star, Quote, Check, Linkedin } from 'lucide-react';
 
@@ -107,7 +108,7 @@ const Testimonials = () => {
             >
               {/* Quote Icon */}
               <div className="absolute top-4 right-4 opacity-10">
-                <Quote className="w-8 h-8 text-[#1C8FA0]" />
+                <Icon component={Quote} size="xl" color="primary" />
               </div>
 
               {/* Rating */}
@@ -137,7 +138,7 @@ const Testimonials = () => {
                       </p>
                       {testimonial.verified && (
                         <div className="flex-shrink-0 flex items-center gap-1 bg-blue-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium">
-                          <Check className="w-2.5 h-2.5" />
+                          <Icon component={Check} size="md" color="default" className=".5 .5" />
                           Verificado
                         </div>
                       )}
@@ -159,7 +160,7 @@ const Testimonials = () => {
                     rel="noopener noreferrer"
                     className="flex items-center gap-1.5 text-[#0077B5] hover:text-[#005885] text-xs font-medium transition-colors group"
                   >
-                    <Linkedin className="w-3.5 h-3.5" />
+                    <Icon component={Linkedin} size="md" color="default" className=".5 .5" />
                     <span className="group-hover:underline">Ver perfil en LinkedIn</span>
                   </a>
                 )}

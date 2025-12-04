@@ -1,5 +1,6 @@
 
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { useABTest } from '@/contexts/ABTestContext';
 import { motion } from 'framer-motion';
 import { BarChart3, FlaskConical, TrendingUp, Users } from 'lucide-react';
@@ -26,7 +27,7 @@ const ABTesting = () => {
           >
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center text-[#1C8FA0]">
-                <FlaskConical className="w-5 h-5" />
+                <Icon component={FlaskConical} size="md" color="default" />
               </div>
               <div>
                 <h3 className="font-bold text-[#1a1a1a] dark:text-white capitalize">{expId.replace(/_/g, ' ')}</h3>
@@ -47,10 +48,10 @@ const ABTesting = () => {
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-xs text-[#6E6E73] dark:text-gray-400">
                       <div className="flex items-center gap-1">
-                        <Users className="w-3 h-3" /> {stats.views} Views
+                        <Icon component={Users} size="xs" color="default" /> {stats.views} Views
                       </div>
                       <div className="flex items-center gap-1">
-                        <TrendingUp className="w-3 h-3" /> {stats.conversions} Goals
+                        <Icon component={TrendingUp} size="xs" color="default" /> {stats.conversions} Goals
                       </div>
                     </div>
                     <div className="w-full h-1.5 bg-gray-200 dark:bg-white/10 rounded-full mt-3 overflow-hidden">
@@ -68,7 +69,7 @@ const ABTesting = () => {
         
         {Object.keys(analyticsData).length === 0 && (
           <div className="col-span-2 py-12 text-center text-[#6E6E73] dark:text-gray-400 bg-white dark:bg-[#1a1a1a] rounded-[22px] border border-gray-100 dark:border-white/5">
-            <FlaskConical className="w-12 h-12 mx-auto mb-4 opacity-20" />
+            <Icon component={FlaskConical} size="md" color="default" className="mx-auto mb-4 opacity-20" />
             <p>No active experiment data collected yet.</p>
           </div>
         )}

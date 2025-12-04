@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -241,7 +242,7 @@ const GoalCard = ({ goal, index, onDelete }) => {
                 className="p-2 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-500 hover:text-red-600 transition-all shadow-sm"
                 title="Eliminar meta"
               >
-                <Trash2 className="w-4 h-4" />
+                <Icon component={Trash2} size="sm" color="default" />
               </button>
             )}
           </div>
@@ -270,7 +271,7 @@ const GoalCard = ({ goal, index, onDelete }) => {
         {monthlyNeeded && monthsLeft > 0 && (
           <div className="absolute inset-x-0 bottom-0 p-6 bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-md border-t border-gray-100 dark:border-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
             <div className="flex items-start gap-3">
-              <Sparkles className="w-5 h-5 text-[#E47B45] shrink-0 mt-0.5" />
+              <Icon component={Sparkles} size="md" color="default" className="shrink-0 mt-0.5" />
               <p className="text-sm text-[#6E6E73] dark:text-gray-400 leading-relaxed">
                 Si aportas <span className="font-bold text-[#1a1a1a] dark:text-white">${monthlyNeeded.toLocaleString()}</span> cada mes, llegarás a tu meta en <span className="font-bold text-[#1a1a1a] dark:text-white">{monthsLeft} {monthsLeft === 1 ? 'mes' : 'meses'}</span>.
               </p>
@@ -478,7 +479,7 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
             disabled={isLoading}
             className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors disabled:opacity-50"
           >
-            <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+            <Icon component={X} size="md" color="default" className="dark:" />
           </button>
         </div>
 
@@ -632,7 +633,7 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
           {suggestedMonthly && (
             <div className="bg-[#1C8FA0]/5 dark:bg-[#1C8FA0]/10 rounded-xl p-4 border border-[#1C8FA0]/10 flex gap-3">
               <div className="w-8 h-8 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center shrink-0">
-                <Sparkles className="w-4 h-4 text-[#1C8FA0]" />
+                <Icon component={Sparkles} size="sm" color="primary" />
               </div>
               <div>
                 <p className="text-sm font-bold text-[#1a1a1a] dark:text-white mb-1">Sugerencia Inteligente</p>
@@ -660,7 +661,7 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
                   Creando...
                 </>
               ) : (
@@ -868,7 +869,7 @@ const Goals = () => {
           onClick={() => setIsModalOpen(true)}
           className="bg-[#1a1a1a] hover:bg-black text-white px-6 py-6 h-auto rounded-xl shadow-xl shadow-black/10 text-base font-medium transition-transform hover:-translate-y-1"
         >
-          <Plus className="w-5 h-5 mr-2" />
+          <Icon component={Plus} size="md" color="default" className="mr-2" />
           Crear nueva meta
         </Button>
       </div>
@@ -885,7 +886,7 @@ const Goals = () => {
         <div className="relative z-10 grid lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-7 space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider border border-white/10">
-              <Sparkles className="w-3 h-3" />
+              <Icon component={Sparkles} size="xs" color="default" />
               Análisis de Metas
             </div>
             <h2 className="text-2xl md:text-3xl font-bold leading-tight">
@@ -907,7 +908,7 @@ const Goals = () => {
                 onClick={() => navigate('/dashboard/predictions')}
                 className="flex items-center gap-2 text-sm font-bold hover:gap-3 transition-all mt-2 cursor-pointer"
               >
-                Ver detalles del plan <ArrowRight className="w-4 h-4" />
+                Ver detalles del plan <Icon component={ArrowRight} size="sm" color="default" />
               </button>
             )}
           </div>
@@ -948,7 +949,7 @@ const Goals = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         {loading ? (
           <div className="col-span-full flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
+            <Icon component={Loader2} size="xl" color="primary" className="animate-spin" />
           </div>
         ) : goals && goals.length > 0 ? (
           goals.map((goal, index) => {
@@ -999,7 +1000,7 @@ const Goals = () => {
           className="border-2 border-dashed border-gray-200 dark:border-white/10 rounded-[22px] flex flex-col items-center justify-center gap-4 text-[#6E6E73] dark:text-gray-400 hover:border-[#1C8FA0] hover:text-[#1C8FA0] hover:bg-[#1C8FA0]/5 transition-all group min-h-[320px]"
         >
           <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center group-hover:bg-white dark:group-hover:bg-white/10 group-hover:shadow-lg transition-all duration-300">
-            <Plus className="w-8 h-8" />
+            <Icon component={Plus} size="xl" color="default" />
           </div>
           <span className="font-medium text-lg">Crear Nueva Meta</span>
         </motion.button>

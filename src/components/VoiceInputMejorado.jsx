@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import Icon from '@/components/ui/Icon';
 import { Mic, Square, Loader2, HelpCircle, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -150,7 +151,7 @@ const VoiceInput = ({ onTransactionCreated, userId }) => {
         className="absolute -top-12 right-0 p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors"
         title="Cómo usar el micrófono"
       >
-        <HelpCircle className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+        <Icon component={HelpCircle} size="md" color="default" className="dark:" />
       </button>
 
       {/* Botón principal de grabación */}
@@ -177,11 +178,11 @@ const VoiceInput = ({ onTransactionCreated, userId }) => {
 
           <div className="relative z-10">
             {isProcessing ? (
-              <Loader2 className="w-6 h-6 text-white animate-spin" />
+              <Icon component={Loader2} size="lg" color="white" className="animate-spin" />
             ) : isRecording ? (
-              <Square className="w-6 h-6 text-white" />
+              <Icon component={Square} size="lg" color="white" />
             ) : (
-              <Mic className="w-6 h-6 text-white" />
+              <Icon component={Mic} size="lg" color="white" />
             )}
           </div>
         </Button>
@@ -246,7 +247,7 @@ const VoiceInput = ({ onTransactionCreated, userId }) => {
                   onClick={() => setShowHelp(false)}
                   className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors"
                 >
-                  <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+                  <Icon component={X} size="md" color="default" className="dark:" />
                 </button>
               </div>
 

@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
@@ -42,7 +43,7 @@ const MenuItem = ({ item, isActive, isBlocked, setIsMobileOpen, handleBlockedCli
             {isBlocked && (
               <>
                 <div className="absolute -top-1 -right-1 z-10">
-                  <Lock className="w-4 h-4 text-amber-500" />
+                  <Icon component={Lock} size="sm" color="default" />
                 </div>
                 <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-[#1a1a1a] dark:bg-white text-white dark:text-[#1a1a1a] text-xs px-3 py-2 rounded-lg opacity-0 group-hover/item:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity shadow-lg">
                   Requiere Plan Familiar

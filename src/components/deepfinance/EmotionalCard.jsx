@@ -5,6 +5,7 @@
 // =====================================================
 
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { Heart, Zap, AlertCircle, TrendingDown, Brain } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -34,13 +35,13 @@ const EmotionalCard = ({ emotional = {} }) => {
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-green-500/10 border border-green-500/20">
-            <Brain className="w-5 h-5 text-green-600 dark:text-green-400" />
+            <Icon component={Brain} size="md" color="success" className="dark:" />
           </div>
           <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white">Gastos Emocionales</h3>
         </div>
         <div className="text-center py-6">
           <div className="inline-flex p-3 rounded-full bg-green-500/10 mb-3">
-            <TrendingDown className="w-6 h-6 text-green-600 dark:text-green-400" />
+            <Icon component={TrendingDown} size="lg" color="success" className="dark:" />
           </div>
           <p className="text-sm font-medium text-[#1a1a1a] dark:text-white mb-1">
             Control emocional excelente
@@ -81,7 +82,7 @@ const EmotionalCard = ({ emotional = {} }) => {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/20">
-            <Heart className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+            <Icon component={Heart} size="md" color="default" className="dark:" />
           </div>
           <div>
             <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white">Gastos Emocionales</h3>
@@ -132,7 +133,7 @@ const EmotionalCard = ({ emotional = {} }) => {
               </p>
             </div>
             <div className="p-3 rounded-xl bg-purple-100 dark:bg-purple-800/50">
-              <Zap className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+              <Icon component={Zap} size="lg" color="default" className="dark:" />
             </div>
           </div>
         </div>
@@ -152,7 +153,7 @@ const EmotionalCard = ({ emotional = {} }) => {
               transition={{ delay: index * 0.1 }}
               className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#1a1a2e] border border-gray-200 dark:border-[#1C8FA0]/20"
             >
-              <AlertCircle className="w-4 h-4 text-orange-600 dark:text-orange-400 shrink-0" />
+              <Icon component={AlertCircle} size="sm" color="default" className="dark: shrink-0" />
               <span className="text-xs text-[#1a1a1a] dark:text-white">
                 {typeof indicator === 'string' 
                   ? indicator 
@@ -184,9 +185,9 @@ const EmotionalCard = ({ emotional = {} }) => {
               >
                 <div className="flex items-center gap-3">
                   {type === 'impulsive' ? (
-                    <Zap className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+                    <Icon component={Zap} size="sm" color="warning" className="dark:" />
                   ) : (
-                    <Heart className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                    <Icon component={Heart} size="sm" color="default" className="dark:" />
                   )}
                   <span className="text-sm text-[#1a1a1a] dark:text-white">
                     {description}

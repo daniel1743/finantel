@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   TrendingUp, 
@@ -242,7 +243,7 @@ const Budgets = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-10 h-10 text-[#1C8FA0] animate-spin" />
+        <Icon component={Loader2} size="md" color="primary" className="animate-spin" />
       </div>
     );
   }
@@ -312,7 +313,7 @@ const Budgets = () => {
           >
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center shrink-0">
-                <Sparkles className="w-6 h-6 text-[#1C8FA0]" />
+                <Icon component={Sparkles} size="lg" color="primary" />
               </div>
               <div>
                 <h3 className="font-bold text-[#1a1a1a] dark:text-white">Oportunidad de Ahorro</h3>
@@ -328,7 +329,7 @@ const Budgets = () => {
               >
                 {applyingRecommendation ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
                     Aplicando...
                   </>
                 ) : (
@@ -356,7 +357,7 @@ const Budgets = () => {
               className="border-2 border-dashed border-gray-200 dark:border-white/10 rounded-[22px] p-6 flex flex-col items-center justify-center gap-3 text-[#6E6E73] dark:text-gray-400 hover:border-[#1C8FA0] hover:text-[#1C8FA0] dark:hover:text-[#1C8FA0] hover:bg-[#1C8FA0]/5 transition-all group min-h-[180px]"
             >
               <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center group-hover:bg-white dark:group-hover:bg-white/10 transition-colors">
-                <TrendingUp className="w-5 h-5" />
+                <Icon component={TrendingUp} size="md" color="default" />
               </div>
               <span className="font-medium">Nuevo Presupuesto</span>
             </button>

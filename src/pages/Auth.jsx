@@ -1,9 +1,11 @@
 
 import React, { useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { 
   Mail, 
@@ -100,7 +102,7 @@ const Auth = () => {
           className="absolute right-4 top-4 p-2 text-[#6E6E73] hover:text-[#1a1a1a] hover:bg-gray-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1C8FA0]/30"
           aria-label="Cerrar y volver a la landing"
         >
-          <X className="w-5 h-5" />
+          <Icon component={X} size="md" color="default" />
         </button>
 
         <div className="text-center mb-8">
@@ -126,56 +128,45 @@ const Auth = () => {
                 exit={{ opacity: 0, height: 0 }}
                 className="space-y-4 overflow-hidden"
               >
-                <div className="relative group">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#6E6E73] group-focus-within:text-[#1C8FA0] transition-colors" />
-                  <input
-                    type="text"
-                    placeholder="Nombre completo"
-                    required={!isLogin}
-                    value={formData.fullName}
-                    onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                    className="w-full pl-10 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all text-sm font-medium"
-                  />
-                </div>
+                <Input
+                  type="text"
+                  placeholder="Nombre completo"
+                  required={!isLogin}
+                  value={formData.fullName}
+                  onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                  icon={User}
+                />
               </motion.div>
             )}
           </AnimatePresence>
 
-          <div className="relative group">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#6E6E73] group-focus-within:text-[#1C8FA0] transition-colors" />
-            <input
-              type="email"
-              placeholder="Correo electrónico"
-              required
-              value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
-              className="w-full pl-10 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all text-sm font-medium"
-            />
-          </div>
+          <Input
+            type="email"
+            placeholder="Correo electrónico"
+            required
+            value={formData.email}
+            onChange={(e) => setFormData({...formData, email: e.target.value})}
+            icon={Mail}
+          />
 
-          <div className="relative group">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#6E6E73] group-focus-within:text-[#1C8FA0] transition-colors z-10" />
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Contraseña"
-              required
-              value={formData.password}
-              onChange={(e) => setFormData({...formData, password: e.target.value})}
-              className="w-full pl-10 pr-10 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all text-sm font-medium"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-[#1C8FA0] transition-colors focus:outline-none"
-              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-            >
-              {showPassword ? (
-                <EyeOff className="w-3.5 h-3.5" />
-              ) : (
-                <Eye className="w-3.5 h-3.5" />
-              )}
-            </button>
-          </div>
+          <Input
+            type={showPassword ? "text" : "password"}
+            placeholder="Contraseña"
+            required
+            value={formData.password}
+            onChange={(e) => setFormData({...formData, password: e.target.value})}
+            icon={Lock}
+            iconRight={
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-[#6E6E73] hover:text-[#1C8FA0] transition-colors focus:outline-none"
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {showPassword ? <Icon component={EyeOff} size="sm" color="default" /> : <Icon component={Eye} size="sm" color="default" />}
+              </button>
+            }
+          />
 
           <AnimatePresence mode="wait">
             {!isLogin && (
@@ -185,29 +176,24 @@ const Auth = () => {
                 exit={{ opacity: 0, height: 0 }}
                 className="space-y-4 overflow-hidden"
               >
-                <div className="relative group">
-                  <CheckCircle2 className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#6E6E73] group-focus-within:text-[#1C8FA0] transition-colors z-10" />
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirmar contraseña"
-                    required={!isLogin}
-                    value={formData.confirmPassword}
-                    onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                    className="w-full pl-10 pr-10 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all text-sm font-medium"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-[#1C8FA0] transition-colors focus:outline-none"
-                    aria-label={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="w-3.5 h-3.5" />
-                    ) : (
-                      <Eye className="w-3.5 h-3.5" />
-                    )}
-                  </button>
-                </div>
+                <Input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirmar contraseña"
+                  required={!isLogin}
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                  icon={CheckCircle2}
+                  iconRight={
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="text-[#6E6E73] hover:text-[#1C8FA0] transition-colors focus:outline-none"
+                      aria-label={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    >
+                      {showConfirmPassword ? <Icon component={EyeOff} size="sm" color="default" /> : <Icon component={Eye} size="sm" color="default" />}
+                    </button>
+                  }
+                />
                 <div className="flex items-start gap-2 px-1">
                   <input type="checkbox" required className="mt-1 w-3.5 h-3.5 rounded border-gray-300 text-[#1C8FA0] focus:ring-[#1C8FA0] cursor-pointer" />
                   <span className="text-xs text-[#6E6E73]">
@@ -246,14 +232,14 @@ const Auth = () => {
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-[#1a1a1a] hover:bg-black text-white h-12 rounded-xl font-medium shadow-lg shadow-black/10 transition-all hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0"
+            className="w-full"
           >
             {isLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
             ) : (
               <span className="flex items-center gap-2">
                 {isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
-                <ArrowRight className="w-4 h-4" />
+                <Icon component={ArrowRight} size="sm" color="default" />
               </span>
             )}
           </Button>
@@ -303,7 +289,7 @@ const Auth = () => {
               className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-gray-200 rounded-xl text-sm font-medium text-[#6E6E73] hover:bg-gray-50 hover:text-[#1a1a1a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isGoogleLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
               ) : (
                 <>
               <svg className="w-4 h-4" viewBox="0 0 24 24">

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mic, Check } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -461,7 +462,7 @@ const VoiceRecordingScreen = ({ isOpen, onClose, onTransactionCreated, userId })
             onClick={handleClose}
             className="absolute top-6 right-6 md:top-8 md:right-8 w-12 h-12 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full flex items-center justify-center transition-colors"
           >
-            <X className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+            <Icon component={X} size="lg" color="default" className="dark:" />
           </motion.button>
 
           {/* Contenedor principal */}
@@ -480,9 +481,9 @@ const VoiceRecordingScreen = ({ isOpen, onClose, onTransactionCreated, userId })
                   transition={{ duration: 2, repeat: Infinity }}
                 >
                   {isProcessing ? (
-                    <Check className="w-20 h-20 text-white" />
+                    <Icon component={Check} size="md" color="white" />
                   ) : (
-                    <Mic className="w-20 h-20 text-white" />
+                    <Icon component={Mic} size="md" color="white" />
                   )}
                 </motion.div>
 
@@ -545,9 +546,9 @@ const VoiceRecordingScreen = ({ isOpen, onClose, onTransactionCreated, userId })
               className="hidden md:flex w-24 h-24 bg-gradient-to-br from-[#1C8FA0] to-[#6E56CF] hover:from-[#167a8a] hover:to-[#5a44b0] rounded-full items-center justify-center shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {isProcessing ? (
-                <Check className="w-12 h-12 text-white" />
+                <Icon component={Check} size="md" color="white" />
               ) : (
-                <Mic className="w-12 h-12 text-white" />
+                <Icon component={Mic} size="md" color="white" />
               )}
             </motion.button>
 
@@ -623,9 +624,9 @@ const VoiceRecordingScreen = ({ isOpen, onClose, onTransactionCreated, userId })
                 className="md:hidden w-20 h-20 bg-gradient-to-br from-[#1C8FA0] to-[#6E56CF] hover:from-[#167a8a] hover:to-[#5a44b0] rounded-full flex items-center justify-center shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-all mx-auto"
               >
                 {isProcessing ? (
-                  <Check className="w-10 h-10 text-white" />
+                  <Icon component={Check} size="md" color="white" />
                 ) : (
-                  <Mic className="w-10 h-10 text-white" />
+                  <Icon component={Mic} size="md" color="white" />
                 )}
               </motion.button>
             </div>

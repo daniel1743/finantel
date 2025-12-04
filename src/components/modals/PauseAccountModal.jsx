@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { X, Pause, Play, Loader2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -126,9 +127,9 @@ const PauseAccountModal = ({ isOpen, onClose, isPaused, onUpdate }) => {
                 : 'bg-yellow-100 dark:bg-yellow-900/20'
             }`}>
               {isPaused ? (
-                <Play className="w-6 h-6 text-green-600 dark:text-green-400" />
+                <Icon component={Play} size="lg" color="success" className="dark:" />
               ) : (
-                <Pause className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                <Icon component={Pause} size="lg" color="warning" className="dark:" />
               )}
             </div>
             <div>
@@ -147,7 +148,7 @@ const PauseAccountModal = ({ isOpen, onClose, isPaused, onUpdate }) => {
             disabled={loading}
             className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors disabled:opacity-50"
           >
-            <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+            <Icon component={X} size="md" color="default" className="dark:" />
           </button>
         </div>
 
@@ -155,7 +156,7 @@ const PauseAccountModal = ({ isOpen, onClose, isPaused, onUpdate }) => {
           <div className="space-y-6">
             <div className="bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-900/20 rounded-xl p-4">
               <div className="flex items-start gap-3">
-                <Info className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5" />
+                <Icon component={Info} size="md" color="success" className="dark: mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-green-900 dark:text-green-400 mb-1">
                     Tu cuenta está pausada
@@ -183,12 +184,12 @@ const PauseAccountModal = ({ isOpen, onClose, isPaused, onUpdate }) => {
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Icon component={Loader2} size="sm" color="default" className="mr-2 animate-spin" />
                     Reactivando...
                   </>
                 ) : (
                   <>
-                    <Play className="w-4 h-4 mr-2" />
+                    <Icon component={Play} size="sm" color="default" className="mr-2" />
                     Reactivar Cuenta
                   </>
                 )}
@@ -199,7 +200,7 @@ const PauseAccountModal = ({ isOpen, onClose, isPaused, onUpdate }) => {
           <div className="space-y-6">
             <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-900/20 rounded-xl p-4">
               <div className="flex items-start gap-3">
-                <Info className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                <Icon component={Info} size="md" color="warning" className="dark: mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-yellow-900 dark:text-yellow-400 mb-2">
                     ¿Qué significa pausar tu cuenta?
@@ -244,12 +245,12 @@ const PauseAccountModal = ({ isOpen, onClose, isPaused, onUpdate }) => {
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Icon component={Loader2} size="sm" color="default" className="mr-2 animate-spin" />
                     Pausando...
                   </>
                 ) : (
                   <>
-                    <Pause className="w-4 h-4 mr-2" />
+                    <Icon component={Pause} size="sm" color="default" className="mr-2" />
                     Pausar Cuenta
                   </>
                 )}

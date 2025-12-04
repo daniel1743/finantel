@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { Button } from '@/components/ui/button';
@@ -267,7 +268,7 @@ const Profile = () => {
               onClick={() => setEditProfileOpen(true)}
               className="absolute bottom-0 right-0 w-8 h-8 bg-[#1a1a1a] dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center border-2 border-white dark:border-[#1a1a1a] shadow-md hover:scale-110 transition-transform"
             >
-              <Settings className="w-4 h-4" />
+              <Icon component={Settings} size="sm" color="default" />
             </button>
           </div>
           
@@ -296,7 +297,7 @@ const Profile = () => {
             variant="outline" 
             className="border-red-100 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200"
           >
-            <LogOut className="w-4 h-4 mr-2" />
+            <Icon component={LogOut} size="sm" color="default" className="mr-2" />
             Cerrar Sesión
           </Button>
         </div>
@@ -331,14 +332,14 @@ const Profile = () => {
             >
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-white/5 group-hover:bg-white dark:group-hover:bg-white/10 flex items-center justify-center text-[#6E6E73] dark:text-gray-400 transition-colors">
-                  <Bell className="w-5 h-5" />
+                  <Icon component={Bell} size="md" color="default" />
                 </div>
                 <div className="text-left">
                   <p className="font-bold text-[#1a1a1a] dark:text-white text-sm">Notificaciones</p>
                   <p className="text-xs text-[#6E6E73] dark:text-gray-400">Alertas de gastos y resumen semanal</p>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-[#1C8FA0] transition-colors" />
+              <Icon component={ChevronRight} size="md" color="primary" className="dark: group-hover: transition-colors" />
             </button>
 
             <button 
@@ -347,14 +348,14 @@ const Profile = () => {
             >
                 <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-white/5 group-hover:bg-white dark:group-hover:bg-white/10 flex items-center justify-center text-[#6E6E73] dark:text-gray-400 transition-colors">
-                  <CreditCard className="w-5 h-5" />
+                  <Icon component={CreditCard} size="md" color="default" />
                   </div>
                   <div className="text-left">
                   <p className="font-bold text-[#1a1a1a] dark:text-white text-sm">Moneda Principal</p>
                   <p className="text-xs text-[#6E6E73] dark:text-gray-400">{currency} - {currencyName}</p>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-[#1C8FA0] transition-colors" />
+              <Icon component={ChevronRight} size="md" color="primary" className="dark: group-hover: transition-colors" />
             </button>
 
             <button 
@@ -363,14 +364,14 @@ const Profile = () => {
             >
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-white/5 group-hover:bg-white dark:group-hover:bg-white/10 flex items-center justify-center text-[#6E6E73] dark:text-gray-400 transition-colors">
-                  <Shield className="w-5 h-5" />
+                  <Icon component={Shield} size="md" color="default" />
                   </div>
                 <div className="text-left">
                   <p className="font-bold text-[#1a1a1a] dark:text-white text-sm">Autenticación en 2 Pasos</p>
                   <p className="text-xs text-[#6E6E73] dark:text-gray-400">Mayor seguridad para tu cuenta</p>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-[#1C8FA0] transition-colors" />
+              <Icon component={ChevronRight} size="md" color="primary" className="dark: group-hover: transition-colors" />
               </button>
           </div>
         </ProfileSection>
@@ -383,7 +384,7 @@ const Profile = () => {
             >
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-[#1C8FA0]/10 dark:bg-[#1C8FA0]/20 group-hover:bg-[#1C8FA0]/20 dark:group-hover:bg-[#1C8FA0]/30 flex items-center justify-center text-[#1C8FA0] transition-colors">
-                  <RotateCcw className="w-5 h-5" />
+                  <Icon component={RotateCcw} size="md" color="default" />
                 </div>
                 <div className="text-left">
                   <p className="font-bold text-[#1a1a1a] dark:text-white text-sm">Restaurar Datos</p>
@@ -392,7 +393,7 @@ const Profile = () => {
                   </p>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-[#1C8FA0] transition-colors" />
+              <Icon component={ChevronRight} size="md" color="primary" className="dark: group-hover: transition-colors" />
             </button>
 
             <button 
@@ -406,9 +407,9 @@ const Profile = () => {
                     : 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400'
                 }`}>
                   {isPaused ? (
-                    <Play className="w-5 h-5" />
+                    <Icon component={Play} size="md" color="default" />
                   ) : (
-                    <Pause className="w-5 h-5" />
+                    <Icon component={Pause} size="md" color="default" />
                   )}
                 </div>
                 <div className="text-left">
@@ -422,7 +423,7 @@ const Profile = () => {
                   </p>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-[#1C8FA0] transition-colors" />
+              <Icon component={ChevronRight} size="md" color="primary" className="dark: group-hover: transition-colors" />
             </button>
 
             <button 
@@ -431,7 +432,7 @@ const Profile = () => {
             >
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-900/20 group-hover:bg-red-100 dark:group-hover:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 transition-colors">
-                  <Trash2 className="w-5 h-5" />
+                  <Icon component={Trash2} size="md" color="default" />
                 </div>
                 <div className="text-left">
                   <p className="font-bold text-red-600 dark:text-red-400 text-sm">Eliminar Cuenta</p>
@@ -440,7 +441,7 @@ const Profile = () => {
                   </p>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-red-500 transition-colors" />
+              <Icon component={ChevronRight} size="md" color="default" className="dark: group-hover: transition-colors" />
             </button>
           </div>
         </ProfileSection>

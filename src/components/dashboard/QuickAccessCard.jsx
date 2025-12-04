@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
@@ -27,7 +28,7 @@ const QuickAccessCard = ({ title, description, icon: Icon, to, color, delay }) =
         <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white mb-2">{title}</h3>
         <p className="text-sm text-[#6E6E73] dark:text-gray-400 mb-4">{description}</p>
         <div className="flex items-center text-sm font-medium group-hover:gap-2 transition-all" style={{ color }}>
-          Explorar <ChevronRight className="w-4 h-4 ml-1" />
+          Explorar <Icon component={ChevronRight} size="sm" color="default" className="ml-1" />
         </div>
       </div>
     </Link>

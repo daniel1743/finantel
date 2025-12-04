@@ -5,6 +5,7 @@
 // =====================================================
 
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, TrendingUp, TrendingDown, BarChart3, AlertCircle } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -19,7 +20,7 @@ const PatternCard = ({ patterns = [] }) => {
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-[#1C8FA0]/10 border border-[#1C8FA0]/20">
-            <BarChart3 className="w-5 h-5 text-[#1C8FA0]" />
+            <Icon component={BarChart3} size="md" color="primary" />
           </div>
           <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white">Patrones Detectados</h3>
         </div>
@@ -98,7 +99,7 @@ const PatternCard = ({ patterns = [] }) => {
     >
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-xl bg-[#1C8FA0]/10 border border-[#1C8FA0]/20">
-          <BarChart3 className="w-5 h-5 text-[#1C8FA0]" />
+          <Icon component={BarChart3} size="md" color="primary" />
         </div>
         <div>
           <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white">Patrones Detectados</h3>

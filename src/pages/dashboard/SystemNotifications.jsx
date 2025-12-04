@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { supabase } from '@/lib/customSupabaseClient';
 import { Button } from '@/components/ui/button';
@@ -293,7 +294,7 @@ const SystemNotifications = () => {
   if (checkingAdmin) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-[#1C8FA0]" />
+        <Icon component={Loader2} size="xl" color="primary" className="animate-spin" />
       </div>
     );
   }
@@ -304,7 +305,7 @@ const SystemNotifications = () => {
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-white dark:bg-[#1a1a1a] rounded-xl p-12 border border-red-200 dark:border-red-900/30 text-center">
           <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
-            <AlertTriangle className="w-10 h-10 text-red-600 dark:text-red-400" />
+            <Icon component={AlertTriangle} size="md" color="error" className="dark:" />
           </div>
           <h1 className="text-2xl font-bold text-[#1a1a1a] dark:text-white mb-4">
             Acceso Denegado
@@ -330,7 +331,7 @@ const SystemNotifications = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-[#1C8FA0]" />
+        <Icon component={Loader2} size="xl" color="primary" className="animate-spin" />
       </div>
     );
   }
@@ -356,9 +357,9 @@ const SystemNotifications = () => {
             className="border-gray-200"
           >
             {refreshing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
             ) : (
-              <RefreshCw className="w-4 h-4" />
+              <Icon component={RefreshCw} size="sm" color="default" />
             )}
           </Button>
           <Button
@@ -366,7 +367,7 @@ const SystemNotifications = () => {
             variant="outline"
             className="border-gray-200"
           >
-            <CheckCircle2 className="w-4 h-4 mr-2" />
+            <Icon component={CheckCircle2} size="sm" color="default" className="mr-2" />
             Marcar todas como leídas
           </Button>
         </div>
@@ -424,7 +425,7 @@ const SystemNotifications = () => {
       <div className="bg-white dark:bg-[#1a1a1a] rounded-xl p-4 border border-gray-100 dark:border-white/5">
         <div className="flex flex-wrap gap-4 items-center">
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-[#6E6E73]" />
+            <Icon component={Filter} size="sm" color="default" />
             <span className="text-sm font-medium text-[#1a1a1a] dark:text-white">Filtros:</span>
           </div>
 
@@ -462,7 +463,7 @@ const SystemNotifications = () => {
             size="sm"
             className={showOnlyUnread ? 'bg-[#1C8FA0] hover:bg-[#167a8a]' : ''}
           >
-            {showOnlyUnread ? <Eye className="w-4 h-4 mr-2" /> : <EyeOff className="w-4 h-4 mr-2" />}
+            {showOnlyUnread ? <Icon component={Eye} size="sm" color="default" className="mr-2" /> : <Icon component={EyeOff} size="sm" color="default" className="mr-2" />}
             Solo no leídas
           </Button>
         </div>
@@ -473,7 +474,7 @@ const SystemNotifications = () => {
         <AnimatePresence mode="popLayout">
           {notifications.length === 0 ? (
             <div className="bg-white dark:bg-[#1a1a1a] rounded-xl p-12 border border-gray-100 dark:border-white/5 text-center">
-              <Bell className="w-12 h-12 mx-auto mb-4 text-[#6E6E73]" />
+              <Icon component={Bell} size="md" color="default" className="mx-auto mb-4" />
               <p className="text-[#6E6E73]">No hay notificaciones con los filtros seleccionados</p>
             </div>
           ) : (
@@ -535,7 +536,7 @@ const SystemNotifications = () => {
                               variant="ghost"
                               className="h-8 w-8 p-0"
                             >
-                              <CheckCircle2 className="w-4 h-4" />
+                              <Icon component={CheckCircle2} size="sm" color="default" />
                             </Button>
                           )}
                         </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2, TrendingUp } from 'lucide-react';
 import { useFinance } from '@/hooks/useFinance';
@@ -101,7 +102,7 @@ const AddBudgetModal = ({ isOpen, onClose, onSuccess }) => {
               <div className="px-6 py-4 border-b border-gray-100 dark:border-white/10 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-[#1C8FA0]" />
+                    <Icon component={TrendingUp} size="md" color="primary" />
                   </div>
                   <h2 className="text-xl font-bold text-[#1a1a1a] dark:text-white">Nuevo Presupuesto</h2>
                 </div>
@@ -109,7 +110,7 @@ const AddBudgetModal = ({ isOpen, onClose, onSuccess }) => {
                   onClick={onClose}
                   className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors"
                 >
-                  <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+                  <Icon component={X} size="md" color="default" className="dark:" />
                 </button>
               </div>
 
@@ -239,7 +240,7 @@ const AddBudgetModal = ({ isOpen, onClose, onSuccess }) => {
                   >
                     {isLoading ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
                         Creando...
                       </>
                     ) : (

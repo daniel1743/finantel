@@ -6,6 +6,7 @@
 // ============================================================================
 
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import {
   TrendingUp,
@@ -268,11 +269,11 @@ Explica en 2-3 frases cortas y motivadoras qué significa esto para el usuario y
 
     switch (mood.trend) {
       case 'improving':
-        return <TrendingUp className="w-5 h-5 text-green-500" />;
+        return <Icon component={TrendingUp} size="md" color="default" />;
       case 'declining':
-        return <TrendingDown className="w-5 h-5 text-red-500" />;
+        return <Icon component={TrendingDown} size="md" color="default" />;
       case 'stable':
-        return <Minus className="w-5 h-5 text-gray-500" />;
+        return <Icon component={Minus} size="md" color="muted" />;
       default:
         return null;
     }
@@ -324,7 +325,7 @@ Explica en 2-3 frases cortas y motivadoras qué significa esto para el usuario y
     return (
       <div className="bg-white dark:bg-[#1a1a1a] rounded-[22px] border border-gray-100 dark:border-white/5 p-6">
         <div className="flex items-center gap-3 text-red-600">
-          <AlertCircle className="w-5 h-5" />
+          <Icon component={AlertCircle} size="md" color="default" />
           <span>Error: {error}</span>
         </div>
         <Button onClick={loadMood} className="mt-4">
@@ -338,7 +339,7 @@ Explica en 2-3 frases cortas y motivadoras qué significa esto para el usuario y
     return (
       <div className="bg-white dark:bg-[#1a1a1a] rounded-[22px] border border-gray-100 dark:border-white/5 p-6">
         <div className="text-center">
-          <Info className="w-12 h-12 text-[#6E6E73] dark:text-gray-400 mx-auto mb-4" />
+          <Icon component={Info} size="md" color="default" className="dark: mx-auto mb-4" />
           <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white mb-2">
             Sin datos suficientes
           </h3>
@@ -396,7 +397,7 @@ Explica en 2-3 frases cortas y motivadoras qué significa esto para el usuario y
       {aiExplanation && (
         <div className="bg-white/50 dark:bg-black/20 rounded-xl p-4 mb-6">
           <div className="flex items-start gap-3">
-            <Sparkles className="w-5 h-5 text-[#1C8FA0] mt-0.5 flex-shrink-0" />
+            <Icon component={Sparkles} size="md" color="primary" className="mt-0.5 flex-shrink-0" />
             <p className="text-sm text-[#1a1a1a] dark:text-white leading-relaxed">
               {aiExplanation}
             </p>

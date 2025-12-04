@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Bell, Mail, Smartphone, CheckCircle2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
@@ -167,7 +168,7 @@ const NotificationsModal = ({ isOpen, onClose }) => {
             disabled={saving}
             className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors disabled:opacity-50"
           >
-            <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+            <Icon component={X} size="md" color="default" className="dark:" />
           </button>
         </div>
 

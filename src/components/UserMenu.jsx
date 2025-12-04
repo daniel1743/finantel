@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -214,7 +215,7 @@ const UserMenu = ({
             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-red-500 rounded-r-full" />
           )}
 
-          <LogOut className="w-5 h-5 transition-all duration-300" />
+          <Icon component={LogOut} size="md" color="default" className="transition-all duration-300" />
           <span className="flex-1 text-left text-sm font-medium">
             Cerrar Sesión
           </span>

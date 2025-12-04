@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, AlertTriangle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -119,7 +120,7 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
         <div className="flex justify-between items-start mb-6">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+              <Icon component={AlertTriangle} size="lg" color="error" className="dark:" />
             </div>
             <div>
               <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white">Eliminar Cuenta</h2>
@@ -131,7 +132,7 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
             disabled={loading}
             className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors disabled:opacity-50"
           >
-            <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+            <Icon component={X} size="md" color="default" className="dark:" />
           </button>
         </div>
 
@@ -254,7 +255,7 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Icon component={Loader2} size="sm" color="default" className="mr-2 animate-spin" />
                       Eliminando...
                     </>
                   ) : (

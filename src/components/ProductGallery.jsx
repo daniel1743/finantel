@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X, Maximize2 } from 'lucide-react';
 
@@ -106,7 +107,7 @@ const ProductGallery = () => {
                 className="absolute top-4 right-4 bg-white/90 dark:bg-black/90 backdrop-blur-sm p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:scale-110 hover:bg-white dark:hover:bg-black"
                 aria-label="Ampliar imagen"
               >
-                <Maximize2 className="w-5 h-5 text-[#1a1a1a] dark:text-white" />
+                <Icon component={Maximize2} size="md" color="white" className="dark:" />
               </button>
 
               {/* Navigation buttons */}
@@ -115,14 +116,14 @@ const ProductGallery = () => {
                 className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-black/90 backdrop-blur-sm p-3 rounded-full shadow-lg hover:scale-110 transition-all hover:bg-white dark:hover:bg-black"
                 aria-label="Imagen anterior"
               >
-                <ChevronLeft className="w-6 h-6 text-[#1a1a1a] dark:text-white" />
+                <Icon component={ChevronLeft} size="lg" color="white" className="dark:" />
               </button>
               <button
                 onClick={nextImage}
                 className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-black/90 backdrop-blur-sm p-3 rounded-full shadow-lg hover:scale-110 transition-all hover:bg-white dark:hover:bg-black"
                 aria-label="Siguiente imagen"
               >
-                <ChevronRight className="w-6 h-6 text-[#1a1a1a] dark:text-white" />
+                <Icon component={ChevronRight} size="lg" color="white" className="dark:" />
               </button>
             </motion.div>
 
@@ -202,7 +203,7 @@ const ProductGallery = () => {
               className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 p-3 rounded-full transition-colors"
               aria-label="Cerrar"
             >
-              <X className="w-6 h-6 text-white" />
+              <Icon component={X} size="lg" color="white" />
             </button>
 
             {/* Navigation in lightbox */}
@@ -214,7 +215,7 @@ const ProductGallery = () => {
               className="absolute left-4 bg-white/10 hover:bg-white/20 p-3 rounded-full transition-colors"
               aria-label="Imagen anterior"
             >
-              <ChevronLeft className="w-8 h-8 text-white" />
+              <Icon component={ChevronLeft} size="xl" color="white" />
             </button>
             <button
               onClick={(e) => {
@@ -224,7 +225,7 @@ const ProductGallery = () => {
               className="absolute right-4 bg-white/10 hover:bg-white/20 p-3 rounded-full transition-colors"
               aria-label="Siguiente imagen"
             >
-              <ChevronRight className="w-8 h-8 text-white" />
+              <Icon component={ChevronRight} size="xl" color="white" />
             </button>
 
             {/* Image */}

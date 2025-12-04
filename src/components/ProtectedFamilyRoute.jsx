@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { useBilling } from '@/hooks/useBilling';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import UpgradeRequired from './UpgradeRequired';
@@ -11,7 +12,7 @@ const ProtectedFamilyRoute = ({ children, featureName }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
+        <Icon component={Loader2} size="xl" color="primary" className="animate-spin" />
       </div>
     );
   }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkles,
@@ -104,7 +105,7 @@ const AIPlanner = () => {
         </div>
 
         <div className="flex items-center gap-2 text-sm text-[#6E6E73] dark:text-gray-400 mb-4">
-          <Clock className="w-4 h-4" />
+          <Icon component={Clock} size="sm" color="default" />
           <span>
             {daysUntil === 0
               ? 'Hoy'
@@ -119,7 +120,7 @@ const AIPlanner = () => {
             onClick={() => handleCreatePlan(event)}
             className="w-full bg-gradient-to-r from-[#1C8FA0] to-[#167a8a] hover:from-[#167a8a] hover:to-[#0d5a66] text-white"
           >
-            <Sparkles className="w-4 h-4 mr-2" />
+            <Icon component={Sparkles} size="sm" color="default" className="mr-2" />
             Crear plan de ahorro
           </Button>
         )}
@@ -144,7 +145,7 @@ const AIPlanner = () => {
         <div className="flex items-start justify-between mb-6">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <Target className="w-5 h-5 text-[#1C8FA0]" />
+              <Icon component={Target} size="md" color="primary" />
               <h3 className="text-xl font-bold text-[#1a1a1a] dark:text-white">
                 {event?.name || 'Plan de ahorro'}
               </h3>
@@ -201,11 +202,11 @@ const AIPlanner = () => {
           )}>
             <div className="flex items-start gap-3">
               {evaluation.is_on_track ? (
-                <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5" />
+                <Icon component={CheckCircle2} size="md" color="success" className="dark: mt-0.5" />
               ) : evaluation.needs_recalculation ? (
-                <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                <Icon component={AlertTriangle} size="md" color="warning" className="dark: mt-0.5" />
               ) : (
-                <Clock className="w-5 h-5 text-gray-600 dark:text-gray-400 mt-0.5" />
+                <Icon component={Clock} size="md" color="muted" className="dark: mt-0.5" />
               )}
               <div className="flex-1">
                 <p className="text-sm font-semibold text-[#1a1a1a] dark:text-white mb-1">
@@ -231,7 +232,7 @@ const AIPlanner = () => {
         {suggestions.length > 0 && (
           <div className="mb-6">
             <h4 className="text-sm font-semibold text-[#1a1a1a] dark:text-white mb-3 flex items-center gap-2">
-              <Lightbulb className="w-4 h-4 text-[#1C8FA0]" />
+              <Icon component={Lightbulb} size="sm" color="primary" />
               Sugerencias de ahorro
             </h4>
             <div className="space-y-2">
@@ -256,7 +257,7 @@ const AIPlanner = () => {
                         onClick={() => updateSuggestion(suggestion.id, true)}
                         className="h-8 px-3"
                       >
-                        <CheckCircle2 className="w-4 h-4" />
+                        <Icon component={CheckCircle2} size="sm" color="default" />
                       </Button>
                       <Button
                         size="sm"
@@ -264,7 +265,7 @@ const AIPlanner = () => {
                         onClick={() => updateSuggestion(suggestion.id, false)}
                         className="h-8 px-3"
                       >
-                        <X className="w-4 h-4" />
+                        <Icon component={X} size="sm" color="default" />
                       </Button>
                     </div>
                   )}
@@ -292,7 +293,7 @@ const AIPlanner = () => {
               onClick={() => recalculatePlan(plan.id)}
               className="flex-1"
             >
-              <RefreshCw className="w-4 h-4 mr-2" />
+              <Icon component={RefreshCw} size="sm" color="default" className="mr-2" />
               Recalcular plan
             </Button>
           )}
@@ -301,7 +302,7 @@ const AIPlanner = () => {
             onClick={() => trackPlan(plan.id)}
             className="flex-1"
           >
-            <Zap className="w-4 h-4 mr-2" />
+            <Icon component={Zap} size="sm" color="default" className="mr-2" />
             Actualizar seguimiento
           </Button>
         </div>
@@ -315,7 +316,7 @@ const AIPlanner = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight'] flex items-center gap-3">
-            <Sparkles className="w-8 h-8 text-[#1C8FA0]" />
+            <Icon component={Sparkles} size="xl" color="primary" />
             Planificador IA Proactivo
           </h1>
           <p className="text-[#6E6E73] dark:text-gray-400 mt-1 text-lg">
@@ -328,9 +329,9 @@ const AIPlanner = () => {
           disabled={loading}
         >
           {loading ? (
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            <Icon component={Loader2} size="sm" color="default" className="mr-2 animate-spin" />
           ) : (
-            <RefreshCw className="w-4 h-4 mr-2" />
+            <Icon component={RefreshCw} size="sm" color="default" className="mr-2" />
           )}
           Actualizar eventos
         </Button>
@@ -345,7 +346,7 @@ const AIPlanner = () => {
         >
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-              <TrendingUp className="w-6 h-6" />
+              <Icon component={TrendingUp} size="lg" color="default" />
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-bold mb-2">Análisis de tus gastos</h3>
@@ -420,7 +421,7 @@ const AIPlanner = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center py-12"
         >
-          <Sparkles className="w-16 h-16 text-[#1C8FA0] mx-auto mb-4 opacity-50" />
+          <Icon component={Sparkles} size="md" color="primary" className="mx-auto mb-4 opacity-50" />
           <h3 className="text-xl font-bold text-[#1a1a1a] dark:text-white mb-2">
             No hay planes activos
           </h3>
@@ -433,7 +434,7 @@ const AIPlanner = () => {
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-[#1C8FA0]" />
+          <Icon component={Loader2} size="xl" color="primary" className="animate-spin" />
         </div>
       )}
     </div>

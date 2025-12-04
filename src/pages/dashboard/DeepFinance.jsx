@@ -5,6 +5,7 @@
 // =====================================================
 
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkles,
@@ -114,7 +115,7 @@ const DeepFinance = () => {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-xl bg-gradient-to-br from-[#1C8FA0]/10 to-purple-500/10 border border-[#1C8FA0]/20">
-              <Sparkles className="w-6 h-6 text-[#1C8FA0]" />
+              <Icon component={Sparkles} size="lg" color="primary" />
             </div>
             <h1 className="text-3xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">
               DeepFinance™
@@ -131,12 +132,12 @@ const DeepFinance = () => {
         {/* Estado de créditos */}
         <div className="flex items-center gap-4">
           {creditsLoading ? (
-            <Loader2 className="w-5 h-5 animate-spin text-[#6E6E73]" />
+            <Icon component={Loader2} size="md" color="default" className="animate-spin" />
           ) : (
             <>
               <div className="px-4 py-2 rounded-xl bg-white dark:bg-[#1a1a2e] border border-gray-200 dark:border-[#1C8FA0]/20">
                 <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-[#1C8FA0]" />
+                  <Icon component={Zap} size="sm" color="primary" />
                   <span className="text-sm font-medium text-[#1a1a1a] dark:text-white">
                     {credits?.credits_remaining || 0} créditos
                   </span>
@@ -151,7 +152,7 @@ const DeepFinance = () => {
                 onClick={() => setShowCreditsModal(true)}
                 className="px-4 py-2 rounded-xl bg-[#1C8FA0] text-white text-sm font-medium hover:bg-[#1C8FA0]/90 transition-colors flex items-center gap-2"
               >
-                <CreditCard className="w-4 h-4" />
+                <Icon component={CreditCard} size="sm" color="default" />
                 Comprar créditos
               </button>
             </>
@@ -166,7 +167,7 @@ const DeepFinance = () => {
           animate={{ opacity: 1, y: 0 }}
           className="p-4 rounded-xl bg-orange-500/10 border-2 border-orange-500/20 flex items-start gap-3"
         >
-          <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400 mt-0.5" />
+          <Icon component={AlertCircle} size="md" color="default" className="dark: mt-0.5" />
           <div className="flex-1">
             <p className="text-sm font-medium text-orange-600 dark:text-orange-400">
               Límite alcanzado
@@ -193,7 +194,7 @@ const DeepFinance = () => {
         >
           <div className="text-center space-y-6">
             <div className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-[#1C8FA0]/10 to-purple-500/10 border border-[#1C8FA0]/20">
-              <BarChart3 className="w-12 h-12 text-[#1C8FA0]" />
+              <Icon component={BarChart3} size="md" color="primary" />
             </div>
             
             <div>
@@ -245,12 +246,12 @@ const DeepFinance = () => {
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Icon component={Loader2} size="md" color="default" className="animate-spin" />
                   Analizando tus finanzas...
                 </>
               ) : (
                 <>
-                  <Zap className="w-5 h-5" />
+                  <Icon component={Zap} size="md" color="default" />
                   Ejecutar Análisis Premium
                 </>
               )}
@@ -258,7 +259,7 @@ const DeepFinance = () => {
 
             {error && (
               <div className="p-4 rounded-xl bg-red-500/10 border-2 border-red-500/20 flex items-start gap-3 mt-4">
-                <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5" />
+                <Icon component={AlertCircle} size="md" color="error" className="dark: mt-0.5" />
                 <div className="flex-1 text-left">
                   <p className="text-sm font-medium text-red-600 dark:text-red-400">
                     Error en el análisis
@@ -274,15 +275,15 @@ const DeepFinance = () => {
             <div className="pt-6 border-t border-gray-200 dark:border-[#1C8FA0]/20">
               <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-[#6E6E73] dark:text-gray-400">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4" />
+                  <Icon component={ShieldCheck} size="sm" color="default" />
                   <span>Análisis 100% privado</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
+                  <Icon component={Clock} size="sm" color="default" />
                   <span>Toma 1-2 minutos</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
+                  <Icon component={FileText} size="sm" color="default" />
                   <span>Reporte PDF incluido</span>
                 </div>
               </div>
@@ -357,7 +358,7 @@ const DeepFinance = () => {
                   onClick={() => setShowReportModal(true)}
                   className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#1C8FA0] to-purple-600 text-white font-semibold hover:shadow-xl hover:scale-105 transition-all flex items-center gap-2"
                 >
-                  <FileText className="w-5 h-5" />
+                  <Icon component={FileText} size="md" color="default" />
                   Generar Reporte PDF
                 </button>
               </motion.div>
@@ -383,12 +384,12 @@ const DeepFinance = () => {
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
                     Analizando...
                   </>
                 ) : (
                   <>
-                    <BarChart3 className="w-4 h-4" />
+                    <Icon component={BarChart3} size="sm" color="default" />
                     Realizar nuevo análisis
                   </>
                 )}

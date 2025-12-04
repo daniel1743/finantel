@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { X, RotateCcw, Loader2, Info, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -120,7 +121,7 @@ const RestoreDataModal = ({ isOpen, onClose, onRestoreSuccess }) => {
         <div className="flex justify-between items-start mb-6">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-[#1C8FA0]/10 dark:bg-[#1C8FA0]/20 flex items-center justify-center">
-              <RotateCcw className="w-6 h-6 text-[#1C8FA0]" />
+              <Icon component={RotateCcw} size="lg" color="primary" />
             </div>
             <div>
               <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white">
@@ -136,20 +137,20 @@ const RestoreDataModal = ({ isOpen, onClose, onRestoreSuccess }) => {
             disabled={loading || checking}
             className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors disabled:opacity-50"
           >
-            <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+            <Icon component={X} size="md" color="default" className="dark:" />
           </button>
         </div>
 
         {checking ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 text-[#1C8FA0] animate-spin" />
+            <Icon component={Loader2} size="lg" color="primary" className="animate-spin" />
             <span className="ml-3 text-[#6E6E73] dark:text-gray-400">Verificando datos...</span>
           </div>
         ) : alreadyRestored ? (
           <div className="space-y-6">
             <div className="bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-900/20 rounded-xl p-4">
               <div className="flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5" />
+                <Icon component={CheckCircle2} size="md" color="success" className="dark: mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-green-900 dark:text-green-400 mb-1">
                     Datos ya restaurados
@@ -174,7 +175,7 @@ const RestoreDataModal = ({ isOpen, onClose, onRestoreSuccess }) => {
           <div className="space-y-6">
             <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-900/20 rounded-xl p-4">
               <div className="flex items-start gap-3">
-                <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                <Icon component={Info} size="md" color="default" className="dark: mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-blue-900 dark:text-blue-400 mb-2">
                     Hemos encontrado transacciones del mes pasado
@@ -205,12 +206,12 @@ const RestoreDataModal = ({ isOpen, onClose, onRestoreSuccess }) => {
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Icon component={Loader2} size="sm" color="default" className="mr-2 animate-spin" />
                     Restaurando...
                   </>
                 ) : (
                   <>
-                    <RotateCcw className="w-4 h-4 mr-2" />
+                    <Icon component={RotateCcw} size="sm" color="default" className="mr-2" />
                     Restaurar datos
                   </>
                 )}
@@ -221,7 +222,7 @@ const RestoreDataModal = ({ isOpen, onClose, onRestoreSuccess }) => {
           <div className="space-y-6">
             <div className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-4">
               <div className="flex items-start gap-3">
-                <Info className="w-5 h-5 text-[#6E6E73] dark:text-gray-400 mt-0.5" />
+                <Icon component={Info} size="md" color="default" className="dark: mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-[#1a1a1a] dark:text-white mb-1">
                     No hay datos restaurables

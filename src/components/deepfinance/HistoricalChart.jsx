@@ -5,6 +5,7 @@
 // =====================================================
 
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { TrendingUp, Calendar } from 'lucide-react';
@@ -19,14 +20,14 @@ const HistoricalChart = ({ analyses = [] }) => {
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-[#1C8FA0]/10 border border-[#1C8FA0]/20">
-            <TrendingUp className="w-5 h-5 text-[#1C8FA0]" />
+            <Icon component={TrendingUp} size="md" color="primary" />
           </div>
           <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white">
             Evolución del Score
           </h3>
         </div>
         <div className="text-center py-12">
-          <Calendar className="w-12 h-12 text-[#6E6E73] dark:text-gray-400 mx-auto mb-3" />
+          <Icon component={Calendar} size="md" color="default" className="dark: mx-auto mb-3" />
           <p className="text-sm text-[#6E6E73] dark:text-gray-400">
             No hay suficientes análisis para mostrar la evolución
           </p>
@@ -75,7 +76,7 @@ const HistoricalChart = ({ analyses = [] }) => {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-[#1C8FA0]/10 border border-[#1C8FA0]/20">
-            <TrendingUp className="w-5 h-5 text-[#1C8FA0]" />
+            <Icon component={TrendingUp} size="md" color="primary" />
           </div>
           <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white">
             Evolución del Score

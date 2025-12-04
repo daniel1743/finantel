@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -71,7 +72,7 @@ const DemoConversionModal = () => {
                   transition={{ delay: 0.2, type: "spring" }}
                   className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#1C8FA0] to-[#167a8a] flex items-center justify-center shadow-xl shadow-[#1C8FA0]/30"
                 >
-                  <Sparkles className="w-10 h-10 text-white" />
+                  <Icon component={Sparkles} size="md" color="white" />
                 </motion.div>
 
                 {/* Title */}
@@ -99,7 +100,7 @@ const DemoConversionModal = () => {
                       transition={{ delay: 0.3 + index * 0.1 }}
                       className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5"
                     >
-                      <CheckCircle2 className="w-5 h-5 text-[#1C8FA0] flex-shrink-0" />
+                      <Icon component={CheckCircle2} size="md" color="primary" className="flex-shrink-0" />
                       <span className="text-sm font-medium text-[#1a1a1a] dark:text-white">
                         {benefit}
                       </span>
@@ -114,7 +115,7 @@ const DemoConversionModal = () => {
                     className="flex-1 bg-[#1C8FA0] hover:bg-[#167a8a] text-white text-lg px-8 py-6 h-auto rounded-full shadow-xl shadow-[#1C8FA0]/20 transition-all hover:shadow-[#1C8FA0]/30 hover:-translate-y-1"
                   >
                     Crear Cuenta Gratuita
-                    <ArrowRight className="ml-2 w-5 h-5" />
+                    <Icon component={ArrowRight} size="md" color="default" className="ml-2" />
                   </Button>
                   <Button
                     onClick={handleClose}

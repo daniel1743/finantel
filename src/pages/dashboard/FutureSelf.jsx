@@ -5,6 +5,7 @@
 // ============================================================================
 
 import React, { useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   TrendingUp,
@@ -137,7 +138,7 @@ const ScenarioCard = ({ scenario, config, currency, delay = 0 }) => {
       {scenario.summary_text && (
         <div className="bg-white/50 dark:bg-black/20 rounded-xl p-4 mb-4">
           <div className="flex items-start gap-2">
-            <Sparkles className="w-4 h-4 text-[#1C8FA0] mt-0.5 flex-shrink-0" />
+            <Icon component={Sparkles} size="sm" color="primary" className="mt-0.5 flex-shrink-0" />
             <p className="text-sm text-[#1a1a1a] dark:text-white leading-relaxed">
               {scenario.summary_text}
             </p>
@@ -156,7 +157,7 @@ const ScenarioCard = ({ scenario, config, currency, delay = 0 }) => {
               key={idx}
               className="flex items-start gap-2 bg-white/30 dark:bg-black/10 rounded-lg p-2"
             >
-              <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+              <Icon component={CheckCircle2} size="sm" color="success" className="mt-0.5 flex-shrink-0" />
               <div className="flex-1">
                 <p className="text-xs font-medium text-[#1a1a1a] dark:text-white">
                   {action.description}
@@ -251,7 +252,7 @@ export default function FutureSelfView() {
       {/* Selector de Horizonte */}
       <div className="bg-white dark:bg-[#1a1a1a] rounded-[22px] border border-gray-100 dark:border-white/5 p-4">
         <div className="flex items-center gap-2 mb-3">
-          <Calendar className="w-5 h-5 text-[#1C8FA0]" />
+          <Icon component={Calendar} size="md" color="primary" />
           <h3 className="font-semibold text-[#1a1a1a] dark:text-white">
             Horizonte Temporal
           </h3>
@@ -277,7 +278,7 @@ export default function FutureSelfView() {
       {/* Estado de carga */}
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
+          <Icon component={Loader2} size="xl" color="primary" className="animate-spin" />
         </div>
       )}
 
@@ -285,7 +286,7 @@ export default function FutureSelfView() {
       {error && (!scenarios || scenarios.length === 0) && (
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-[22px] p-6">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
+            <Icon component={AlertCircle} size="md" color="warning" className="dark: shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="text-sm font-semibold text-yellow-900 dark:text-yellow-100 mb-1">
                 Simulador temporalmente no disponible
@@ -305,7 +306,7 @@ export default function FutureSelfView() {
       {error && scenarios && scenarios.length > 0 && (
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-[22px] p-4">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+            <Icon component={AlertCircle} size="md" color="default" className="dark: shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="text-sm text-blue-900 dark:text-blue-100">
                 Mostrando datos guardados. El simulador no está disponible para recalcular en este momento.
@@ -384,7 +385,7 @@ export default function FutureSelfView() {
       {/* Sin datos */}
       {!loading && !error && (!scenarios || scenarios.length === 0) && (
         <div className="bg-white dark:bg-[#1a1a1a] rounded-[22px] border border-gray-100 dark:border-white/5 p-12 text-center">
-          <Target className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+          <Icon component={Target} size="md" color="default" className="dark: mx-auto mb-4" />
           <h3 className="text-xl font-bold text-[#1a1a1a] dark:text-white mb-2">
             No hay datos suficientes
           </h3>

@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, Check, Plus, Wallet, ShoppingBag, Coffee, Home, Car, Plane, Sparkles, Loader2, ShieldCheck } from 'lucide-react';
@@ -133,7 +134,7 @@ const Onboarding = () => {
                     </p>
                   <div className="bg-white/80 dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-2xl p-4 flex gap-3 items-start shadow-sm mt-6">
                     <div className="w-10 h-10 rounded-xl bg-[#1C8FA0]/10 flex items-center justify-center shrink-0">
-                      <ShieldCheck className="w-5 h-5 text-[#1C8FA0]" />
+                      <Icon component={ShieldCheck} size="md" color="primary" />
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-[#1a1a1a] dark:text-white">Transparencia total</p>
@@ -181,7 +182,7 @@ const Onboarding = () => {
                   </div>
 
                   <Button onClick={nextStep} className="bg-[#1a1a1a] hover:bg-black text-white px-8 py-6 rounded-full text-lg shadow-xl shadow-black/5">
-                    Continuar <ArrowRight className="ml-2 w-5 h-5" />
+                    Continuar <Icon component={ArrowRight} size="md" color="default" className="ml-2" />
                   </Button>
                 </div>
 
@@ -194,7 +195,7 @@ const Onboarding = () => {
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent rounded-[40px] pointer-events-none" />
                     <div className="flex items-center gap-4 mb-6">
                       <div className="w-12 h-12 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center">
-                        <Sparkles className="w-6 h-6 text-[#1C8FA0]" />
+                        <Icon component={Sparkles} size="lg" color="primary" />
                       </div>
                       <div>
                         <h3 className="font-bold text-[#1a1a1a]">Análisis IA</h3>
@@ -285,7 +286,7 @@ const Onboarding = () => {
                         </span>
                         {isSelected && (
                           <div className="absolute top-3 right-3 w-5 h-5 bg-[#1C8FA0] rounded-full flex items-center justify-center">
-                            <Check className="w-3 h-3 text-white" />
+                            <Icon component={Check} size="xs" color="white" />
                           </div>
                         )}
                       </motion.div>
@@ -298,7 +299,7 @@ const Onboarding = () => {
                     Atrás
                   </Button>
                   <Button onClick={nextStep} className="bg-[#1a1a1a] hover:bg-black text-white px-10 py-6 rounded-full text-lg shadow-xl shadow-black/5">
-                    Continuar <ArrowRight className="ml-2 w-5 h-5" />
+                    Continuar <Icon component={ArrowRight} size="md" color="default" className="ml-2" />
                   </Button>
                 </div>
               </motion.div>
@@ -315,7 +316,7 @@ const Onboarding = () => {
               >
                 <div className="mb-8">
                   <div className="w-20 h-20 bg-[#1C8FA0]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Sparkles className="w-10 h-10 text-[#1C8FA0]" />
+                    <Icon component={Sparkles} size="md" color="primary" />
                   </div>
                   <h2 className="text-4xl font-bold text-[#1a1a1a] font-['Inter_Tight'] mb-4">
                     ¡Todo listo!
@@ -358,7 +359,7 @@ const Onboarding = () => {
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin inline" />
+                      <Icon component={Loader2} size="md" color="default" className="mr-2 animate-spin inline" />
                       Configurando tu cuenta...
                     </>
                   ) : (

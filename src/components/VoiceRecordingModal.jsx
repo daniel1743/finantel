@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, Square, X, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -183,7 +184,7 @@ const VoiceRecordingModal = ({ isOpen, onClose, onSuccess, userId }) => {
           onClick={onClose}
           className="absolute top-6 right-6 z-10 p-3 bg-white/20 hover:bg-white/30 rounded-full backdrop-blur-sm transition-colors"
         >
-          <X className="w-6 h-6 text-white" />
+          <Icon component={X} size="lg" color="white" />
         </button>
 
         <div className="w-full h-full flex flex-col items-center justify-center p-6">
@@ -218,11 +219,11 @@ const VoiceRecordingModal = ({ isOpen, onClose, onSuccess, userId }) => {
                 `}
               >
                 {isProcessing ? (
-                  <Loader2 className="w-10 h-10 md:w-8 md:h-8 text-white animate-spin" />
+                  <Icon component={Loader2} size="md" color="white" className="md: md:  animate-spin" />
                 ) : isRecording ? (
-                  <Square className="w-10 h-10 md:w-8 md:h-8 text-white" />
+                  <Icon component={Square} size="md" color="white" className="md: md:" />
                 ) : (
-                  <Mic className="w-10 h-10 md:w-8 md:h-8 text-[#1C8FA0]" />
+                  <Icon component={Mic} size="md" color="primary" className="md: md:" />
                 )}
               </button>
 

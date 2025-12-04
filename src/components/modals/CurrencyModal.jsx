@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -181,13 +182,13 @@ const CurrencyModal = ({ isOpen, onClose }) => {
             disabled={saving}
             className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors disabled:opacity-50"
           >
-            <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+            <Icon component={X} size="md" color="default" className="dark:" />
           </button>
         </div>
 
         <div className="mb-4">
           <div className="relative">
-            <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+            <Icon component={Globe} size="md" color="default" className="absolute left-4 top-1/2 -translate-y-1/2    dark:" />
             <input
               type="text"
               placeholder="Buscar moneda..."
@@ -233,7 +234,7 @@ const CurrencyModal = ({ isOpen, onClose }) => {
                         </div>
                       </div>
                       {selectedCurrency === currency.code && (
-                        <Check className="w-5 h-5 text-[#1C8FA0]" />
+                        <Icon component={Check} size="md" color="primary" />
                       )}
                     </button>
                   ))}

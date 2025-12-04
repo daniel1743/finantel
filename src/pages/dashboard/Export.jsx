@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { 
   FileText, 
@@ -76,12 +77,12 @@ const ExportCard = ({ title, desc, icon: Icon, formats, delay, onExport, loading
         >
           {loading ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <Icon component={Loader2} size="sm" color="default" className="mr-2 animate-spin" />
               Exportando...
             </>
           ) : (
             <>
-              <Download className="w-4 h-4 mr-2" />
+              <Icon component={Download} size="sm" color="default" className="mr-2" />
               Exportar
             </>
           )}
@@ -257,7 +258,7 @@ const Export = () => {
               <div key={i} className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors border border-transparent hover:border-gray-100 dark:hover:border-white/5">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center text-[#6E6E73] dark:text-gray-400">
-                    <FileText className="w-5 h-5" />
+                    <Icon component={FileText} size="md" color="default" />
                   </div>
                   <div>
                     <p className="font-bold text-[#1a1a1a] dark:text-white text-sm">{file.name}</p>
@@ -273,7 +274,7 @@ const Export = () => {
         <div className="space-y-6">
           <div className="bg-[#1C8FA0]/5 rounded-[26px] p-6 border border-[#1C8FA0]/10">
             <div className="flex items-center gap-3 mb-4">
-              <ShieldCheck className="w-6 h-6 text-[#1C8FA0]" />
+              <Icon component={ShieldCheck} size="lg" color="primary" />
               <h3 className="font-bold text-[#1a1a1a] dark:text-white">Privacidad y Seguridad</h3>
             </div>
             <p className="text-sm text-[#6E6E73] dark:text-gray-400 mb-4 leading-relaxed">

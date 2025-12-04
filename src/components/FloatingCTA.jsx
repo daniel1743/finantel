@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Icon from '@/components/ui/Icon';
 import { useNavigate } from 'react-router-dom';
 
 const FloatingCTA = () => {
@@ -58,7 +59,7 @@ const FloatingCTA = () => {
               className="absolute -top-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors opacity-70 hover:opacity-100"
               aria-label="Cerrar"
             >
-              <X className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#6E6E73] dark:text-gray-400" />
+              <Icon component={X} size="xs" color="muted" className="sm:w-3.5 sm:h-3.5" />
             </button>
 
             {/* Content - Más compacto */}
@@ -78,7 +79,7 @@ const FloatingCTA = () => {
             >
               <span className="hidden sm:inline">Comenzar</span>
               <span className="sm:hidden">Ir</span>
-              <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 ml-1" />
+              <Icon component={ArrowRight} size="xs" className="ml-1 sm:ml-1 text-white" />
             </Button>
           </div>
         </motion.div>

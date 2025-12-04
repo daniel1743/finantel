@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { Clock, Sparkles, ArrowRight } from 'lucide-react';
 import { useDemoMode } from '@/contexts/DemoModeContext';
@@ -29,7 +30,7 @@ const DemoModeBannerContent = () => {
           {/* Left side - Demo info */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-              <Sparkles className="w-5 h-5" />
+              <Icon component={Sparkles} size="md" color="default" />
             </div>
             <div>
               <p className="text-sm font-semibold">Modo Demo Activo</p>
@@ -41,7 +42,7 @@ const DemoModeBannerContent = () => {
 
           {/* Center - Timer */}
           <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm">
-            <Clock className="w-4 h-4" />
+            <Icon component={Clock} size="sm" color="default" />
             <span className="text-sm font-mono font-semibold">
               {getFormattedTimeRemaining()}
             </span>
@@ -55,13 +56,13 @@ const DemoModeBannerContent = () => {
             className="bg-white text-[#1C8FA0] hover:bg-white/90 rounded-full shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
           >
             Crear Cuenta Gratis
-            <ArrowRight className="ml-1 w-4 h-4" />
+            <Icon component={ArrowRight} size="sm" color="default" className="ml-1" />
           </Button>
         </div>
 
         {/* Mobile timer */}
         <div className="sm:hidden mt-2 flex items-center justify-center gap-2 text-sm">
-          <Clock className="w-4 h-4" />
+          <Icon component={Clock} size="sm" color="default" />
           <span className="font-mono font-semibold">
             {getFormattedTimeRemaining()}
           </span>

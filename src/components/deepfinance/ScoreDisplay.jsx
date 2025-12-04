@@ -5,6 +5,7 @@
 // =====================================================
 
 import React from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -37,9 +38,9 @@ const ScoreDisplay = ({ score, size = 'large', showLabel = true, className = '' 
   };
 
   const getScoreIcon = (score) => {
-    if (score >= 70) return <TrendingUp className="w-5 h-5" />;
-    if (score >= 40) return <AlertCircle className="w-5 h-5" />;
-    return <TrendingDown className="w-5 h-5" />;
+    if (score >= 70) return <Icon component={TrendingUp} size="md" color="default" />;
+    if (score >= 40) return <Icon component={AlertCircle} size="md" color="default" />;
+    return <Icon component={TrendingDown} size="md" color="default" />;
   };
 
   // Tamaños del círculo

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -138,7 +139,7 @@ const ImprovedKPICard = ({
               ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 text-green-600 dark:text-green-400'
               : 'bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 text-red-600 dark:text-red-400'
           }`}>
-            {trendUp ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+            {trendUp ? <Icon component={TrendingUp} size="md" color="default" className=".5 .5" /> : <Icon component={TrendingDown} size="md" color="default" className=".5 .5" />}
             {trendValue}
           </div>
         </div>
@@ -163,7 +164,7 @@ const ImprovedKPICard = ({
         {/* Meta u objetivo */}
         {targetValue && (
           <div className="flex items-center gap-2 text-xs mb-4">
-            <Target className="w-3.5 h-3.5 text-[#1C8FA0]" />
+            <Icon component={Target} size="md" color="primary" className=".5 .5" />
             <span className="text-[#6E6E73] dark:text-gray-400">{targetLabel}:</span>
             <span className="font-semibold text-[#1C8FA0]">{targetValue}</span>
           </div>
@@ -472,7 +473,7 @@ const SmartTooltip = ({ active, payload, label, comparisonData }) => {
         {change !== null && change > 15 && (
           <div className="pt-2 border-t border-gray-100 dark:border-white/10">
             <p className="text-xs text-[#6E6E73] dark:text-gray-400 flex items-start gap-1">
-              <Zap className="w-3 h-3 text-yellow-500 flex-shrink-0 mt-0.5" />
+              <Icon component={Zap} size="xs" color="default" className="flex-shrink-0 mt-0.5" />
               <span>Tip: Gasto aumentó {change.toFixed(0)}%. Considera reducir en esta categoría.</span>
             </p>
           </div>
@@ -503,7 +504,7 @@ const QuickAccessCard = ({ title, description, icon: Icon, to, color, delay }) =
         <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white mb-2">{title}</h3>
         <p className="text-sm text-[#6E6E73] dark:text-gray-400 mb-4">{description}</p>
         <div className="flex items-center text-sm font-medium group-hover:gap-2 transition-all" style={{ color }}>
-          Explorar <ChevronRight className="w-4 h-4 ml-1" />
+          Explorar <Icon component={ChevronRight} size="sm" color="default" className="ml-1" />
         </div>
       </div>
     </Link>
