@@ -159,6 +159,8 @@ const DashboardTopNav = ({ onMenuClick }) => {
                   <UserMenu
                     userName={userName}
                     userEmail={userEmail}
+                    userAvatar={userAvatar}
+                    isPremium={false}
                     onClose={() => setIsMenuOpen(false)}
                     onSignOut={signOut}
                   />

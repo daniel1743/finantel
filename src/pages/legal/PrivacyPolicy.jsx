@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import SeoHead from '@/components/SeoHead';
-import { Shield, Database, Lock, Eye, Trash2, Mail, AlertCircle } from 'lucide-react';
+import { Shield, Database, Lock, Eye, Trash2, Mail, AlertCircle, CheckCircle, XCircle, FileText, Globe, Cookie, Users, CreditCard, Bell, Ban, Zap, BarChart3 } from 'lucide-react';
 
 const PrivacyPolicy = () => {
   return (
@@ -24,95 +24,329 @@ const PrivacyPolicy = () => {
                 Política de Privacidad
               </h1>
             </div>
-            <div className="text-sm text-[#6E6E73] dark:text-gray-400">
-              <p><strong>Última actualización:</strong> 2025-12-01</p>
+            <div className="text-sm text-[#6E6E73] dark:text-gray-400 space-y-1">
+              <p><strong>Última actualización:</strong> Diciembre 2025</p>
+              <p><strong>Vigencia:</strong> A partir de la publicación en el sitio web</p>
             </div>
           </motion.div>
 
+          {/* Tabla de Contenidos */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="bg-white dark:bg-[#1a1a1a] p-8 rounded-[24px] border border-gray-100 dark:border-white/10 mb-12"
+          >
+            <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white mb-6">Tabla de Contenidos</h2>
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-[#6E6E73] dark:text-gray-400">
+              {[
+                { id: 'introduccion-y-alcance', title: '1. Introducción y Alcance' },
+                { id: 'recopilacion-de-datos', title: '2. Recopilación de Datos' },
+                { id: 'base-legal', title: '3. Base Legal para el Procesamiento' },
+                { id: 'finalidades', title: '4. Finalidades del Procesamiento' },
+                { id: 'comparticion', title: '5. Compartición de Datos' },
+                { id: 'retencion', title: '6. Retención de Datos' },
+                { id: 'proteccion-seguridad', title: '7. Protección y Seguridad' },
+                { id: 'derechos-usuario', title: '8. Derechos del Usuario' },
+                { id: 'usuarios-ue', title: '9. Información para Usuarios de la UE' },
+                { id: 'usuarios-california', title: '10. Información para Usuarios de California' },
+                { id: 'cambios-politica', title: '11. Cambios a esta Política' },
+                { id: 'contacto', title: '12. Contacto y Soporte' },
+                { id: 'anexos', title: '13. Anexos y Referencias' },
+              ].map((item) => (
+                <li key={item.id}>
+                  <a
+                    href={`#${item.id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const element = document.getElementById(item.id);
+                      if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                    }}
+                    className="hover:text-[#1C8FA0] transition-colors"
+                  >
+                    {item.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+
           <div className="space-y-12">
-            {/* Sección 1 */}
+            {/* Sección 1: Introducción y Alcance */}
             <motion.section
+              id="introduccion-y-alcance"
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.1 }}
+              transition={{ duration: 0.6 }}
               className="bg-white dark:bg-[#1a1a1a] p-8 rounded-[24px] border border-gray-100 dark:border-white/10"
             >
-              <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white mb-4">
-                1. Introducción
-              </h2>
-              <p className="text-[#6E6E73] dark:text-gray-400 leading-relaxed">
-                Finantel se compromete a proteger tu privacidad.
+              <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white mb-4">1. Introducción y Alcance</h2>
+              
+              <h3 className="text-xl font-semibold text-[#1a1a1a] dark:text-white mb-3 mt-6">1.1 Identidad del Responsable</h3>
+              <ul className="space-y-3 mb-6">
+                {[
+                  "Nombre de la Plataforma: Finantel",
+                  "Tipo de Servicio: Plataforma de Análisis Financiero y Gestión de Suscripciones Asistida por IA",
+                  "Jurisdicción Principal: Chile",
+                  "Cumplimiento normativo: LOPDGDD (Chile), GDPR (UE si aplica), CCPA (California si aplica)"
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-[#1C8FA0] mt-0.5 flex-shrink-0" />
+                    <span className="text-[#6E6E73] dark:text-gray-400">{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <h3 className="text-xl font-semibold text-[#1a1a1a] dark:text-white mb-3 mt-6">1.2 Definición de Datos Personales</h3>
+              <p className="text-[#6E6E73] dark:text-gray-400 leading-relaxed mb-4">
+                Se consideran datos personales cualquier información que identifique, localice o permita contactar a una persona física, incluyendo:
               </p>
-              <p className="text-[#6E6E73] dark:text-gray-400 leading-relaxed mt-3">
-                Esta Política describe cómo recopilamos, usamos, almacenamos y protegemos tu información.
-              </p>
+              <ul className="space-y-3">
+                {[
+                  "Datos de identificación: nombre, correo, teléfono, documento de identidad",
+                  "Datos de ubicación: país, región, dirección IP",
+                  "Datos financieros: número de cuenta, movimientos bancarios, ingresos, gastos",
+                  "Datos de dispositivo: tipo de navegador, sistema operativo, ID de sesión",
+                  "Datos de comportamiento: historial de uso, preferencias, interacciones",
+                  "Datos de conexión: logs de acceso, timestamps, información de sesión",
+                  "Datos biométricos: si en futuro se implementan (datos de voz, huella dactilar)"
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <Database className="w-5 h-5 text-[#1C8FA0] mt-0.5 flex-shrink-0" />
+                    <span className="text-[#6E6E73] dark:text-gray-400">{item}</span>
+                  </li>
+                ))}
+              </ul>
             </motion.section>
 
-            {/* Sección 2 */}
+            {/* Sección 2: Recopilación de Datos */}
             <motion.section
+              id="recopilacion-de-datos"
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.1 }}
+              transition={{ duration: 0.6 }}
               className="bg-white dark:bg-[#1a1a1a] p-8 rounded-[24px] border border-gray-100 dark:border-white/10"
             >
-              <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white mb-4">
-                2. Qué Datos Recopilamos
-              </h2>
+              <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white mb-4">2. Recopilación de Datos</h2>
               
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-[#1a1a1a] dark:text-white mb-3 flex items-center gap-2">
-                  <Database className="w-5 h-5 text-[#1C8FA0]" />
-                  Datos proporcionados por el usuario
-                </h3>
-                <ul className="space-y-2 ml-7">
-                  {[
-                    "Correo electrónico",
-                    "Nombre (opcional)",
-                    "Categorías y descripciones ingresadas manualmente",
-                    "Gastos e ingresos solo registrados por ti"
-                  ].map((item, index) => (
-                    <li key={index} className="text-[#6E6E73] dark:text-gray-400">• {item}</li>
-                  ))}
-                </ul>
-              </div>
+              <h3 className="text-xl font-semibold text-[#1a1a1a] dark:text-white mb-3 mt-6">2.1 Datos que Recopilamos Directamente (Proporcionados por el Usuario)</h3>
+              
+              <h4 className="text-lg font-semibold text-[#1a1a1a] dark:text-white mb-2 mt-4">A) Registro e Identificación</h4>
+              <ul className="space-y-2 mb-4">
+                {[
+                  "Nombre completo",
+                  "Correo electrónico",
+                  "Contraseña (hasheada, nunca almacenada en texto plano)",
+                  "Número de teléfono (opcional)",
+                  "Fotografía de perfil (opcional)",
+                  "Datos de verificación de identidad (si aplica)"
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <CheckCircle className="w-4 h-4 text-[#1C8FA0] mt-1 flex-shrink-0" />
+                    <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
+                  </li>
+                ))}
+              </ul>
 
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-[#1a1a1a] dark:text-white mb-3 flex items-center gap-2">
-                  <Eye className="w-5 h-5 text-[#1C8FA0]" />
-                  Datos técnicos
-                </h3>
-                <ul className="space-y-2 ml-7">
-                  {[
-                    "Dirección IP",
-                    "Tipo de dispositivo",
-                    "Navegador",
-                    "País (geolocalización aproximada)",
-                    "Eventos de uso (por ejemplo, \"creó una categoría\", \"añadió un gasto\")"
-                  ].map((item, index) => (
-                    <li key={index} className="text-[#6E6E73] dark:text-gray-400">• {item}</li>
-                  ))}
-                </ul>
-              </div>
+              <h4 className="text-lg font-semibold text-[#1a1a1a] dark:text-white mb-2 mt-4">B) Datos Financieros</h4>
+              <ul className="space-y-2 mb-4">
+                {[
+                  "Bancos conectados (mediante conexión segura con agregador financiero)",
+                  "Extractos y movimientos de cuenta",
+                  "Transacciones (solo las compartidas por el usuario)",
+                  "Información de suscripciones detectadas",
+                  "Historial de pagos y facturas",
+                  "Presupuestos y metas financieras establecidas",
+                  "Datos de ingresos y gastos (declarados o importados)"
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <CreditCard className="w-4 h-4 text-[#1C8FA0] mt-1 flex-shrink-0" />
+                    <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
+                  </li>
+                ))}
+              </ul>
 
-              <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
-                <h3 className="text-lg font-semibold text-[#1a1a1a] dark:text-white mb-3">
-                  Datos que NO recopilamos
-                </h3>
-                <ul className="space-y-2">
-                  {[
-                    "Claves bancarias",
-                    "Acceso a bancos",
-                    "Tokens financieros",
-                    "Movimientos reales del banco",
-                    "Saldo real"
-                  ].map((item, index) => (
-                    <li key={index} className="flex items-center gap-2 text-[#6E6E73] dark:text-gray-400">
-                      <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <h4 className="text-lg font-semibold text-[#1a1a1a] dark:text-white mb-2 mt-4">C) Datos de Suscripción y Pago</h4>
+              <ul className="space-y-2 mb-4">
+                {[
+                  "Información de facturación (nombre, dirección)",
+                  "Datos de pago (procesados por Mercado Pago, no almacenamos números de tarjeta)",
+                  "Historial de transacciones",
+                  "Plan de suscripción actual",
+                  "Fecha de renovación",
+                  "Métodos de pago registrados"
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <CreditCard className="w-4 h-4 text-[#1C8FA0] mt-1 flex-shrink-0" />
+                    <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <h4 className="text-lg font-semibold text-[#1a1a1a] dark:text-white mb-2 mt-4">D) Datos de Preferencias y Configuración</h4>
+              <ul className="space-y-2 mb-4">
+                {[
+                  "Idioma preferido",
+                  "Zona horaria",
+                  "Preferencias de notificación",
+                  "Temas visuales (claro/oscuro)",
+                  "Datos de autenticación (Google OAuth, etc.)"
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <Zap className="w-4 h-4 text-[#1C8FA0] mt-1 flex-shrink-0" />
+                    <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <h4 className="text-lg font-semibold text-[#1a1a1a] dark:text-white mb-2 mt-4">E) Contenido Generado por el Usuario</h4>
+              <ul className="space-y-2 mb-6">
+                {[
+                  "Mensajes enviados a soporte",
+                  "Retroalimentación y encuestas",
+                  "Notas y anotaciones personales",
+                  "Reportes descargados",
+                  "Documentos adjuntos"
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <FileText className="w-4 h-4 text-[#1C8FA0] mt-1 flex-shrink-0" />
+                    <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <h3 className="text-xl font-semibold text-[#1a1a1a] dark:text-white mb-3 mt-6">2.2 Datos Recopilados Automáticamente</h3>
+              
+              <h4 className="text-lg font-semibold text-[#1a1a1a] dark:text-white mb-2 mt-4">A) Información de Dispositivo</h4>
+              <ul className="space-y-2 mb-4">
+                {[
+                  "Tipo de navegador y versión",
+                  "Sistema operativo",
+                  "Idioma del dispositivo",
+                  "Resolución de pantalla",
+                  "Tipo de conexión (WiFi, móvil, etc.)",
+                  "Identificadores únicos del navegador"
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <Eye className="w-4 h-4 text-[#1C8FA0] mt-1 flex-shrink-0" />
+                    <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <h4 className="text-lg font-semibold text-[#1a1a1a] dark:text-white mb-2 mt-4">B) Datos de Sesión y Acceso</h4>
+              <ul className="space-y-2 mb-4">
+                {[
+                  "Dirección IP (anonimizada después de procesamiento)",
+                  "Timestamp de acceso",
+                  "URL referente",
+                  "Páginas visitadas y duración",
+                  "Acciones realizadas",
+                  "Errores ocurridos",
+                  "Logs de inicio de sesión"
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <Database className="w-4 h-4 text-[#1C8FA0] mt-1 flex-shrink-0" />
+                    <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <h4 className="text-lg font-semibold text-[#1a1a1a] dark:text-white mb-2 mt-4">C) Datos de Uso y Comportamiento</h4>
+              <ul className="space-y-2 mb-4">
+                {[
+                  "Funciones utilizadas (transcripción de voz, análisis IA, descarga de reportes, etc.)",
+                  "Frecuencia de uso",
+                  "Tiempo de sesión",
+                  "Interacciones con IA",
+                  "Búsquedas realizadas",
+                  "Categorías consultadas"
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <BarChart3 className="w-4 h-4 text-[#1C8FA0] mt-1 flex-shrink-0" />
+                    <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <h3 className="text-xl font-semibold text-[#1a1a1a] dark:text-white mb-3 mt-6">2.3 Cookies, Pixels y Tecnologías de Rastreo</h3>
+              
+              <h4 className="text-lg font-semibold text-[#1a1a1a] dark:text-white mb-2 mt-4">Cookies Esenciales (OBLIGATORIAS)</h4>
+              <ul className="space-y-2 mb-4">
+                {[
+                  "session_id: Mantiene tu sesión activa",
+                  "auth_token: Autentica tu acceso",
+                  "csrf_token: Protege contra ataques CSRF",
+                  "preferences: Tus preferencias (idioma, tema)"
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <Lock className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
+                    <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-[#6E6E73] dark:text-gray-400 text-sm mb-4">
+                <strong>Duración:</strong> Hasta que cierres sesión (sesión) o 30 días (persistentes)<br/>
+                <strong>Consentimiento:</strong> NO REQUIERE (son esenciales para funcionamiento)
+              </p>
+
+              <h4 className="text-lg font-semibold text-[#1a1a1a] dark:text-white mb-2 mt-4">Cookies Analíticas (REQUIERE CONSENTIMIENTO)</h4>
+              <ul className="space-y-2 mb-4">
+                {[
+                  "Google Analytics: Rastreo de uso agregado",
+                  "Mixpanel: Análisis de comportamiento",
+                  "Sentry: Monitoreo de errores"
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <Cookie className="w-4 h-4 text-amber-500 mt-1 flex-shrink-0" />
+                    <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-[#6E6E73] dark:text-gray-400 text-sm mb-4">
+                <strong>Propósito:</strong> Entender cómo usas la plataforma, mejorar rendimiento<br/>
+                <strong>Duración:</strong> 24 meses<br/>
+                <strong>Consentimiento:</strong> REQUERIDO (banner en primera visita)
+              </p>
+
+              <h4 className="text-lg font-semibold text-[#1a1a1a] dark:text-white mb-2 mt-4">Cookies de Marketing (REQUIERE CONSENTIMIENTO)</h4>
+              <ul className="space-y-2 mb-4">
+                {[
+                  "Facebook Pixel: Remarketing en redes",
+                  "LinkedIn Insight: Seguimiento B2B",
+                  "Cookies de terceros asociados"
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <Bell className="w-4 h-4 text-purple-500 mt-1 flex-shrink-0" />
+                    <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-[#6E6E73] dark:text-gray-400 text-sm mb-4">
+                <strong>Propósito:</strong> Mostrar anuncios relevantes, medir efectividad de campañas<br/>
+                <strong>Duración:</strong> 12 meses<br/>
+                <strong>Consentimiento:</strong> REQUERIDO (rechazo por defecto)
+              </p>
+
+              <h4 className="text-lg font-semibold text-[#1a1a1a] dark:text-white mb-2 mt-4">Gestión de Cookies</h4>
+              <ul className="space-y-2">
+                {[
+                  "Banner de consentimiento en primera visita",
+                  "Centro de preferencias: /privacidad/cookies",
+                  "Opción de rechazar todas (excepto esenciales)",
+                  "Cambiar preferencias en cualquier momento",
+                  "Aceptación implícita de cookies esenciales"
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <Shield className="w-4 h-4 text-[#1C8FA0] mt-1 flex-shrink-0" />
+                    <span className="text-[#6E6E73] dark:text-gray-400 text-sm">{item}</span>
+                  </li>
+                ))}
+              </ul>
             </motion.section>
 
             {/* Sección 3 */}
