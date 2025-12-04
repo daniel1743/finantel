@@ -4,7 +4,9 @@ import { useAuth } from './SupabaseAuthContext';
 const DemoModeContext = createContext();
 
 export const DemoModeProvider = ({ children }) => {
+  // ✅ useAuth ahora está disponible porque DemoModeProvider está dentro de AuthProvider
   const { user } = useAuth();
+
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [demoStartTime, setDemoStartTime] = useState(null);
   const [showConversionModal, setShowConversionModal] = useState(false);

@@ -18,61 +18,89 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const createDynamicStorage = () => {
   return {
     getItem: (key) => {
-      // Primero intentar localStorage, luego sessionStorage
-      return window.localStorage.getItem(key) || window.sessionStorage.getItem(key);
+      // Verificar preferencia de "mantener sesión" para decidir dónde buscar
+      const rememberMe = window.localStorage.getItem('finantel_remember_me') !== 'false';
+      
+      if (rememberMe) {
+        // Si rememberMe está activo, buscar primero en localStorage
+        const value = window.localStorage.getItem(key);
+        if (value) return value;
+        // Si no está en localStorage, buscar en sessionStorage (migración)
+        return window.sessionStorage.getItem(key);
+      } else {
+        // Si rememberMe está desactivado, buscar primero en sessionStorage
+        const value = window.sessionStorage.getItem(key);
+        if (value) return value;
+        // Si no está en sessionStorage, buscar en localStorage (migración)
+        return window.localStorage.getItem(key);
+      }
     },
     setItem: (key, value) => {
       // Verificar preferencia de "mantener sesión"
-      const rememberMe = window.localStorage.getItem('finantel_remember_me') !== 'false';
+      // Por defecto, si no existe la preferencia, usar localStorage (rememberMe=true)
+      const rememberMePreference = window.localStorage.getItem('finantel_remember_me');
+      const rememberMe = rememberMePreference === null || rememberMePreference === 'true';
 
       if (rememberMe) {
         // Persistir en localStorage (permanente)
         window.localStorage.setItem(key, value);
-        // Limpiar de sessionStorage si existe
+        // Limpiar de sessionStorage si existe (evitar duplicados)
         window.sessionStorage.removeItem(key);
       } else {
         // Usar sessionStorage (se borra al cerrar pestaña)
         window.sessionStorage.setItem(key, value);
-        // Limpiar de localStorage si existe
+        // Limpiar de localStorage si existe (evitar duplicados)
         window.localStorage.removeItem(key);
       }
     },
     removeItem: (key) => {
-      // Remover de ambos storages
+      // Remover de ambos storages para asegurar limpieza completa
       window.localStorage.removeItem(key);
       window.sessionStorage.removeItem(key);
     },
   };
 };
 
-// Configurar cliente con opciones para manejo de tokens
-const customSupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true, // Refrescar tokens automáticamente
-    persistSession: true, // Persistir sesión
-    detectSessionInUrl: true, // Detectar sesión en URL (para callbacks)
-    storage: createDynamicStorage(), // ✅ Usar storage dinámico
-    flowType: 'pkce', // Usar PKCE flow para mejor seguridad
-  },
-  realtime: {
-    // Deshabilitar Realtime en desarrollo si no se usa
-    // Esto evita errores de conexión WebSocket a localhost:3001
-    ...(import.meta.env.DEV ? {
-      // En desarrollo, deshabilitar Realtime si no es necesario
-      // Comentar la siguiente línea si necesitas Realtime en desarrollo
-      // params: { eventsPerSecond: 10 },
-    } : {
-      params: {
-        eventsPerSecond: 10, // Limitar eventos por segundo
+// ✅ SINGLETON: Asegurar que solo se cree una instancia de Supabase
+// Esto previene el warning "Multiple GoTrueClient instances detected"
+let customSupabaseClient = null;
+
+// Función para obtener o crear la instancia única
+const getSupabaseClient = () => {
+  if (!customSupabaseClient) {
+    customSupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: true, // Refrescar tokens automáticamente
+        persistSession: true, // Persistir sesión
+        detectSessionInUrl: true, // Detectar sesión en URL (para callbacks)
+        storage: createDynamicStorage(), // ✅ Usar storage dinámico
+        flowType: 'pkce', // Usar PKCE flow para mejor seguridad
       },
-    }),
-  },
-  global: {
-    headers: {
-      'x-client-info': 'finantel-web@2.1',
-    },
-  },
-});
+      realtime: {
+        // Deshabilitar Realtime en desarrollo si no se usa
+        // Esto evita errores de conexión WebSocket a localhost:3001
+        ...(import.meta.env.DEV ? {
+          // En desarrollo, deshabilitar Realtime si no es necesario
+          // Comentar la siguiente línea si necesitas Realtime en desarrollo
+          // params: { eventsPerSecond: 10 },
+        } : {
+          params: {
+            eventsPerSecond: 10, // Limitar eventos por segundo
+          },
+        }),
+      },
+      global: {
+        headers: {
+          'x-client-info': 'finantel-web@2.1',
+        },
+      },
+    });
+  }
+  return customSupabaseClient;
+};
+
+// Inicializar el cliente
+customSupabaseClient = getSupabaseClient();
 
 // Interceptor para manejar errores de token expirado
 customSupabaseClient.auth.onAuthStateChange((event, session) => {

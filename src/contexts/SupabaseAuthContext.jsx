@@ -111,6 +111,16 @@ export const AuthProvider = ({ children }) => {
     
     const getSession = async () => {
       try {
+        // Verificar preferencia de "mantener sesión" al cargar
+        const rememberMePreference = localStorage.getItem('finantel_remember_me');
+        const rememberMe = rememberMePreference === null || rememberMePreference === 'true';
+        
+        if (rememberMe) {
+          console.log('🔐 [Auth] Preferencia "Mantener sesión": ACTIVADA - Buscando sesión en localStorage');
+        } else {
+          console.log('🔐 [Auth] Preferencia "Mantener sesión": DESACTIVADA - Buscando sesión en sessionStorage');
+        }
+        
         const { data: { session }, error } = await supabase.auth.getSession();
         if (!mounted) return;
         
@@ -134,6 +144,13 @@ export const AuthProvider = ({ children }) => {
           handleSession(null);
           return;
         }
+        
+        if (session) {
+          console.log('✅ [Auth] Sesión encontrada:', session.user?.email);
+        } else {
+          console.log('ℹ️ [Auth] No hay sesión activa');
+        }
+        
         handleSession(session);
       } catch (err) {
         if (!mounted) return;
@@ -232,37 +249,31 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = useCallback(async (email, password, rememberMe = true) => {
     try {
-      // ✅ Guardar preferencia de "recordar sesión" ANTES de iniciar sesión
+      // ✅ CRÍTICO: Guardar preferencia de "recordar sesión" ANTES de iniciar sesión
+      // Esto es esencial para que el storage adapter sepa dónde guardar la sesión
       localStorage.setItem('finantel_remember_me', rememberMe ? 'true' : 'false');
+      
+      // Si rememberMe es false, limpiar cualquier sesión previa en localStorage
+      if (!rememberMe) {
+        // Limpiar tokens de Supabase de localStorage antes de iniciar sesión
+        const supabaseKeys = Object.keys(localStorage).filter(key => 
+          key.startsWith('sb-') || key.includes('supabase')
+        );
+        supabaseKeys.forEach(key => localStorage.removeItem(key));
+      } else {
+        // Si rememberMe es true, limpiar cualquier sesión en sessionStorage
+        const supabaseKeys = Object.keys(sessionStorage).filter(key => 
+          key.startsWith('sb-') || key.includes('supabase')
+        );
+        supabaseKeys.forEach(key => sessionStorage.removeItem(key));
+      }
 
-      console.log(`🔐 Iniciando sesión con "Mantener sesión": ${rememberMe ? 'SÍ (localStorage)' : 'NO (sessionStorage - se borrará al cerrar)'}`);
+      console.log(`🔐 [Auth] Iniciando sesión con "Mantener sesión": ${rememberMe ? 'SÍ (localStorage - persistente)' : 'NO (sessionStorage - se borrará al cerrar pestaña)'}`);
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      
-      // Si el usuario no quiere mantener sesión, configurar listener para limpiar al cerrar
-      if (!rememberMe && typeof window !== 'undefined') {
-        // Limpiar sesión cuando se cierra la pestaña/ventana
-        const handleBeforeUnload = () => {
-          supabase.auth.signOut().catch(() => {
-            // Ignorar errores al cerrar sesión
-          });
-        };
-        
-        // Agregar listener temporal (se limpiará cuando se cierre la pestaña)
-        window.addEventListener('beforeunload', handleBeforeUnload);
-        
-        // También limpiar cuando la pestaña pierde visibilidad (opcional, más agresivo)
-        const handleVisibilityChange = () => {
-          if (document.hidden) {
-            // Cuando la pestaña se oculta, no hacer nada todavía
-            // Solo limpiar cuando realmente se cierra
-          }
-        };
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-      }
 
       if (error) {
         // Manejar errores específicos

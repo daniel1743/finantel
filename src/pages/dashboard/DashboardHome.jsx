@@ -1658,7 +1658,7 @@ const DashboardHome = () => {
 
             {/* DERECHA: Lista de transacciones */}
             <div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {realData.hasData && transactions && transactions.length > 0 ? (
                   transactions.slice(0, 5).map((tx, i) => {
               const categoryName = tx.categories?.name || 'Sin categoría';
@@ -1704,20 +1704,18 @@ const DashboardHome = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: 1.3 + (i * 0.05) }}
-                className="flex items-center justify-between p-4 hover:bg-gray-50/80 dark:hover:bg-white/5 rounded-xl transition-colors group cursor-pointer border-b border-gray-50 dark:border-white/5 last:border-0"
+                className="grid grid-cols-[auto,1fr,auto] items-center gap-4 p-4 hover:bg-gray-50/80 dark:hover:bg-white/5 rounded-xl transition-colors group cursor-pointer border border-gray-50 dark:border-white/5"
               >
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-10 h-10 rounded-full bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform flex-shrink-0">
-                    {React.isValidElement(item.icon) 
-                      ? item.icon 
-                      : React.createElement(item.icon, { className: "w-4 h-4 text-[#6E6E73] dark:text-gray-400" })}
-                  </div>
-                  <div className="flex-1 min-w-0 pr-2">
-                    <p className="text-sm font-bold text-[#1a1a1a] dark:text-white break-words whitespace-normal">{item.name}</p>
-                    <p className="text-xs text-[#6E6E73] dark:text-gray-400 break-words whitespace-normal">{item.category} • {item.date}</p>
-                  </div>
+                <div className="w-11 h-11 rounded-full bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                  {React.isValidElement(item.icon) 
+                    ? item.icon 
+                    : React.createElement(item.icon, { className: "w-5 h-5 text-[#6E6E73] dark:text-gray-400" })}
                 </div>
-                <div className="flex-shrink-0 ml-2 text-right">
+                <div className="min-w-0 self-center">
+                  <p className="text-sm font-bold text-[#1a1a1a] dark:text-white break-words whitespace-normal">{item.name}</p>
+                  <p className="text-xs text-[#6E6E73] dark:text-gray-400 break-words whitespace-normal">{item.category} · {item.date}</p>
+                </div>
+                <div className="text-right self-center pl-2">
                   <span className={`text-sm font-bold font-mono whitespace-nowrap ${item.isIncome ? 'text-green-600 dark:text-green-400' : 'text-[#1a1a1a] dark:text-white'}`}>
                     {item.amount}
                   </span>

@@ -36,7 +36,11 @@ const Auth = () => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true); // Por defecto mantener sesión
+  // Cargar preferencia guardada o usar true por defecto
+  const [rememberMe, setRememberMe] = useState(() => {
+    const saved = localStorage.getItem('finantel_remember_me');
+    return saved === null || saved === 'true'; // Por defecto true si no hay preferencia
+  });
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -160,10 +164,10 @@ const Auth = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="text-[#6E6E73] hover:text-[#1C8FA0] transition-colors focus:outline-none"
+                className="text-[#6E6E73] hover:text-[#1C8FA0] transition-colors focus:outline-none flex items-center justify-center"
                 aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
-                {showPassword ? <Icon component={EyeOff} size="sm" color="default" /> : <Icon component={Eye} size="sm" color="default" />}
+                {showPassword ? <Icon component={EyeOff} size="xs" color="muted" /> : <Icon component={Eye} size="xs" color="muted" />}
               </button>
             }
           />
@@ -187,10 +191,10 @@ const Auth = () => {
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="text-[#6E6E73] hover:text-[#1C8FA0] transition-colors focus:outline-none"
+                      className="text-[#6E6E73] hover:text-[#1C8FA0] transition-colors focus:outline-none flex items-center justify-center"
                       aria-label={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                     >
-                      {showConfirmPassword ? <Icon component={EyeOff} size="sm" color="default" /> : <Icon component={Eye} size="sm" color="default" />}
+                      {showConfirmPassword ? <Icon component={EyeOff} size="xs" color="muted" /> : <Icon component={Eye} size="xs" color="muted" />}
                     </button>
                   }
                 />
@@ -214,8 +218,9 @@ const Auth = () => {
                   onChange={(e) => {
                     const newValue = e.target.checked;
                     setRememberMe(newValue);
-                    // Mostrar feedback visual
-                    console.log(`✅ Mantener sesión: ${newValue ? 'ACTIVADO (no pedirá credenciales al volver)' : 'DESACTIVADO (pedirá credenciales al cerrar navegador)'}`);
+                    // Guardar preferencia inmediatamente cuando cambia
+                    localStorage.setItem('finantel_remember_me', newValue ? 'true' : 'false');
+                    console.log(`✅ [Auth] Preferencia "Mantener sesión" actualizada: ${newValue ? 'ACTIVADO (sesión persistente en localStorage)' : 'DESACTIVADO (sesión temporal en sessionStorage)'}`);
                   }}
                   className="w-4 h-4 rounded border-gray-300 text-[#1C8FA0] focus:ring-[#1C8FA0] cursor-pointer"
                 />

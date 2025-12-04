@@ -44,13 +44,13 @@ const Input = React.forwardRef(({
   const hasRightIcon = !!iconRight;
 
   // Padding calculado con tokens para evitar solapamiento de iconos y texto
-  // Aumentado el espaciado entre icono y texto para mejor legibilidad
+  // Espaciado aumentado entre icono y texto para mejor legibilidad y separación
   const paddingWithIcon = {
     paddingLeft: hasLeftIcon
-      ? `calc(var(--control-padding-x) + var(--icon-size-md) + 20px)`
+      ? `calc(var(--control-padding-x) + var(--icon-size-md) + 24px)`
       : undefined,
     paddingRight: hasRightIcon
-      ? `calc(var(--control-padding-x) + var(--icon-size-md) + 20px)`
+      ? `calc(var(--control-padding-x) + var(--icon-size-md) + 24px)`
       : undefined,
   };
 
@@ -59,9 +59,10 @@ const Input = React.forwardRef(({
       {hasLeftIcon && (
         <div
           className={cn(
-            'absolute top-1/2 -translate-y-1/2 z-10 pointer-events-none',
+            'absolute top-1/2 -translate-y-1/2 z-10 pointer-events-none flex items-center justify-center',
             size === 'sm' ? 'left-3' : size === 'lg' ? 'left-4' : 'left-4'
           )}
+          style={{ width: 'var(--icon-size-md)', height: 'var(--icon-size-md)' }}
         >
           <Icon component={icon} size="xs" color="muted" />
         </div>
@@ -81,9 +82,10 @@ const Input = React.forwardRef(({
       {hasRightIcon && (
         <div
           className={cn(
-            'absolute top-1/2 -translate-y-1/2 z-10',
-            size === 'sm' ? 'right-2.5' : size === 'lg' ? 'right-4' : 'right-3'
+            'absolute top-1/2 -translate-y-1/2 z-10 flex items-center justify-center',
+            size === 'sm' ? 'right-3' : size === 'lg' ? 'right-4' : 'right-4'
           )}
+          style={{ width: 'var(--icon-size-md)', height: 'var(--icon-size-md)' }}
         >
           {typeof iconRight === 'function' ? (
             <Icon component={iconRight} size="xs" color="muted" />
