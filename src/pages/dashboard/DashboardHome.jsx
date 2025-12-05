@@ -1279,8 +1279,8 @@ const DashboardHome = () => {
         </div>
       ) : (
         <>
-          {/* KPIs Row - 6 Tarjetas Principales */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4">
+          {/* KPIs Row - 6 Tarjetas Principales: 3 arriba, 3 abajo */}
+          <div className="grid grid-cols-3 gap-4">
             {/* 1. Ingresos Totales - PRIMERA */}
             <KPICard
               title="Ingresos Totales"
