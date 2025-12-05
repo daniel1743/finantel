@@ -1154,6 +1154,57 @@ const DashboardHome = () => {
       });
     }
 
+    // Calcular gastos por día de la semana (L, M, M, J, V, S, D)
+    const weeklyExpenses = {
+      0: 0, // Domingo
+      1: 0, // Lunes
+      2: 0, // Martes
+      3: 0, // Miércoles
+      4: 0, // Jueves
+      5: 0, // Viernes
+      6: 0  // Sábado
+    };
+
+    // Filtrar transacciones del mes actual y sumar gastos por día de la semana
+    currentMonthTransactions.forEach(tx => {
+      if (tx.type === 'expense' && tx.amount) {
+        const txDate = new Date(tx.date);
+        const dayOfWeek = txDate.getDay(); // 0 = Domingo, 1 = Lunes, etc.
+        weeklyExpenses[dayOfWeek] += parseFloat(tx.amount || 0);
+      }
+    });
+
+    // Crear array de datos semanales (L, M, M, J, V, S, D)
+    const weeklyData = [
+      { day: 'L', value: weeklyExpenses[1], dayIndex: 1 }, // Lunes
+      { day: 'M', value: weeklyExpenses[2], dayIndex: 2 }, // Martes
+      { day: 'M', value: weeklyExpenses[3], dayIndex: 3 }, // Miércoles
+      { day: 'J', value: weeklyExpenses[4], dayIndex: 4 }, // Jueves
+      { day: 'V', value: weeklyExpenses[5], dayIndex: 5 }, // Viernes
+      { day: 'S', value: weeklyExpenses[6], dayIndex: 6 }, // Sábado
+      { day: 'D', value: weeklyExpenses[0], dayIndex: 0 }  // Domingo
+    ];
+
+    // Encontrar máximo y mínimo para asignar colores
+    const values = weeklyData.map(d => d.value);
+    const maxValue = Math.max(...values, 1); // Evitar división por 0
+    const minValue = Math.min(...values.filter(v => v > 0), 0);
+
+    // Asignar colores según el gasto
+    weeklyData.forEach((day, index) => {
+      if (day.value === maxValue && maxValue > 0) {
+        day.color = 'bg-red-500'; // Rojo: día que se gastó más
+      } else if (day.value === minValue && minValue > 0) {
+        day.color = 'bg-green-400'; // Verde fluorescente: día que se gastó menos
+      } else if (day.value > 0) {
+        // Amarillo y naranja para los intermedios
+        const ratio = (day.value - minValue) / (maxValue - minValue || 1);
+        day.color = ratio > 0.5 ? 'bg-orange-500' : 'bg-yellow-500';
+      } else {
+        day.color = 'bg-gray-200'; // Sin gastos
+      }
+    });
+
     return {
       hasData: true,
       totalExpenses,
@@ -1162,7 +1213,8 @@ const DashboardHome = () => {
       transactionsCount: currentMonthTransactions.length,
       categoryData,
       departmentData,
-      monthlyData
+      monthlyData,
+      weeklyData
     };
   };
 
@@ -1383,26 +1435,72 @@ const DashboardHome = () => {
             <h3 className="font-bold text-neutral-900 dark:text-white">Tasa de Ahorro</h3>
             <CheckCircle2 className="w-5 h-5 text-green-500" />
           </div>
-          <GaugeChart 
-            value={isNaN(realData.savingsRate) ? 0 : Math.max(0, Math.min(100, realData.savingsRate))} 
-            max={100} 
-            label="Ahorro" 
-            color={realData.savingsRate >= 0 ? "#10b981" : "#ef4444"} 
-            size={200} 
-            delay={0.7} 
-          />
-          <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/5">
-            <div className="flex justify-between text-sm">
-              <span className="text-neutral-500 dark:text-gray-400">Objetivo</span>
-              <span className="font-bold text-neutral-900 dark:text-white">35%</span>
-          </div>
-            <div className="flex justify-between text-sm mt-2">
-              <span className="text-neutral-500 dark:text-gray-400">Actual</span>
-              <span className={`font-bold ${realData.savingsRate >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                {realData.savingsRate.toFixed(1)}%
-              </span>
-        </div>
-          </div>
+          
+          {/* Determinar estado según porcentaje (misma lógica que ImprovedGaugeChart) */}
+          {(() => {
+            const percentage = Math.min(100, Math.max(0, realData.savingsRate));
+            let zoneName, zoneColor, emoji;
+            if (percentage < 20) {
+              zoneName = "Crítico";
+              zoneColor = "text-red-600 dark:text-red-400";
+              emoji = "🔴";
+            } else if (percentage < 40) {
+              zoneName = "Bajo";
+              zoneColor = "text-yellow-600 dark:text-yellow-400";
+              emoji = "🟡";
+            } else if (percentage < 70) {
+              zoneName = "Bueno";
+              zoneColor = "text-blue-600 dark:text-blue-400";
+              emoji = "🔵";
+            } else {
+              zoneName = "Excelente";
+              zoneColor = "text-green-600 dark:text-green-400";
+              emoji = "🟢";
+            }
+            return (
+              <>
+                {/* Números arriba - Información importante */}
+                <div className="mb-4 space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-neutral-500 dark:text-gray-400">Objetivo</span>
+                    <span className="font-bold text-neutral-900 dark:text-white">35%</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-neutral-500 dark:text-gray-400">Actual</span>
+                    <span className={`font-bold ${realData.savingsRate >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {realData.savingsRate.toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+
+                {/* Estado/Advertencia */}
+                <div className="mb-4 flex items-center gap-2">
+                  <span className="text-lg">{emoji}</span>
+                  <span className={`text-sm font-bold ${zoneColor}`}>{zoneName}</span>
+                </div>
+
+                {/* Línea de progreso delgada (60% más delgada) */}
+                <div className="mt-4">
+                  <div className="h-1.5 w-full bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.min(100, Math.max(0, realData.savingsRate))}%` }}
+                      transition={{ duration: 1, delay: 0.7, ease: "easeOut" }}
+                      className={`h-full rounded-full ${
+                        percentage < 20
+                          ? 'bg-gradient-to-r from-red-500 to-red-600'
+                          : percentage < 40
+                          ? 'bg-gradient-to-r from-yellow-500 to-yellow-600'
+                          : percentage < 70
+                          ? 'bg-gradient-to-r from-blue-500 to-blue-600'
+                          : 'bg-gradient-to-r from-green-500 to-green-600'
+                      }`}
+                    />
+                  </div>
+                </div>
+              </>
+            );
+          })()}
         </motion.div>
 
         {/* Bar Chart - Gastos por Categoría */}
@@ -1615,7 +1713,7 @@ const DashboardHome = () => {
                 </div>
               </div>
               
-              {/* Gráfico pequeño - Optimizado para evitar reflow */}
+              {/* Gráfico de días de la semana - Interactivo */}
               <div 
                 className="w-full bg-gray-50 dark:bg-white/5 rounded-lg"
                 style={{
@@ -1624,33 +1722,76 @@ const DashboardHome = () => {
                 }}
               >
                 <div 
-                  className="flex items-end"
+                  className="flex items-end justify-between"
                   style={{
                     height: 'clamp(4rem, 12vw, 5rem)',
                     gap: 'clamp(0.25rem, 1vw, 0.5rem)',
                   }}
                 >
-                  {(realData.monthlyData && realData.monthlyData.length > 0 ? realData.monthlyData : Array.from({length:6},(_,i)=>({value:0}))).map((d, idx) => {
-                    const v = Math.max(0, Math.min(1, d.value || 0));
-                    const heightPerc = Math.max(6, Math.round(v * 100));
+                  {(realData.weeklyData || [
+                    { day: 'L', value: 0, color: 'bg-gray-200' },
+                    { day: 'M', value: 0, color: 'bg-gray-200' },
+                    { day: 'M', value: 0, color: 'bg-gray-200' },
+                    { day: 'J', value: 0, color: 'bg-gray-200' },
+                    { day: 'V', value: 0, color: 'bg-gray-200' },
+                    { day: 'S', value: 0, color: 'bg-gray-200' },
+                    { day: 'D', value: 0, color: 'bg-gray-200' }
+                  ]).map((dayData, idx) => {
+                    const maxValue = Math.max(...(realData.weeklyData || []).map(d => d.value), 1);
+                    const heightPerc = maxValue > 0 
+                      ? Math.max(10, Math.round((dayData.value / maxValue) * 100))
+                      : 10;
+                    
                     return (
-                      <motion.div
+                      <div
                         key={idx}
-                        initial={{ scaleY: 0 }}
-                        animate={{ scaleY: heightPerc / 100 }}
-                        transition={{ 
-                          duration: 0.3,
-                          delay: idx * 0.03,
-                          ease: [0.4, 0, 0.2, 1]
-                        }}
-                        className="flex-1 rounded-t-sm origin-bottom"
+                        className="flex-1 flex flex-col items-center group relative"
                         style={{
-                          background: 'linear-gradient(180deg, var(--primary-500, #1C8FA0), var(--primary-600, #167a8a))',
-                          willChange: 'transform',
-                          transform: 'translateZ(0) scaleY(1)',
-                          minHeight: '6%',
+                          height: '100%',
                         }}
-                      />
+                      >
+                        {/* Tooltip interactivo */}
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                          <div className="bg-gray-900 dark:bg-gray-700 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                            {dayData.day === 'L' && 'Lunes'}
+                            {dayData.day === 'M' && idx === 1 && 'Martes'}
+                            {dayData.day === 'M' && idx === 2 && 'Miércoles'}
+                            {dayData.day === 'J' && 'Jueves'}
+                            {dayData.day === 'V' && 'Viernes'}
+                            {dayData.day === 'S' && 'Sábado'}
+                            {dayData.day === 'D' && 'Domingo'}
+                            : ${dayData.value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </div>
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-700"></div>
+                        </div>
+                        
+                        {/* Barra */}
+                        <motion.div
+                          initial={{ scaleY: 0 }}
+                          animate={{ scaleY: heightPerc / 100 }}
+                          transition={{ 
+                            duration: 0.4,
+                            delay: idx * 0.05,
+                            ease: [0.4, 0, 0.2, 1]
+                          }}
+                          className={`w-full rounded-t-sm origin-bottom transition-all duration-200 group-hover:opacity-80 group-hover:scale-105 ${dayData.color || 'bg-gray-200'}`}
+                          style={{
+                            willChange: 'transform',
+                            transform: 'translateZ(0)',
+                            minHeight: '10%',
+                          }}
+                        />
+                        
+                        {/* Etiqueta del día */}
+                        <span 
+                          className="text-[10px] sm:text-xs font-medium text-neutral-600 dark:text-gray-400 mt-1"
+                          style={{
+                            fontSize: 'clamp(0.625rem, 2vw, 0.75rem)',
+                          }}
+                        >
+                          {dayData.day}
+                        </span>
+                      </div>
                     );
                   })}
                 </div>
