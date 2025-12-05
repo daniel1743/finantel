@@ -77,7 +77,7 @@ const CategoryCard = ({ category, delay }) => {
         >
           {React.isValidElement(category.icon) 
             ? category.icon 
-            : React.createElement(category.icon, { className: "w-6 h-6" })}
+            : React.createElement(category.icon, { className: "w-5 h-5" })}
         </div>
         <button className="p-2 text-gray-300 dark:text-gray-600 hover:text-[#1a1a1a] dark:hover:text-white transition-colors opacity-0 group-hover:opacity-100">
           <Icon component={MoreVertical} size="md" color="default" />

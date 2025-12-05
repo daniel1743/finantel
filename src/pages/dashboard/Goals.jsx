@@ -197,8 +197,9 @@ const GoalCard = ({ goal, index, onDelete }) => {
     ? goal.monthlyNeeded 
     : (monthsLeft > 0 ? Math.ceil(remaining / monthsLeft) : null);
 
-  // Color por defecto si no está definido
-  const defaultColor = goal.color || 'bg-[#1C8FA0]';
+  // Color por defecto - leer desde metadata o color directo
+  const colorValue = goal.metadata?.color || goal.color || '#1C8FA0';
+  const colorHex = colorValue.startsWith('#') ? colorValue : '#1C8FA0';
 
   const handleDelete = (e) => {
     e.stopPropagation();
@@ -228,14 +229,10 @@ const GoalCard = ({ goal, index, onDelete }) => {
       {/* Fondo sutil con gradiente de color */}
       <div className="absolute inset-0 z-0">
         <div 
-          className={cn(
-            "absolute inset-0 opacity-5",
-            defaultColor === 'bg-pink-500' && "bg-gradient-to-br from-pink-400 to-pink-600",
-            defaultColor === 'bg-[#1C8FA0]' && "bg-gradient-to-br from-[#1C8FA0] to-[#167a8a]",
-            defaultColor === 'bg-gray-800' && "bg-gradient-to-br from-gray-700 to-gray-900",
-            defaultColor === 'bg-[#E47B45]' && "bg-gradient-to-br from-[#E47B45] to-[#d97706]",
-            !['bg-pink-500', 'bg-[#1C8FA0]', 'bg-gray-800', 'bg-[#E47B45]'].includes(defaultColor) && "bg-gradient-to-br from-[#1C8FA0] to-[#167a8a]"
-          )}
+          className="absolute inset-0 opacity-5"
+          style={{ 
+            background: `linear-gradient(to bottom right, ${colorHex}, ${colorHex}dd)`
+          }}
         />
       </div>
 
@@ -246,7 +243,7 @@ const GoalCard = ({ goal, index, onDelete }) => {
           <div className="relative w-12 h-12">
             {/* Anillos pulsantes fusionados con el badge */}
             <motion.div
-              className={cn("absolute inset-0 rounded-full", defaultColor)}
+              className="absolute inset-0 rounded-full"
               animate={{
                 scale: [1, 1.4, 1],
                 opacity: [0.4, 0, 0.4],
@@ -259,10 +256,11 @@ const GoalCard = ({ goal, index, onDelete }) => {
               style={{ 
                 width: '48px', 
                 height: '48px',
+                backgroundColor: colorHex,
               }}
             />
             <motion.div
-              className={cn("absolute inset-0 rounded-full", defaultColor)}
+              className="absolute inset-0 rounded-full"
               animate={{
                 scale: [1, 1.3, 1],
                 opacity: [0.5, 0, 0.5],
@@ -276,10 +274,11 @@ const GoalCard = ({ goal, index, onDelete }) => {
               style={{ 
                 width: '48px', 
                 height: '48px',
+                backgroundColor: colorHex,
               }}
             />
             <motion.div
-              className={cn("absolute inset-0 rounded-full", defaultColor)}
+              className="absolute inset-0 rounded-full"
               animate={{
                 scale: [1, 1.2, 1],
                 opacity: [0.6, 0, 0.6],
@@ -293,11 +292,13 @@ const GoalCard = ({ goal, index, onDelete }) => {
               style={{ 
                 width: '48px', 
                 height: '48px',
+                backgroundColor: colorHex,
               }}
             />
             {/* Badge principal fusionado con el pulso */}
             <motion.div
-              className={cn("w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg relative z-10", defaultColor)}
+              className="w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg relative z-10"
+              style={{ backgroundColor: colorHex }}
               animate={{
                 scale: [1, 1.05, 1],
               }}
@@ -363,7 +364,8 @@ const GoalCard = ({ goal, index, onDelete }) => {
                 initial={{ width: 0 }}
                 animate={{ width: `${Math.min(100, percentage)}%` }}
                 transition={{ duration: 1, delay: 0.5 + (index * 0.1) }}
-                className={cn("h-full rounded-full", defaultColor)}
+                className="h-full rounded-full"
+                style={{ backgroundColor: colorHex }}
               />
               {isOverTarget && (
                 <div className="absolute inset-0 h-full bg-green-500/30 rounded-full" />
@@ -380,7 +382,10 @@ const GoalCard = ({ goal, index, onDelete }) => {
         {monthlyNeeded && monthsLeft > 0 && (
           <div className="mt-auto pt-5 border-t border-gray-100">
             <div className="flex items-start gap-3 bg-[#1C8FA0]/5 rounded-xl p-4 border border-[#1C8FA0]/10">
-              <div className={cn("w-8 h-8 rounded-full flex items-center justify-center shrink-0", defaultColor)}>
+              <div 
+                className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+                style={{ backgroundColor: colorHex }}
+              >
                 <Icon component={Sparkles} size="xs" color="white" />
               </div>
               <div className="flex-1 min-w-0">
@@ -431,7 +436,7 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
   const [selectedColor, setSelectedColor] = useState('#1C8FA0');
   const [showIconPicker, setShowIconPicker] = useState(false);
   
-  // Paleta de colores para las metas
+  // Paleta de colores para las metas - 21 colores diferentes
   const colorPalette = [
     { name: 'Azul', value: '#1C8FA0', bg: 'bg-[#1C8FA0]' },
     { name: 'Naranja', value: '#E47B45', bg: 'bg-[#E47B45]' },
@@ -443,6 +448,17 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
     { name: 'Cian', value: '#14B8A6', bg: 'bg-[#14B8A6]' },
     { name: 'Índigo', value: '#6366F1', bg: 'bg-[#6366F1]' },
     { name: 'Gris', value: '#6B7280', bg: 'bg-[#6B7280]' },
+    { name: 'Azul Claro', value: '#3B82F6', bg: 'bg-[#3B82F6]' },
+    { name: 'Verde Lima', value: '#84CC16', bg: 'bg-[#84CC16]' },
+    { name: 'Coral', value: '#FF6B6B', bg: 'bg-[#FF6B6B]' },
+    { name: 'Turquesa', value: '#06B6D4', bg: 'bg-[#06B6D4]' },
+    { name: 'Violeta', value: '#A855F7', bg: 'bg-[#A855F7]' },
+    { name: 'Esmeralda', value: '#059669', bg: 'bg-[#059669]' },
+    { name: 'Ámbar', value: '#F97316', bg: 'bg-[#F97316]' },
+    { name: 'Fucsia', value: '#D946EF', bg: 'bg-[#D946EF]' },
+    { name: 'Azul Oscuro', value: '#1E40AF', bg: 'bg-[#1E40AF]' },
+    { name: 'Verde Oscuro', value: '#047857', bg: 'bg-[#047857]' },
+    { name: 'Rosa Oscuro', value: '#BE185D', bg: 'bg-[#BE185D]' },
   ];
 
   // Sugerir icono automáticamente cuando cambia el nombre
@@ -550,8 +566,10 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
         target_amount: parsedAmount,
         deadline: deadlineDate,
         description: formData.description.trim() || null,
-        color: selectedColor,
-        metadata: iconName ? { icon_name: iconName } : {}
+        metadata: {
+          ...(iconName ? { icon_name: iconName } : {}),
+          color: selectedColor
+        }
       };
 
       await addGoal(goalData);
@@ -618,18 +636,19 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
         onClick={(e) => e.stopPropagation()}
         className="relative bg-white dark:bg-[#1a1a1a] rounded-[26px] p-8 w-full max-w-lg shadow-2xl border border-gray-100 dark:border-white/10 z-10 max-h-[90vh] overflow-y-auto"
       >
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">Nueva Meta</h2>
-            <p className="text-sm text-[#6E6E73] dark:text-gray-400">Define tu próximo objetivo financiero</p>
-          </div>
-          <button 
-            onClick={onClose} 
-            disabled={isLoading}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors disabled:opacity-50"
-          >
-            <Icon component={X} size="md" color="default" className="dark:" />
-          </button>
+        {/* Botón cerrar en esquina superior derecha */}
+        <button 
+          onClick={onClose} 
+          disabled={isLoading}
+          className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors disabled:opacity-50 z-20"
+          aria-label="Cerrar"
+        >
+          <Icon component={X} size="md" color="default" />
+        </button>
+
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">Nueva Meta</h2>
+          <p className="text-sm text-[#6E6E73] dark:text-gray-400">Define tu próximo objetivo financiero</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -742,7 +761,7 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
                   <label className="block text-xs font-medium text-[#6E6E73] dark:text-gray-400 mb-3">
                     Seleccionar Color
                   </label>
-                  <div className="grid grid-cols-5 sm:grid-cols-10 gap-4 p-5 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10">
+                  <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10">
                     {colorPalette.map((color, idx) => {
                       const isSelected = selectedColor === color.value;
                       return (
