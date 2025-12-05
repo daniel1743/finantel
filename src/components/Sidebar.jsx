@@ -303,9 +303,9 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
             onClick={() => setIsMobileOpen(false)}
           >
             <img
-              src="/finantel-logo.png"
+              src="/INANTEL.svg"
               alt="Finantel Logo"
-              className="w-10 h-10 rounded-xl shadow-lg shadow-[#1C8FA0]/20 object-contain"
+              className="w-[46px] h-[46px] rounded-xl shadow-lg shadow-[#1C8FA0]/20 object-contain"
             />
             <span className="text-xl font-bold tracking-tight text-[#1a1a1a] dark:text-white font-['Inter_Tight']">
               FINANTEL

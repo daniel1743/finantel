@@ -7,7 +7,7 @@
 import React from 'react';
 import { VerifiedFinantelPulse } from './VerifiedFinantelPulse';
 
-export function AvatarWithVerified({ logo = '/finantel-logo.png', fallback = 'F' }) {
+export function AvatarWithVerified({ logo = '/INANTEL.svg', fallback = 'F' }) {
   return (
     <div className="relative inline-block">
       {/* Avatar con logo de Finantel */}

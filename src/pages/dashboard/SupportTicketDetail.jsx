@@ -341,7 +341,7 @@ const SupportTicketDetail = () => {
                 {/* Avatar */}
                 {response.is_staff_response ? (
                   <div className="relative flex-shrink-0">
-                    <AvatarWithVerified logo="/finantel-logo.png" fallback="F" />
+                    <AvatarWithVerified logo="/INANTEL.svg" fallback="F" />
                   </div>
                 ) : (
                   <div className={cn(

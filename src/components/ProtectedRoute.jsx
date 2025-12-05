@@ -45,9 +45,9 @@ const ProtectedRoute = ({ children }) => {
       <div className="h-screen w-full flex items-center justify-center bg-[#F5F7F9] dark:bg-[#0f0f11]">
         <div className="flex flex-col items-center gap-4">
           <img
-            src="/finantel-logo.png"
+            src="/INANTEL.svg"
             alt="Finantel Logo"
-            className="h-12 w-auto animate-pulse"
+            className="h-[55.2px] w-auto animate-pulse"
           />
           <Icon component={Loader2} size="lg" color="primary" className="animate-spin" />
           <p className="text-sm text-[#6E6E73]">Verificando sesión...</p>

@@ -1174,34 +1174,52 @@ const DashboardHome = () => {
       }
     });
 
-    // Crear array de datos semanales (L, M, M, J, V, S, D)
-    const weeklyData = [
-      { day: 'L', value: weeklyExpenses[1], dayIndex: 1 }, // Lunes
-      { day: 'M', value: weeklyExpenses[2], dayIndex: 2 }, // Martes
-      { day: 'M', value: weeklyExpenses[3], dayIndex: 3 }, // Miércoles
-      { day: 'J', value: weeklyExpenses[4], dayIndex: 4 }, // Jueves
-      { day: 'V', value: weeklyExpenses[5], dayIndex: 5 }, // Viernes
-      { day: 'S', value: weeklyExpenses[6], dayIndex: 6 }, // Sábado
-      { day: 'D', value: weeklyExpenses[0], dayIndex: 0 }  // Domingo
+    // Obtener el día actual de la semana (0 = Domingo, 1 = Lunes, ..., 6 = Sábado)
+    const today = new Date();
+    const currentDayOfWeek = today.getDay(); // 0 = Domingo, 1 = Lunes, etc.
+    
+    // Mapear día actual a índice en nuestro array (L=1, M=2, M=3, J=4, V=5, S=6, D=0)
+    // Necesitamos convertir: Domingo(0) -> 6, Lunes(1) -> 0, Martes(2) -> 1, etc.
+    const dayIndexMap = { 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 0: 6 }; // L, M, M, J, V, S, D
+    const maxDayIndex = dayIndexMap[currentDayOfWeek] !== undefined ? dayIndexMap[currentDayOfWeek] : 6;
+
+    // Crear array de datos semanales (L, M, M, J, V, S, D) - SOLO hasta el día actual
+    const allWeeklyData = [
+      { day: 'L', value: weeklyExpenses[1], dayIndex: 1, fullName: 'Lunes' }, // Lunes
+      { day: 'M', value: weeklyExpenses[2], dayIndex: 2, fullName: 'Martes' }, // Martes
+      { day: 'M', value: weeklyExpenses[3], dayIndex: 3, fullName: 'Miércoles' }, // Miércoles
+      { day: 'J', value: weeklyExpenses[4], dayIndex: 4, fullName: 'Jueves' }, // Jueves
+      { day: 'V', value: weeklyExpenses[5], dayIndex: 5, fullName: 'Viernes' }, // Viernes
+      { day: 'S', value: weeklyExpenses[6], dayIndex: 6, fullName: 'Sábado' }, // Sábado
+      { day: 'D', value: weeklyExpenses[0], dayIndex: 0, fullName: 'Domingo' }  // Domingo
     ];
 
-    // Encontrar máximo y mínimo para asignar colores
-    const values = weeklyData.map(d => d.value);
-    const maxValue = Math.max(...values, 1); // Evitar división por 0
-    const minValue = Math.min(...values.filter(v => v > 0), 0);
+    // Filtrar solo hasta el día actual
+    const weeklyData = allWeeklyData.slice(0, maxDayIndex + 1);
 
-    // Asignar colores según el gasto
-    weeklyData.forEach((day, index) => {
-      if (day.value === maxValue && maxValue > 0) {
+    // Encontrar máximo y mínimo SOLO entre días con gastos para asignar colores
+    const daysWithExpenses = weeklyData.filter(d => d.value > 0);
+    const values = daysWithExpenses.map(d => d.value);
+    const maxValue = values.length > 0 ? Math.max(...values) : 0;
+    const minValue = values.length > 0 ? Math.min(...values) : 0;
+
+    // Asignar colores según el gasto (solo a días con gastos)
+    weeklyData.forEach((day) => {
+      if (day.value === 0) {
+        // Sin gastos - se mostrará check verde
+        day.hasNoExpenses = true;
+        day.color = 'bg-gray-200'; // No se usará, pero por si acaso
+      } else if (day.value === maxValue && maxValue > 0) {
         day.color = 'bg-red-500'; // Rojo: día que se gastó más
-      } else if (day.value === minValue && minValue > 0) {
+        day.hasNoExpenses = false;
+      } else if (day.value === minValue && minValue > 0 && maxValue !== minValue) {
         day.color = 'bg-green-400'; // Verde fluorescente: día que se gastó menos
+        day.hasNoExpenses = false;
       } else if (day.value > 0) {
         // Amarillo y naranja para los intermedios
-        const ratio = (day.value - minValue) / (maxValue - minValue || 1);
+        const ratio = maxValue > minValue ? (day.value - minValue) / (maxValue - minValue) : 0.5;
         day.color = ratio > 0.5 ? 'bg-orange-500' : 'bg-yellow-500';
-      } else {
-        day.color = 'bg-gray-200'; // Sin gastos
+        day.hasNoExpenses = false;
       }
     });
 
@@ -1728,17 +1746,12 @@ const DashboardHome = () => {
                     gap: 'clamp(0.25rem, 1vw, 0.5rem)',
                   }}
                 >
-                  {(realData.weeklyData || [
-                    { day: 'L', value: 0, color: 'bg-gray-200' },
-                    { day: 'M', value: 0, color: 'bg-gray-200' },
-                    { day: 'M', value: 0, color: 'bg-gray-200' },
-                    { day: 'J', value: 0, color: 'bg-gray-200' },
-                    { day: 'V', value: 0, color: 'bg-gray-200' },
-                    { day: 'S', value: 0, color: 'bg-gray-200' },
-                    { day: 'D', value: 0, color: 'bg-gray-200' }
-                  ]).map((dayData, idx) => {
-                    const maxValue = Math.max(...(realData.weeklyData || []).map(d => d.value), 1);
-                    const heightPerc = maxValue > 0 
+                  {(realData.weeklyData || []).map((dayData, idx) => {
+                    const daysWithExpenses = (realData.weeklyData || []).filter(d => d.value > 0);
+                    const maxValue = daysWithExpenses.length > 0 
+                      ? Math.max(...daysWithExpenses.map(d => d.value))
+                      : 1;
+                    const heightPerc = maxValue > 0 && dayData.value > 0
                       ? Math.max(10, Math.round((dayData.value / maxValue) * 100))
                       : 10;
                     
@@ -1753,34 +1766,72 @@ const DashboardHome = () => {
                         {/* Tooltip interactivo */}
                         <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                           <div className="bg-gray-900 dark:bg-gray-700 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-                            {dayData.day === 'L' && 'Lunes'}
-                            {dayData.day === 'M' && idx === 1 && 'Martes'}
-                            {dayData.day === 'M' && idx === 2 && 'Miércoles'}
-                            {dayData.day === 'J' && 'Jueves'}
-                            {dayData.day === 'V' && 'Viernes'}
-                            {dayData.day === 'S' && 'Sábado'}
-                            {dayData.day === 'D' && 'Domingo'}
-                            : ${dayData.value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            {dayData.fullName || 
+                              (dayData.day === 'L' && 'Lunes') ||
+                              (dayData.day === 'M' && idx === 0 && 'Martes') ||
+                              (dayData.day === 'M' && idx === 1 && 'Miércoles') ||
+                              (dayData.day === 'J' && 'Jueves') ||
+                              (dayData.day === 'V' && 'Viernes') ||
+                              (dayData.day === 'S' && 'Sábado') ||
+                              (dayData.day === 'D' && 'Domingo')
+                            }
+                            {dayData.value > 0 
+                              ? `: $${dayData.value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                              : ': Sin gastos'
+                            }
                           </div>
                           <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-700"></div>
                         </div>
                         
-                        {/* Barra */}
-                        <motion.div
-                          initial={{ scaleY: 0 }}
-                          animate={{ scaleY: heightPerc / 100 }}
-                          transition={{ 
-                            duration: 0.4,
-                            delay: idx * 0.05,
-                            ease: [0.4, 0, 0.2, 1]
-                          }}
-                          className={`w-full rounded-t-sm origin-bottom transition-all duration-200 group-hover:opacity-80 group-hover:scale-105 ${dayData.color || 'bg-gray-200'}`}
-                          style={{
-                            willChange: 'transform',
-                            transform: 'translateZ(0)',
-                            minHeight: '10%',
-                          }}
-                        />
+                        {/* Contenedor de barra o check */}
+                        <div className="flex-1 w-full flex items-center justify-center relative">
+                          {dayData.hasNoExpenses ? (
+                            /* Check muy pequeño con color primario */
+                            <motion.div
+                              initial={{ scale: 0, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              transition={{ 
+                                duration: 0.3,
+                                delay: idx * 0.05,
+                                ease: [0.4, 0, 0.2, 1]
+                              }}
+                              className="rounded-full flex items-center justify-center"
+                              style={{
+                                width: '4px',
+                                height: '4px',
+                                backgroundColor: '#1C8FA0',
+                                minWidth: '4px',
+                                minHeight: '4px'
+                              }}
+                            >
+                              <div 
+                                className="rounded-full"
+                                style={{
+                                  width: '2px',
+                                  height: '2px',
+                                  backgroundColor: 'white'
+                                }}
+                              />
+                            </motion.div>
+                          ) : (
+                            /* Barra de gastos */
+                            <motion.div
+                              initial={{ scaleY: 0 }}
+                              animate={{ scaleY: heightPerc / 100 }}
+                              transition={{ 
+                                duration: 0.4,
+                                delay: idx * 0.05,
+                                ease: [0.4, 0, 0.2, 1]
+                              }}
+                              className={`w-full rounded-t-sm origin-bottom transition-all duration-200 group-hover:opacity-80 group-hover:scale-105 ${dayData.color || 'bg-gray-200'}`}
+                              style={{
+                                willChange: 'transform',
+                                transform: 'translateZ(0)',
+                                minHeight: '10%',
+                              }}
+                            />
+                          )}
+                        </div>
                         
                         {/* Etiqueta del día */}
                         <span 

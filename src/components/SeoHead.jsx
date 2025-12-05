@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 
 const SeoHead = ({ 
@@ -9,6 +9,18 @@ const SeoHead = ({
   url = "https://www.finantel.net",
   type = "website"
 }) => {
+  const [mounted, setMounted] = useState(false);
+
+  useLayoutEffect(() => {
+    // Ensure component only renders after mount to avoid context issues
+    // Using useLayoutEffect to minimize delay in setting meta tags
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
   return (
     <Helmet>
       {/* Basic Meta Tags */}
@@ -38,7 +50,7 @@ const SeoHead = ({
           "@type": "Organization",
           "name": "Finantel",
           "url": "https://www.finantel.net",
-          "logo": "https://www.finantel.net/logo.png",
+          "logo": "https://www.finantel.net/INANTEL.svg",
           "foundingLocation": "Chile",
           "description": "Plataforma de finanzas personales para el mundo hispanohablante.",
           "sameAs": [

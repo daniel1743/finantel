@@ -111,9 +111,9 @@ const Auth = () => {
 
         <div className="text-center mb-8">
           <img
-            src="/finantel-logo.png"
+            src="/INANTEL.svg"
             alt="Finantel Logo"
-            className="h-14 w-auto mx-auto mb-4"
+            className="h-[100px] w-auto mx-auto mb-4"
           />
           <h1 className="text-2xl font-bold text-[#1a1a1a] font-['Inter_Tight']">
             {isLogin ? 'Bienvenido de nuevo' : 'Crea tu cuenta'}
@@ -222,13 +222,13 @@ const Auth = () => {
                     localStorage.setItem('finantel_remember_me', newValue ? 'true' : 'false');
                     console.log(`✅ [Auth] Preferencia "Mantener sesión" actualizada: ${newValue ? 'ACTIVADO (sesión persistente en localStorage)' : 'DESACTIVADO (sesión temporal en sessionStorage)'}`);
                   }}
-                  className="w-4 h-4 rounded border-gray-300 text-[#1C8FA0] focus:ring-[#1C8FA0] cursor-pointer"
+                  className="w-3 h-3 rounded border-gray-300 accent-[#1C8FA0] text-primary-500 focus:ring-primary-500 cursor-pointer"
                 />
-                <label htmlFor="rememberMe" className="text-sm font-medium text-[#6E6E73] cursor-pointer select-none">
+                <label htmlFor="rememberMe" className="text-sm font-medium text-neutral-500 cursor-pointer select-none">
                   Mantener sesión iniciada
                 </label>
               </div>
-              <button type="button" className="text-sm font-medium text-[#1C8FA0] hover:text-[#167a8a] transition-colors">
+              <button type="button" className="text-sm font-medium text-primary-500 hover:text-primary-600 transition-colors">
                 ¿Olvidaste tu contraseña?
               </button>
             </div>

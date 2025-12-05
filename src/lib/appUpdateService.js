@@ -114,8 +114,8 @@ class AppUpdateService {
       if (this.registration) {
         this.registration.showNotification('Nueva Actualización Disponible', {
           body: 'Hay una nueva versión de Finantel disponible. Toca para actualizar.',
-          icon: '/finantel-logo.png',
-          badge: '/finantel-icon.svg',
+          icon: '/INANTEL.svg',
+          badge: '/INANTEL.svg',
           tag: 'app-update',
           requireInteraction: false,
           actions: [

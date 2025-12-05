@@ -73,9 +73,9 @@ const Header = () => {
         <nav className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <img
-              src="/finantel-logo.png"
+              src="/INANTEL.svg"
               alt="Finantel Logo"
-              className="h-8 w-auto"
+              className="h-[36.8px] w-auto"
             />
           </Link>
 
@@ -152,9 +152,9 @@ const Header = () => {
                 {/* Header del menú */}
                 <div className="flex items-center justify-between pb-4 border-b border-gray-100">
                   <img
-                    src="/finantel-logo.png"
+                    src="/INANTEL.svg"
                     alt="Finantel Logo"
-                    className="h-8 w-auto"
+                    className="h-[36.8px] w-auto"
                   />
                   <button
                     onClick={() => setMobileMenuOpen(false)}

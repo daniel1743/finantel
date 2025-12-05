@@ -69,9 +69,9 @@ const Footer = () => {
           <div className="md:col-span-5 space-y-6">
             <div className="flex items-center gap-2">
               <img
-                src="/finantel-logo.png"
+                src="/INANTEL.svg"
                 alt="Finantel Logo"
-                className="h-8 w-auto"
+                className="h-[36.8px] w-auto"
               />
             </div>
             <p className="text-neutral-500 max-w-sm leading-relaxed">
