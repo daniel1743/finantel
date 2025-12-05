@@ -184,14 +184,21 @@ const ExampleGoalCard = ({ goal, index, onDelete }) => {
 };
 
 const GoalCard = ({ goal, index, onDelete }) => {
-  const percentage = goal.target > 0 
-    ? Math.min(100, Math.round((goal.saved / goal.target) * 100))
+  // Validación y cálculos seguros
+  const target = Math.max(0, parseFloat(goal.target) || 0);
+  const saved = Math.max(0, parseFloat(goal.saved) || 0);
+  const percentage = target > 0 
+    ? Math.min(100, Math.round((saved / target) * 100))
     : 0;
-  const remaining = Math.max(0, goal.target - goal.saved);
+  const isOverTarget = saved > target;
+  const remaining = Math.max(0, target - saved);
   const monthsLeft = goal.monthsLeft !== null && goal.monthsLeft !== undefined ? goal.monthsLeft : 8;
   const monthlyNeeded = goal.monthlyNeeded !== null && goal.monthlyNeeded !== undefined 
     ? goal.monthlyNeeded 
     : (monthsLeft > 0 ? Math.ceil(remaining / monthsLeft) : null);
+
+  // Color por defecto si no está definido
+  const defaultColor = goal.color || 'bg-[#1C8FA0]';
 
   const handleDelete = (e) => {
     e.stopPropagation();
@@ -216,30 +223,65 @@ const GoalCard = ({ goal, index, onDelete }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
-      className="group relative bg-white rounded-[22px] overflow-hidden border border-gray-100 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.08)] hover:shadow-[0_25px_50px_-12px_rgba(28,143,160,0.15)] transition-all duration-500 h-[320px] flex flex-col"
+      className="group relative bg-white rounded-[22px] overflow-hidden border border-gray-100 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.08)] hover:shadow-[0_25px_50px_-12px_rgba(28,143,160,0.15)] transition-all duration-500 flex flex-col"
     >
-      {/* Background Image with Blur */}
+      {/* Fondo sutil con gradiente de color */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/90 to-white z-10" />
-        <img 
-          alt={goal.imageAlt} 
-          className="w-full h-full object-cover opacity-30 group-hover:scale-105 transition-transform duration-700"
-         src="https://images.unsplash.com/photo-1614717295997-5959e57472e5" />
+        <div 
+          className={cn(
+            "absolute inset-0 opacity-5",
+            defaultColor === 'bg-pink-500' && "bg-gradient-to-br from-pink-400 to-pink-600",
+            defaultColor === 'bg-[#1C8FA0]' && "bg-gradient-to-br from-[#1C8FA0] to-[#167a8a]",
+            defaultColor === 'bg-gray-800' && "bg-gradient-to-br from-gray-700 to-gray-900",
+            defaultColor === 'bg-[#E47B45]' && "bg-gradient-to-br from-[#E47B45] to-[#d97706]",
+            !['bg-pink-500', 'bg-[#1C8FA0]', 'bg-gray-800', 'bg-[#E47B45]'].includes(defaultColor) && "bg-gradient-to-br from-[#1C8FA0] to-[#167a8a]"
+          )}
+        />
       </div>
 
-      <div className="relative z-20 p-6 flex flex-col h-full">
-        <div className="flex justify-between items-start mb-4">
-          <div className={cn("w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg", goal.color)}>
-            <GoalIcon className="w-5 h-5" />
+      <div className="relative z-20 p-6 flex flex-col">
+        {/* Header con icono, fecha y botón eliminar */}
+        <div className="flex justify-between items-start mb-5">
+          {/* Badge con animación de pulso/latido */}
+          <div className="relative">
+            {/* Anillo pulsante de fondo */}
+            <motion.div
+              className={cn("absolute inset-0 rounded-full", defaultColor)}
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.3, 0, 0.3],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              style={{ width: '48px', height: '48px' }}
+            />
+            {/* Badge principal */}
+            <motion.div
+              className={cn("w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg relative z-10", defaultColor)}
+              animate={{
+                scale: [1, 1.05, 1],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 0.1,
+              }}
+            >
+              <GoalIcon className="w-4.5 h-4.5" style={{ width: '18px', height: '18px' }} />
+            </motion.div>
           </div>
           <div className="flex items-center gap-2">
-          <span className="px-3 py-1 rounded-full bg-white/80 backdrop-blur-sm border border-gray-100 text-xs font-bold text-[#6E6E73]">
-            {goal.date}
-          </span>
+            <span className="px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-xs font-semibold text-[#6E6E73]">
+              {goal.date}
+            </span>
             {onDelete && (
               <button
                 onClick={handleDelete}
-                className="p-2 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-500 hover:text-red-600 transition-all shadow-sm"
+                className="p-2 rounded-full bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 transition-all shadow-sm border border-red-100"
                 title="Eliminar meta"
               >
                 <Icon component={Trash2} size="sm" color="default" />
@@ -248,33 +290,83 @@ const GoalCard = ({ goal, index, onDelete }) => {
           </div>
         </div>
 
-        <h3 className="text-xl font-bold text-[#1a1a1a] mb-1 font-['Inter_Tight']">{goal.name}</h3>
-        <p className="text-sm text-[#6E6E73] mb-auto">Meta: ${goal.target.toLocaleString()}</p>
+        {/* Nombre de la meta */}
+        <h3 className="text-2xl font-bold text-[#1a1a1a] mb-2 font-['Inter_Tight'] leading-tight">{goal.name}</h3>
+        
+        {/* Meta objetivo */}
+        <p className="text-sm text-[#6E6E73] mb-6 font-medium">Meta: ${goal.target.toLocaleString()}</p>
 
-        <div className="space-y-4 mt-6">
-          <div className="flex justify-between items-end">
-            <span className="text-3xl font-bold text-[#1a1a1a] tracking-tight">${goal.saved.toLocaleString()}</span>
-            <span className="text-sm font-bold text-[#1C8FA0] mb-1">{percentage}%</span>
+        {/* Información principal de ahorro */}
+        <div className="space-y-5 mb-6">
+          <div className="flex justify-between items-baseline">
+            <div className="flex flex-col">
+              <span className="text-4xl font-bold text-[#1a1a1a] tracking-tight leading-none">
+                ${saved.toLocaleString()}
+              </span>
+              <span className="text-xs text-[#6E6E73] mt-1 font-medium">Ahorrado</span>
+              {isOverTarget && (
+                <span className="text-xs text-green-600 font-semibold mt-1.5 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span>
+                  Meta superada (+${(saved - target).toLocaleString()})
+                </span>
+              )}
+            </div>
+            <div className="text-right">
+              <span className="text-2xl font-bold text-[#1C8FA0] block">{percentage}%</span>
+              <span className="text-xs text-[#6E6E73] font-medium">Progreso</span>
+            </div>
           </div>
 
-          <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-            <motion.div 
-              initial={{ width: 0 }}
-              animate={{ width: `${percentage}%` }}
-              transition={{ duration: 1, delay: 0.5 + (index * 0.1) }}
-              className={cn("h-full rounded-full", goal.color)}
-            />
+          {/* Barra de progreso */}
+          <div className="space-y-2">
+            <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden relative">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.min(100, percentage)}%` }}
+                transition={{ duration: 1, delay: 0.5 + (index * 0.1) }}
+                className={cn("h-full rounded-full", defaultColor)}
+              />
+              {isOverTarget && (
+                <div className="absolute inset-0 h-full bg-green-500/30 rounded-full" />
+              )}
+            </div>
+            <div className="flex justify-between text-xs text-[#6E6E73]">
+              <span className="font-medium">${remaining.toLocaleString()} restantes</span>
+              <span className="font-medium">${target.toLocaleString()} objetivo</span>
+            </div>
           </div>
         </div>
 
-        {/* Hover Overlay Info */}
+        {/* Información de plan de ahorro - SIEMPRE VISIBLE */}
         {monthlyNeeded && monthsLeft > 0 && (
-          <div className="absolute inset-x-0 bottom-0 p-6 bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-md border-t border-gray-100 dark:border-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
-            <div className="flex items-start gap-3">
-              <Icon component={Sparkles} size="md" color="default" className="shrink-0 mt-0.5" />
-              <p className="text-sm text-[#6E6E73] dark:text-gray-400 leading-relaxed">
-                Si aportas <span className="font-bold text-[#1a1a1a] dark:text-white">${monthlyNeeded.toLocaleString()}</span> cada mes, llegarás a tu meta en <span className="font-bold text-[#1a1a1a] dark:text-white">{monthsLeft} {monthsLeft === 1 ? 'mes' : 'meses'}</span>.
-              </p>
+          <div className="mt-auto pt-5 border-t border-gray-100">
+            <div className="flex items-start gap-3 bg-[#1C8FA0]/5 rounded-xl p-4 border border-[#1C8FA0]/10">
+              <div className={cn("w-8 h-8 rounded-full flex items-center justify-center shrink-0", defaultColor)}>
+                <Icon component={Sparkles} size="xs" color="white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-[#1a1a1a] mb-1">Plan de Ahorro</p>
+                <p className="text-xs text-[#6E6E73] leading-relaxed">
+                  Aporta <span className="font-bold text-[#1C8FA0]">${monthlyNeeded.toLocaleString()}/mes</span> para alcanzar tu meta en <span className="font-bold text-[#1C8FA0]">{monthsLeft} {monthsLeft === 1 ? 'mes' : 'meses'}</span>.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Si no hay plan de ahorro, mostrar información adicional */}
+        {(!monthlyNeeded || monthsLeft <= 0) && (
+          <div className="mt-auto pt-5 border-t border-gray-100">
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2 text-[#6E6E73]">
+                <Icon component={Calendar} size="xs" color="default" />
+                <span className="font-medium">Fecha objetivo: {goal.date}</span>
+              </div>
+              {remaining > 0 && (
+                <span className="text-[#1C8FA0] font-semibold">
+                  ${remaining.toLocaleString()} por ahorrar
+                </span>
+              )}
             </div>
           </div>
         )}

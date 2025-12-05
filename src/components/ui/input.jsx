@@ -72,6 +72,7 @@ const Input = React.forwardRef(({
         type={type}
         ref={ref}
         className={cn(
+          'w-full h-11 px-4 rounded-input bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all',
           sizeClass,
           className
         )}

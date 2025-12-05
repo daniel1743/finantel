@@ -44,17 +44,18 @@ export const iconSizeClassesResponsive = {
 
 /**
  * Colores de iconos según contexto
+ * Migrado a Design Tokens 2025
  */
 export const iconColors = {
-  default: 'text-[#6E6E73] dark:text-gray-400',
-  primary: 'text-[#1C8FA0] dark:text-[#1C8FA0]',
-  active: 'text-[#1C8FA0] dark:text-[#1C8FA0]',
-  muted: 'text-[#6E6E73] dark:text-gray-500',
+  default: 'text-neutral-500 dark:text-gray-400',
+  primary: 'text-primary-500 dark:text-primary-500',
+  active: 'text-primary-500 dark:text-primary-500',
+  muted: 'text-neutral-500 dark:text-gray-500',
   white: 'text-white dark:text-white',
-  dark: 'text-[#1a1a1a] dark:text-white',
-  success: 'text-green-600 dark:text-green-400',
-  warning: 'text-amber-600 dark:text-amber-400',
-  error: 'text-red-600 dark:text-red-400',
+  dark: 'text-neutral-900 dark:text-white',
+  success: 'text-success-500 dark:text-green-400',
+  warning: 'text-warning-500 dark:text-amber-400',
+  error: 'text-error-500 dark:text-red-400',
 };
 
 /**

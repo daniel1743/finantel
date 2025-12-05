@@ -74,7 +74,7 @@ const Footer = () => {
                 className="h-8 w-auto"
               />
             </div>
-            <p className="text-[#6E6E73] max-w-sm leading-relaxed">
+            <p className="text-neutral-500 max-w-sm leading-relaxed">
               Finanzas personales simples y privadas. Hecho para personas reales.
             </p>
             <div className="flex gap-4">
@@ -82,7 +82,7 @@ const Footer = () => {
                 href="https://twitter.com/finantelapp"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-[#6E6E73] hover:bg-[#1C8FA0] hover:text-white transition-all"
+                className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-neutral-500 hover:bg-primary-500 hover:text-white transition-all"
                 aria-label="Twitter de Finantel"
               >
                 <Icon component={Twitter} size="sm" color="default" />
@@ -91,7 +91,7 @@ const Footer = () => {
                 href="https://instagram.com/finantelapp"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-[#6E6E73] hover:bg-[#1C8FA0] hover:text-white transition-all"
+                className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-neutral-500 hover:bg-primary-500 hover:text-white transition-all"
                 aria-label="Instagram de Finantel"
               >
                 <Icon component={Instagram} size="sm" color="default" />
@@ -100,7 +100,7 @@ const Footer = () => {
                 href="https://linkedin.com/company/finantel"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-[#6E6E73] hover:bg-[#1C8FA0] hover:text-white transition-all"
+                className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-neutral-500 hover:bg-primary-500 hover:text-white transition-all"
                 aria-label="LinkedIn de Finantel"
               >
                 <Icon component={Linkedin} size="sm" color="default" />
@@ -109,31 +109,31 @@ const Footer = () => {
           </div>
           
           <div className="md:col-span-2">
-            <h4 className="font-bold text-[#1a1a1a] dark:text-white mb-6">Producto</h4>
-            <ul className="space-y-4 text-sm text-[#6E6E73]">
-              <li><Link to="/caracteristicas" className="hover:text-[#1C8FA0] transition-colors">Características</Link></li>
-              <li><Link to="/seguridad" className="hover:text-[#1C8FA0] transition-colors">Seguridad</Link></li>
-              <li><Link to="/precios" className="hover:text-[#1C8FA0] transition-colors">Precios</Link></li>
-              <li><Link to="/roadmap" className="hover:text-[#1C8FA0] transition-colors">Roadmap</Link></li>
+            <h4 className="font-bold text-neutral-900 dark:text-white mb-6">Producto</h4>
+            <ul className="space-y-4 text-sm text-neutral-500">
+              <li><Link to="/caracteristicas" className="hover:text-primary-500 transition-colors">Características</Link></li>
+              <li><Link to="/seguridad" className="hover:text-primary-500 transition-colors">Seguridad</Link></li>
+              <li><Link to="/precios" className="hover:text-primary-500 transition-colors">Precios</Link></li>
+              <li><Link to="/roadmap" className="hover:text-primary-500 transition-colors">Roadmap</Link></li>
             </ul>
           </div>
-          
+
           <div className="md:col-span-2">
-            <h4 className="font-bold text-[#1a1a1a] dark:text-white mb-6">Compañía</h4>
-            <ul className="space-y-4 text-sm text-[#6E6E73]">
-              <li><Link to="/sobre-nosotros" className="hover:text-[#1C8FA0] transition-colors">Sobre nosotros</Link></li>
-              <li><Link to="/carreras" className="hover:text-[#1C8FA0] transition-colors">Carreras</Link></li>
-              <li><Link to="/blog" className="hover:text-[#1C8FA0] transition-colors">Blog</Link></li>
-              <li><Link to="/contacto" className="hover:text-[#1C8FA0] transition-colors">Contacto</Link></li>
+            <h4 className="font-bold text-neutral-900 dark:text-white mb-6">Compañía</h4>
+            <ul className="space-y-4 text-sm text-neutral-500">
+              <li><Link to="/sobre-nosotros" className="hover:text-primary-500 transition-colors">Sobre nosotros</Link></li>
+              <li><Link to="/carreras" className="hover:text-primary-500 transition-colors">Carreras</Link></li>
+              <li><Link to="/blog" className="hover:text-primary-500 transition-colors">Blog</Link></li>
+              <li><Link to="/contacto" className="hover:text-primary-500 transition-colors">Contacto</Link></li>
             </ul>
           </div>
 
           <div className="md:col-span-3">
-            <h4 className="font-bold text-[#1a1a1a] dark:text-white mb-6">Mantente al día</h4>
-            <p className="text-sm text-[#6E6E73] dark:text-gray-400 mb-4">
+            <h4 className="font-bold text-neutral-900 dark:text-white mb-6">Mantente al día</h4>
+            <p className="text-sm text-neutral-500 dark:text-gray-400 mb-4">
               Recibe consejos de finanzas personales, actualizaciones de IA y nuevas funciones antes que nadie.
             </p>
-            <p className="text-xs text-[#6E6E73] dark:text-gray-500 mb-4 italic">
+            <p className="text-xs text-neutral-500 dark:text-gray-500 mb-4 italic">
               Enviamos máximo 1 correo por semana.
             </p>
             <form onSubmit={handleNewsletterSubmit} className="space-y-3">
@@ -144,12 +144,12 @@ const Footer = () => {
                 placeholder="tu@email.com"
                 required
                 disabled={loading || subscribed}
-                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#0f0f11] border-none focus:ring-2 focus:ring-[#1C8FA0]/20 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3 rounded-input bg-gray-50 dark:bg-[#0f0f11] border-none focus:ring-2 focus:ring-primary-500/20 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <Button
                 type="submit"
                 disabled={loading || subscribed}
-                className="w-full bg-[#1a1a1a] dark:bg-white hover:bg-black dark:hover:bg-gray-100 text-white dark:text-[#1a1a1a] rounded-xl py-3"
+                className="w-full bg-neutral-900 dark:bg-white hover:bg-black dark:hover:bg-gray-100 text-white dark:text-neutral-900 rounded-button py-3"
               >
                 {loading ? (
                   <>
@@ -178,9 +178,9 @@ const Footer = () => {
             <p>© 2025 Finantel. Todos los derechos reservados.</p>
           </div>
           <div className="flex gap-8">
-            <Link to="/legal/privacy-policy" className="hover:text-[#1a1a1a] dark:hover:text-white transition-colors">Política de Privacidad</Link>
-            <Link to="/legal/terms" className="hover:text-[#1a1a1a] dark:hover:text-white transition-colors">Términos de Servicio</Link>
-            <Link to="/legal/cookies" className="hover:text-[#1a1a1a] dark:hover:text-white transition-colors">Cookies</Link>
+            <Link to="/legal/privacy-policy" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Política de Privacidad</Link>
+            <Link to="/legal/terms" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Términos de Servicio</Link>
+            <Link to="/legal/cookies" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Cookies</Link>
           </div>
         </div>
       </div>

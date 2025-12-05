@@ -66,7 +66,7 @@ const Header = () => {
     <>
       <header
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out",
+          "fixed top-0 left-0 right-0 z-[var(--z-fixed)] transition-all duration-300 ease-in-out",
           scrolled ? "bg-white/80 backdrop-blur-xl border-b border-gray-100 py-3" : "bg-transparent py-5"
         )}
       >
@@ -85,7 +85,7 @@ const Header = () => {
               <button
                 key={item}
                 onClick={() => handleNavClick(item)}
-                className="text-sm font-medium text-[#6E6E73] hover:text-[#1C8FA0] transition-colors cursor-pointer"
+                className="text-sm font-medium text-neutral-500 hover:text-primary-500 transition-colors cursor-pointer"
               >
                 {item}
               </button>
@@ -97,13 +97,15 @@ const Header = () => {
             <Button
               variant="ghost"
               onClick={() => navigate('/auth')}
-              className="text-[#6E6E73] hover:text-[#1C8FA0] hover:bg-transparent font-medium py-2.5 px-5"
+              className="text-neutral-500 hover:text-primary-500"
             >
               Iniciar Sesión
             </Button>
             <Button
+              variant="default"
+              size="cta-full"
               onClick={() => navigate('/auth')}
-              className="bg-[#1C8FA0] hover:bg-[#167a8a] text-white rounded-full px-6 py-2.5 font-medium shadow-lg shadow-[#1C8FA0]/20 transition-all hover:shadow-[#1C8FA0]/30 hover:-translate-y-0.5"
+              className="shadow-primary hover:-translate-y-0.5"
             >
               Comenzar Gratis
             </Button>
@@ -135,7 +137,7 @@ const Header = () => {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               onClick={() => setMobileMenuOpen(false)}
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden"
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[var(--z-modal-backdrop)] md:hidden"
             />
 
             {/* Menu Panel */}
@@ -144,7 +146,7 @@ const Header = () => {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'tween', duration: 0.3, ease: 'easeInOut' }}
-              className="fixed top-0 right-0 bottom-0 w-full max-w-sm bg-white z-50 shadow-2xl md:hidden overflow-y-auto"
+              className="fixed top-0 right-0 bottom-0 w-full max-w-sm bg-white z-[var(--z-modal)] shadow-2xl md:hidden overflow-y-auto"
             >
               <div className="p-6 space-y-6">
                 {/* Header del menú */}
@@ -169,7 +171,7 @@ const Header = () => {
                     <button
                       key={item}
                       onClick={() => handleNavClick(item)}
-                      className="w-full text-left px-4 py-3 rounded-xl text-base font-medium text-[#1a1a1a] hover:bg-[#1C8FA0]/10 hover:text-[#1C8FA0] transition-all"
+                      className="w-full text-left px-4 py-3 rounded-xl text-base font-medium text-neutral-900 hover:bg-primary-500/10 hover:text-primary-500 transition-all"
                     >
                       {item}
                     </button>
@@ -180,20 +182,23 @@ const Header = () => {
                 <div className="space-y-3 pt-4 border-t border-gray-100">
                   <Button
                     variant="outline"
+                    size="cta-full"
                     onClick={() => {
                       navigate('/auth');
                       setMobileMenuOpen(false);
                     }}
-                    className="w-full rounded-full py-3 border-2 border-gray-200 hover:border-[#1C8FA0] hover:bg-[#1C8FA0] hover:text-white text-[#1a1a1a] font-medium"
+                    className="w-full py-3 border-2 hover:border-primary-500 hover:bg-primary-500 hover:text-white"
                   >
                     Iniciar Sesión
                   </Button>
                   <Button
+                    variant="default"
+                    size="cta-full"
                     onClick={() => {
                       navigate('/auth');
                       setMobileMenuOpen(false);
                     }}
-                    className="w-full bg-[#1C8FA0] hover:bg-[#167a8a] text-white rounded-full py-3 font-medium shadow-lg shadow-[#1C8FA0]/20"
+                    className="w-full py-3 shadow-primary"
                   >
                     Comenzar Gratis
                   </Button>

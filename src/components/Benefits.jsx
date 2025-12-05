@@ -46,10 +46,10 @@ const Benefits = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-20"
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-[#1a1a1a] dark:text-white mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold text-neutral-900 dark:text-white mb-4">
             Beneficios reales
           </h2>
-          <p className="text-xl text-[#6E6E73] dark:text-gray-400 max-w-2xl mx-auto">
+          <p className="text-xl text-neutral-500 dark:text-gray-400 max-w-2xl mx-auto">
             Lo que realmente importa cuando gestionas tu dinero
           </p>
         </motion.div>
@@ -64,15 +64,15 @@ const Benefits = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="p-8 rounded-[24px] bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/10 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                className="p-8 rounded-card-lg bg-white dark:bg-neutral-900 border border-gray-100 dark:border-white/10 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
               >
-                <div className="w-14 h-14 rounded-2xl bg-[#1C8FA0]/10 dark:bg-[#1C8FA0]/20 flex items-center justify-center mb-6">
-                  <Icon className="w-7 h-7 text-[#1C8FA0]" />
+                <div className="w-12 h-12 rounded-card-sm bg-primary-500/10 dark:bg-primary-500/20 flex items-center justify-center mb-6">
+                  <Icon className="w-6 h-6 text-primary-500" />
                 </div>
-                <h3 className="text-xl font-bold text-[#1a1a1a] dark:text-white mb-3">
+                <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">
                   {benefit.title}
                 </h3>
-                <p className="text-[#6E6E73] dark:text-gray-400 leading-relaxed">
+                <p className="text-neutral-500 dark:text-gray-400 leading-relaxed">
                   {benefit.description}
                 </p>
               </motion.div>

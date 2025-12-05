@@ -71,13 +71,13 @@ const FAQ = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#1C8FA0]/10 mb-6">
-            <Icon component={HelpCircle} size="xl" color="primary" />
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary-500/10 mb-6">
+            <Icon component={HelpCircle} size="lg" color="primary" />
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-[#1a1a1a] dark:text-white mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold text-neutral-900 dark:text-white mb-4">
             Preguntas Frecuentes
           </h2>
-          <p className="text-xl text-[#6E6E73] dark:text-gray-400">
+          <p className="text-xl text-neutral-500 dark:text-gray-400">
             Todo lo que necesitas saber sobre Finantel
           </p>
         </motion.div>
@@ -90,13 +90,13 @@ const FAQ = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.05 }}
-              className="bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/10 rounded-2xl overflow-hidden hover:border-[#1C8FA0]/30 transition-colors"
+              className="bg-white dark:bg-neutral-900 border border-gray-100 dark:border-white/10 rounded-card overflow-hidden hover:border-primary-500/30 transition-colors"
             >
               <button
                 onClick={() => toggleFAQ(index)}
                 className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
               >
-                <span className="text-base md:text-lg font-semibold text-[#1a1a1a] dark:text-white pr-4">
+                <span className="text-base md:text-lg font-semibold text-neutral-900 dark:text-white pr-4">
                   {faq.question}
                 </span>
                 <motion.div
@@ -118,7 +118,7 @@ const FAQ = () => {
                     className="overflow-hidden"
                   >
                     <div className="px-6 pb-5 pt-2">
-                      <p className="text-[#6E6E73] dark:text-gray-400 leading-relaxed">
+                      <p className="text-neutral-500 dark:text-gray-400 leading-relaxed">
                         {faq.answer}
                       </p>
                     </div>
@@ -135,14 +135,14 @@ const FAQ = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-16 text-center p-8 bg-gradient-to-br from-[#1C8FA0]/5 to-transparent rounded-3xl border border-[#1C8FA0]/20"
+          className="mt-16 text-center p-8 bg-gradient-to-br from-primary-500/5 to-transparent rounded-3xl border border-primary-500/20"
         >
-          <h3 className="text-2xl font-bold text-[#1a1a1a] dark:text-white mb-3">
+          <h3 className="text-2xl font-bold text-neutral-900 dark:text-white mb-3">
             ¿Aún tienes dudas?
           </h3>
-          <p className="text-[#6E6E73] dark:text-gray-400 mb-6">
+          <p className="text-neutral-500 dark:text-gray-400 mb-6">
             Estamos aquí para ayudarte. Escríbenos a{' '}
-            <a href="mailto:soporte@finantel.net" className="text-[#1C8FA0] hover:underline font-medium">
+            <a href="mailto:soporte@finantel.net" className="text-primary-500 hover:underline font-medium">
               soporte@finantel.net
             </a>
           </p>

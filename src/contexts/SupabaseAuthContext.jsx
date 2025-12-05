@@ -249,27 +249,31 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = useCallback(async (email, password, rememberMe = true) => {
     try {
-      // ✅ CRÍTICO: Guardar preferencia de "recordar sesión" ANTES de iniciar sesión
-      // Esto es esencial para que el storage adapter sepa dónde guardar la sesión
+      // ✅ PASO 1: Guardar preferencia ANTES de iniciar sesión
+      // El storage adapter de Supabase lee esta preferencia para decidir dónde guardar
       localStorage.setItem('finantel_remember_me', rememberMe ? 'true' : 'false');
-      
-      // Si rememberMe es false, limpiar cualquier sesión previa en localStorage
+
+      // ✅ PASO 2: Limpiar sesiones del storage OPUESTO
+      // Esto previene conflictos entre localStorage y sessionStorage
       if (!rememberMe) {
-        // Limpiar tokens de Supabase de localStorage antes de iniciar sesión
-        const supabaseKeys = Object.keys(localStorage).filter(key => 
+        // Si NO quiere mantener sesión, limpiar localStorage (sesiones persistentes viejas)
+        const localKeys = Object.keys(localStorage).filter(key =>
           key.startsWith('sb-') || key.includes('supabase')
         );
-        supabaseKeys.forEach(key => localStorage.removeItem(key));
+        localKeys.forEach(key => localStorage.removeItem(key));
+        console.log('🧹 [Auth] localStorage limpiado (sesión NO persistente)');
       } else {
-        // Si rememberMe es true, limpiar cualquier sesión en sessionStorage
-        const supabaseKeys = Object.keys(sessionStorage).filter(key => 
+        // Si SÍ quiere mantener sesión, limpiar sessionStorage (sesiones temporales viejas)
+        const sessionKeys = Object.keys(sessionStorage).filter(key =>
           key.startsWith('sb-') || key.includes('supabase')
         );
-        supabaseKeys.forEach(key => sessionStorage.removeItem(key));
+        sessionKeys.forEach(key => sessionStorage.removeItem(key));
+        console.log('🧹 [Auth] sessionStorage limpiado (sesión persistente)');
       }
 
-      console.log(`🔐 [Auth] Iniciando sesión con "Mantener sesión": ${rememberMe ? 'SÍ (localStorage - persistente)' : 'NO (sessionStorage - se borrará al cerrar pestaña)'}`);
+      console.log(`🔐 [Auth] Iniciando sesión - Mantener sesión: ${rememberMe ? '✅ SÍ (se guarda en localStorage hasta que cierres sesión)' : '❌ NO (se borra al cerrar pestaña/navegador)'}`);
 
+      // ✅ PASO 3: Iniciar sesión
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -283,6 +287,12 @@ export const AuthProvider = ({ children }) => {
             title: "Error de Autenticación",
             description: "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.",
           });
+        } else if (error.message?.includes('Invalid login credentials')) {
+          toast({
+            variant: "destructive",
+            title: "Credenciales Incorrectas",
+            description: "El email o contraseña son incorrectos. Verifica tus datos.",
+          });
         } else {
           toast({
             variant: "destructive",
@@ -293,19 +303,22 @@ export const AuthProvider = ({ children }) => {
         return { error };
       }
 
-      // Si el login es exitoso, actualizar la sesión
+      // ✅ PASO 4: Si el login es exitoso, actualizar la sesión
       if (data?.session) {
         handleSession(data.session);
         // Track evento de login
         trackEvent(AnalyticsEvents.USER_LOGGED_IN, {
           method: 'email',
           timestamp: new Date().toISOString(),
+          rememberMe: rememberMe,
         });
+
+        console.log(`✅ [Auth] Sesión iniciada exitosamente - Guardada en: ${rememberMe ? 'localStorage (persistente)' : 'sessionStorage (temporal)'}`);
       }
 
       return { error: null, data };
     } catch (err) {
-      console.error('Error in signIn:', err);
+      console.error('❌ [Auth] Error in signIn:', err);
       toast({
         variant: "destructive",
         title: "Error de Conexión",
@@ -317,16 +330,31 @@ export const AuthProvider = ({ children }) => {
 
   const signInWithGoogle = useCallback(async (rememberMe = true) => {
     try {
-      // ✅ Guardar preferencia de "recordar sesión" ANTES de iniciar sesión
+      // ✅ PASO 1: Guardar preferencia ANTES de iniciar sesión
       localStorage.setItem('finantel_remember_me', rememberMe ? 'true' : 'false');
 
-      console.log(`🔐 Iniciando sesión con Google - "Mantener sesión": ${rememberMe ? 'SÍ (localStorage)' : 'NO (sessionStorage - se borrará al cerrar)'}`);
+      // ✅ PASO 2: Limpiar sesiones del storage OPUESTO
+      if (!rememberMe) {
+        const localKeys = Object.keys(localStorage).filter(key =>
+          key.startsWith('sb-') || key.includes('supabase')
+        );
+        localKeys.forEach(key => localStorage.removeItem(key));
+        console.log('🧹 [Auth] localStorage limpiado antes de Google OAuth');
+      } else {
+        const sessionKeys = Object.keys(sessionStorage).filter(key =>
+          key.startsWith('sb-') || key.includes('supabase')
+        );
+        sessionKeys.forEach(key => sessionStorage.removeItem(key));
+        console.log('🧹 [Auth] sessionStorage limpiado antes de Google OAuth');
+      }
+
+      console.log(`🔐 [Auth] Iniciando sesión con Google - Mantener sesión: ${rememberMe ? '✅ SÍ (persistente)' : '❌ NO (temporal)'}`);
 
       // Obtener la URL actual para redirección
       const redirectTo = `${window.location.origin}/auth/callback`;
 
       console.log('[Auth] URL de redirección:', redirectTo);
-      
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -351,7 +379,7 @@ export const AuthProvider = ({ children }) => {
       // El callback URL manejará el resto
       return { error: null, data };
     } catch (err) {
-      console.error('Error in signInWithGoogle:', err);
+      console.error('❌ [Auth] Error in signInWithGoogle:', err);
       toast({
         variant: "destructive",
         title: "Error de Conexión",
@@ -364,19 +392,33 @@ export const AuthProvider = ({ children }) => {
   const signOut = useCallback(async () => {
     // Track evento de logout antes de cerrar sesión
     trackEvent(AnalyticsEvents.USER_LOGGED_OUT);
-    
+
     const { error } = await supabase.auth.signOut();
 
     if (error) {
       toast({
         variant: "destructive",
-        title: "Sign out Failed",
-        description: error.message || "Something went wrong",
+        title: "Error al Cerrar Sesión",
+        description: error.message || "Algo salió mal al cerrar sesión",
       });
     } else {
       // Limpiar contexto de Sentry y Analytics
       setSentryUser(null);
       resetAnalyticsUser();
+
+      // ✅ CRÍTICO: Limpiar tokens de Supabase de AMBOS storages
+      // Esto asegura que no queden sesiones residuales
+      const supabaseKeysLocal = Object.keys(localStorage).filter(key =>
+        key.startsWith('sb-') || key.includes('supabase')
+      );
+      const supabaseKeysSession = Object.keys(sessionStorage).filter(key =>
+        key.startsWith('sb-') || key.includes('supabase')
+      );
+
+      supabaseKeysLocal.forEach(key => localStorage.removeItem(key));
+      supabaseKeysSession.forEach(key => sessionStorage.removeItem(key));
+
+      console.log('✅ [Auth] Sesión cerrada y tokens limpiados de localStorage y sessionStorage');
     }
 
     return { error };
