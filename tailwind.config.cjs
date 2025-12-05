@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+const designTokens = require('./src/theme/designTokens.cjs');
+
 module.exports = {
 	darkMode: ['class'],
 	content: [
@@ -29,18 +31,14 @@ module.exports = {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))',
 					// =====================================================
-					// DESIGN TOKENS 2025 - Paleta Profesional
-					// Reemplazo de #1C8FA0 por tokens centralizados
+					// DESIGN TOKENS 2025 - Paleta Profesional Completa
 					// =====================================================
-					50: 'var(--primary-50)',
-					100: 'var(--primary-100)',
-					500: 'var(--primary-500)',
-					600: 'var(--primary-600)',
-					700: 'var(--primary-700)',
+					...designTokens.colors.primary,
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
 					foreground: 'hsl(var(--secondary-foreground))',
+					...designTokens.colors.secondary,
 				},
 				destructive: {
 					DEFAULT: 'hsl(var(--destructive))',
@@ -71,6 +69,7 @@ module.exports = {
 					background: 'var(--neutral-background)',
 					'background-soft': 'var(--neutral-background-soft)',
 					border: 'var(--neutral-border)',
+					...designTokens.colors.neutral,
 				},
 				// =====================================================
 				// DESIGN TOKENS 2025 - Estados
@@ -80,11 +79,23 @@ module.exports = {
 					warning: 'var(--status-warning)',
 					error: 'var(--status-error)',
 				},
+				success: designTokens.colors.success,
+				warning: designTokens.colors.warning,
+				error: designTokens.colors.error,
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)',
+				// =====================================================
+				// DESIGN TOKENS 2025 - Border Radius Unificado
+				// =====================================================
+				'card-sm': designTokens.borderRadius.md,
+				'card': designTokens.borderRadius.lg,
+				'card-lg': designTokens.borderRadius.xl,
+				'button': designTokens.borderRadius.base,
+				'input': designTokens.borderRadius.base,
+				'modal': designTokens.borderRadius.xl,
 			},
 			// =====================================================
 			// DESIGN TOKENS 2025 - Espaciado
@@ -98,21 +109,16 @@ module.exports = {
 				'5': '40px',
 				'6': '48px',
 				'8': '64px',
+				...designTokens.spacing,
 			},
 			// =====================================================
 			// DESIGN TOKENS 2025 - Tipografía
 			// =====================================================
-			fontSize: {
-				'xs': '11px',      // labels
-				'sm': '14px',
-				'base': '16px',
-				'lg': '18px',
-				'xl': '20px',
-				'2xl': '24px',
-				'3xl': '30px',
-				'4xl': '36px',
-				'6xl': '60px',     // hero
-			},
+			fontFamily: designTokens.typography.fontFamily,
+			fontSize: designTokens.typography.fontSize,
+			fontWeight: designTokens.typography.fontWeight,
+			boxShadow: designTokens.shadows,
+			zIndex: designTokens.zIndex,
 			keyframes: {
 				'accordion-down': {
 					from: { height: 0 },
