@@ -53,11 +53,11 @@ import QuickAccessCard from '@/components/dashboard/QuickAccessCard';
 // KPIs Cards - Tarjetas de Métricas Principales
 // =====================================================
 const KPICard = ({ title, value, subtitle, trend, trendValue, trendUp, icon: Icon, color, delay, gradient }) => (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay }}
-    className={`bg-white dark:bg-[#1a1a1a] rounded-[22px] p-6 border border-gray-100 dark:border-white/5 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-all duration-300 cursor-pointer group relative overflow-hidden`}
+    className={`bg-white dark:bg-neutral-900 rounded-card-lg p-6 border border-gray-100 dark:border-white/5 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-all duration-300 cursor-pointer group relative overflow-hidden`}
   >
     {gradient && (
       <div className={`absolute top-0 right-0 w-32 h-32 ${gradient} opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2`} />
@@ -72,9 +72,9 @@ const KPICard = ({ title, value, subtitle, trend, trendValue, trendUp, icon: Ico
           {trendValue}
           </div>
             </div>
-      <h3 className="text-[#6E6E73] dark:text-gray-400 text-sm font-medium mb-2 break-words whitespace-normal leading-tight">{title}</h3>
-      <p className="text-2xl font-bold text-[#1a1a1a] dark:text-white font-mono tracking-normal mb-2 break-words whitespace-normal leading-tight" style={{ letterSpacing: '0.02em' }}>{value}</p>
-      {subtitle && <p className="text-xs text-[#6E6E73] dark:text-gray-400 break-words whitespace-normal leading-relaxed">{subtitle}</p>}
+      <h3 className="text-neutral-500 dark:text-gray-400 text-sm font-medium mb-2 break-words whitespace-normal leading-tight">{title}</h3>
+      <p className="text-2xl font-bold text-neutral-900 dark:text-white font-mono tracking-normal mb-2 break-words whitespace-normal leading-tight" style={{ letterSpacing: '0.02em' }}>{value}</p>
+      {subtitle && <p className="text-xs text-neutral-500 dark:text-gray-400 break-words whitespace-normal leading-relaxed">{subtitle}</p>}
       
       {/* Mini Sparkline Chart */}
       <div className="h-10 mt-4 flex items-end gap-1">
@@ -84,7 +84,7 @@ const KPICard = ({ title, value, subtitle, trend, trendValue, trendUp, icon: Ico
             initial={{ height: 0 }}
             animate={{ height: `${h}%` }}
             transition={{ duration: 0.5, delay: delay + (i * 0.05) }}
-            className={`flex-1 rounded-t-sm ${trendUp ? 'bg-[#1C8FA0]/20 dark:bg-[#1C8FA0]/30' : 'bg-[#E47B45]/20 dark:bg-[#E47B45]/30'} group-hover:opacity-80 transition-opacity`}
+            className={`flex-1 rounded-t-sm ${trendUp ? 'bg-primary-500/20 dark:bg-primary-500/30' : 'bg-secondary-500/20 dark:bg-secondary-500/30'} group-hover:opacity-80 transition-opacity`}
           />
         ))}
             </div>
@@ -105,9 +105,10 @@ const GaugeChart = ImprovedGaugeChart;
 // Paleta de colores para categorías
 // =====================================================
 // Paleta de colores vibrantes y diferenciados para categorías
+// NOTA: Los primeros dos colores usan design tokens para consistencia con la marca
 const CATEGORY_COLORS = [
-  '#1C8FA0', // Teal - Azul verdoso
-  '#E47B45', // Orange - Naranja
+  '#1C8FA0', // Primary-500 - Teal azul verdoso (brand)
+  '#E47B45', // Secondary-500 - Naranja (brand)
   '#8B5CF6', // Purple - Morado
   '#10B981', // Green - Verde
   '#F59E0B', // Amber - Ámbar
@@ -141,15 +142,15 @@ const BarChart = ({ data, title, height = 200, delay = 0 }) => {
       transition={{ duration: 0.5, delay }}
       className="space-y-4"
     >
-      {title && <h4 className="text-sm font-bold text-[#1a1a1a] dark:text-white">{title}</h4>}
+      {title && <h4 className="text-sm font-bold text-neutral-900 dark:text-white">{title}</h4>}
       <div className="space-y-3">
         {data.map((item, i) => {
           const barColor = item.color || getCategoryColor(item.label, i);
           return (
             <div key={i} className="space-y-1">
               <div className="flex justify-between text-xs">
-                <span className="font-medium text-[#1a1a1a] dark:text-white">{item.label}</span>
-                <span className="text-[#6E6E73] dark:text-gray-400">
+                <span className="font-medium text-neutral-900 dark:text-white">{item.label}</span>
+                <span className="text-neutral-500 dark:text-gray-400">
                   {typeof item.value === 'number' ? `$${item.value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${item.value}%`}
                 </span>
           </div>
@@ -193,7 +194,7 @@ const LineChartComponent = ({ data, title, height = 200, delay = 0 }) => {
     transition={{ duration: 0.5, delay }}
       className="space-y-4"
     >
-      {title && <h4 className="text-sm font-bold text-[#1a1a1a] dark:text-white">{title}</h4>}
+      {title && <h4 className="text-sm font-bold text-neutral-900 dark:text-white">{title}</h4>}
       <div className="relative" style={{ height, width: '100%' }}>
         <svg width="100%" height={height} className="overflow-visible">
           {/* Grid lines */}
@@ -221,7 +222,7 @@ const LineChartComponent = ({ data, title, height = 200, delay = 0 }) => {
           <motion.path
             d={`M ${points}`}
             fill="none"
-            stroke="#1C8FA0"
+            stroke="var(--primary-500, #1C8FA0)"
             strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -239,7 +240,7 @@ const LineChartComponent = ({ data, title, height = 200, delay = 0 }) => {
                 cx={`${x}%`}
                 cy={y}
                 r="4"
-                fill="#1C8FA0"
+                fill="var(--primary-500, #1C8FA0)"
                 stroke="white"
                 strokeWidth="2"
                 initial={{ scale: 0 }}
@@ -250,8 +251,8 @@ const LineChartComponent = ({ data, title, height = 200, delay = 0 }) => {
           })}
           <defs>
             <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#1C8FA0" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#1C8FA0" stopOpacity="0" />
+              <stop offset="0%" stopColor="var(--primary-500, #1C8FA0)" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="var(--primary-500, #1C8FA0)" stopOpacity="0" />
             </linearGradient>
           </defs>
         </svg>
@@ -331,8 +332,8 @@ const DonutChart = ({ data, size = 180, delay = 0 }) => {
         })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-2xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">100%</span>
-        <span className="text-xs text-[#6E6E73] dark:text-gray-400">Total</span>
+        <span className="text-2xl font-bold text-neutral-900 dark:text-white font-['Inter_Tight']">100%</span>
+        <span className="text-xs text-neutral-500 dark:text-gray-400">Total</span>
     </div>
     </motion.div>
   );
@@ -532,7 +533,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
           const insertData = {
             user_id: user.id,
             name: categoryName,
-            color: formData.type === 'expense' ? '#E47B45' : '#1C8FA0',
+            color: formData.type === 'expense' ? 'var(--secondary-500, #E47B45)' : 'var(--primary-500, #1C8FA0)',
             icon: '💰',
           };
 
@@ -717,23 +718,23 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         onClick={(e) => e.stopPropagation()}
-        className="relative bg-white dark:bg-[#1a1a1a] rounded-[26px] p-8 w-full max-w-md shadow-2xl border border-gray-100 dark:border-white/10 z-10 max-h-[90vh] overflow-y-auto"
+        className="relative bg-white dark:bg-neutral-900 rounded-card-lg p-8 w-full max-w-md shadow-2xl border border-gray-100 dark:border-white/10 z-10 max-h-[90vh] overflow-y-auto"
       >
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-[#1a1a1a] dark:text-white">Nueva Transacción</h2>
+          <h2 className="text-xl font-bold text-neutral-900 dark:text-white">Nueva Transacción</h2>
           <button
             onClick={onClose}
             disabled={isLoading}
             className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors disabled:opacity-50"
           >
-            <X className="w-5 h-5 text-[#6E6E73] dark:text-gray-400" />
+            <X className="w-5 h-5 text-neutral-500 dark:text-gray-400" />
           </button>
     </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Descripción */}
           <div>
-            <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
+            <label className="block text-sm font-medium text-neutral-500 dark:text-gray-400 mb-2">
               Descripción
             </label>
             <Input
@@ -748,17 +749,17 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
 
           {/* Tipo */}
           <div>
-            <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">Tipo</label>
+            <label className="block text-sm font-medium text-neutral-500 dark:text-gray-400 mb-2">Tipo</label>
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, type: 'expense', category_id: '' })}
                 disabled={isLoading}
                 className={cn(
-                  "flex-1 py-2.5 rounded-xl font-medium text-sm transition-all",
+                  "flex-1 py-2.5 rounded-button font-medium text-sm transition-all",
                   formData.type === 'expense'
-                    ? "bg-[#E47B45] text-white shadow-lg shadow-[#E47B45]/20"
-                    : "bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-[#6E6E73] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10",
+                    ? "bg-secondary-500 text-white shadow-lg shadow-secondary-500/20"
+                    : "bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-neutral-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10",
                   isLoading && "opacity-50 cursor-not-allowed"
                 )}
               >
@@ -769,10 +770,10 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
                 onClick={() => setFormData({ ...formData, type: 'income', category_id: '' })}
                 disabled={isLoading}
                 className={cn(
-                  "flex-1 py-2.5 rounded-xl font-medium text-sm transition-all",
+                  "flex-1 py-2.5 rounded-button font-medium text-sm transition-all",
                   formData.type === 'income'
-                    ? "bg-[#1C8FA0] text-white shadow-lg shadow-[#1C8FA0]/20"
-                    : "bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-[#6E6E73] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10",
+                    ? "bg-primary-500 text-white shadow-lg shadow-primary-500/20"
+                    : "bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-neutral-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10",
                   isLoading && "opacity-50 cursor-not-allowed"
                 )}
               >
@@ -783,7 +784,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
 
           {/* Monto */}
           <div>
-            <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
+            <label className="block text-sm font-medium text-neutral-500 dark:text-gray-400 mb-2">
               Monto
             </label>
             <Input
@@ -801,7 +802,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
 
           {/* Categoría */}
           <div>
-            <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
+            <label className="block text-sm font-medium text-neutral-500 dark:text-gray-400 mb-2">
               Categoría
             </label>
             <select
@@ -833,7 +834,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
             >
-              <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
+              <label className="block text-sm font-medium text-neutral-500 dark:text-gray-400 mb-2">
                 Nombre de Categoría Personalizada
               </label>
               <Input
@@ -849,12 +850,12 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
 
           {/* Nivel de Necesidad (solo para Gastos) */}
           {formData.type === 'expense' && (
-  <motion.div 
+  <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
             >
-              <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
+              <label className="block text-sm font-medium text-neutral-500 dark:text-gray-400 mb-2">
                 Nivel de Necesidad
               </label>
               <select
@@ -876,7 +877,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
 
           {/* Fecha */}
           <div>
-            <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
+            <label className="block text-sm font-medium text-neutral-500 dark:text-gray-400 mb-2">
               Fecha
             </label>
             <Input
@@ -891,7 +892,7 @@ const AddTransactionModal = ({ isOpen, onClose, onSuccess }) => {
 
           {/* Notas (Opcional) */}
           <div>
-            <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">
+            <label className="block text-sm font-medium text-neutral-500 dark:text-gray-400 mb-2">
               Notas <span className="text-xs">(opcional)</span>
             </label>
             <textarea
@@ -1214,18 +1215,18 @@ const DashboardHome = () => {
       {/* Header con Filtros */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">Dashboard Ejecutivo</h1>
-          <p className="text-[#6E6E73] dark:text-gray-400 mt-1">Visión completa de tu salud financiera</p>
+          <h1 className="text-3xl font-bold text-neutral-900 dark:text-white font-['Inter_Tight']">Dashboard Ejecutivo</h1>
+          <p className="text-neutral-500 dark:text-gray-400 mt-1">Visión completa de tu salud financiera</p>
         </div>
         <div className="flex gap-2">
           {['Mes', 'Trimestre', 'Año'].map((period) => (
             <button
               key={period}
               onClick={() => setSelectedPeriod(period.toLowerCase())}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              className={`px-4 py-2 rounded-button text-sm font-medium transition-all ${
                 selectedPeriod === period.toLowerCase()
-                  ? 'bg-[#1a1a1a] dark:bg-white text-white dark:text-black shadow-md'
-                  : 'bg-white dark:bg-[#1a1a1a] text-[#6E6E73] dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:border-gray-300'
+                  ? 'bg-neutral-900 dark:bg-white text-white dark:text-black shadow-md'
+                  : 'bg-white dark:bg-neutral-900 text-neutral-500 dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:border-gray-300'
               }`}
             >
               {period}
@@ -1235,21 +1236,21 @@ const DashboardHome = () => {
       </div>
 
       {/* Banner de Transparencia */}
-      <div className="bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/5 rounded-[22px] p-4 md:p-5 flex flex-col md:flex-row items-start md:items-center gap-4 shadow-sm">
+      <div className="bg-white dark:bg-neutral-900 border border-gray-100 dark:border-white/5 rounded-card-lg p-4 md:p-5 flex flex-col md:flex-row items-start md:items-center gap-4 shadow-sm">
         <div className="flex items-start gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-[#1C8FA0]/10 flex items-center justify-center">
-            <ShieldCheck className="w-5 h-5 text-[#1C8FA0]" />
+          <div className="w-11 h-11 rounded-2xl bg-primary-500/10 flex items-center justify-center">
+            <ShieldCheck className="w-5 h-5 text-primary-500" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-[#1a1a1a] dark:text-white uppercase tracking-wide">Compromiso de Transparencia</p>
-            <p className="text-sm text-[#6E6E73] dark:text-gray-400">
+            <p className="text-sm font-semibold text-neutral-900 dark:text-white uppercase tracking-wide">Compromiso de Transparencia</p>
+            <p className="text-sm text-neutral-500 dark:text-gray-400">
               Finantel nunca retiene tu dinero ni aplica comisiones ocultas. Solo registramos y protegemos tus finanzas.
             </p>
           </div>
         </div>
         <Link
           to="/legal/transparencia"
-          className="ml-auto inline-flex items-center gap-2 text-sm font-semibold text-[#1C8FA0] hover:text-[#167a8a]"
+          className="ml-auto inline-flex items-center gap-2 text-sm font-semibold text-primary-500 hover:text-primary-600"
         >
           Conoce más
           <ArrowUpRight className="w-4 h-4" />
@@ -1259,18 +1260,18 @@ const DashboardHome = () => {
       {/* Estado de carga o sin datos */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-[#1C8FA0] animate-spin" />
+          <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
         </div>
       ) : !realData.hasData ? (
-        <div className="bg-white dark:bg-[#1a1a1a] rounded-[26px] p-12 border border-gray-100 dark:border-white/5 shadow-sm text-center">
+        <div className="bg-white dark:bg-neutral-900 rounded-card-lg p-12 border border-gray-100 dark:border-white/5 shadow-sm text-center">
           <DollarSign className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-[#1a1a1a] dark:text-white mb-2">No hay datos aún</h3>
-          <p className="text-[#6E6E73] dark:text-gray-400 mb-6">
+          <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-2">No hay datos aún</h3>
+          <p className="text-neutral-500 dark:text-gray-400 mb-6">
             Comienza agregando tus primeras transacciones para ver tu dashboard completo
           </p>
           <Button
             onClick={() => setIsModalOpen(true)}
-            className="bg-[#1C8FA0] hover:bg-[#167a8a] text-white"
+            variant="default"
           >
             <Plus className="w-4 h-4 mr-2" />
             Agregar Primera Transacción
@@ -1376,10 +1377,10 @@ const DashboardHome = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6 }}
-          className="bg-white dark:bg-[#1a1a1a] rounded-[26px] p-6 border border-gray-100 dark:border-white/5 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)]"
+          className="bg-white dark:bg-neutral-900 rounded-card-lg p-6 border border-gray-100 dark:border-white/5 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)]"
         >
           <div className="flex justify-between items-center mb-6">
-            <h3 className="font-bold text-[#1a1a1a] dark:text-white">Tasa de Ahorro</h3>
+            <h3 className="font-bold text-neutral-900 dark:text-white">Tasa de Ahorro</h3>
             <CheckCircle2 className="w-5 h-5 text-green-500" />
           </div>
           <GaugeChart 
@@ -1392,11 +1393,11 @@ const DashboardHome = () => {
           />
           <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/5">
             <div className="flex justify-between text-sm">
-              <span className="text-[#6E6E73] dark:text-gray-400">Objetivo</span>
-              <span className="font-bold text-[#1a1a1a] dark:text-white">35%</span>
+              <span className="text-neutral-500 dark:text-gray-400">Objetivo</span>
+              <span className="font-bold text-neutral-900 dark:text-white">35%</span>
           </div>
             <div className="flex justify-between text-sm mt-2">
-              <span className="text-[#6E6E73] dark:text-gray-400">Actual</span>
+              <span className="text-neutral-500 dark:text-gray-400">Actual</span>
               <span className={`font-bold ${realData.savingsRate >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                 {realData.savingsRate.toFixed(1)}%
               </span>
@@ -1405,20 +1406,20 @@ const DashboardHome = () => {
         </motion.div>
 
         {/* Bar Chart - Gastos por Categoría */}
-          <motion.div 
+          <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.7 }}
-          className="bg-white dark:bg-[#1a1a1a] rounded-[26px] p-6 border border-gray-100 dark:border-white/5 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)]"
+          className="bg-white dark:bg-neutral-900 rounded-card-lg p-6 border border-gray-100 dark:border-white/5 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)]"
         >
           <div className="flex justify-between items-center mb-6">
-            <h3 className="font-bold text-[#1a1a1a] dark:text-white">Gastos por Categoría</h3>
-            <PieChart className="w-5 h-5 text-[#1C8FA0]" />
+            <h3 className="font-bold text-neutral-900 dark:text-white">Gastos por Categoría</h3>
+            <PieChart className="w-5 h-5 text-primary-500" />
           </div>
-          <BarChart 
-            data={realData.departmentData.length > 0 ? realData.departmentData : defaultDepartmentData} 
-            height={200} 
-            delay={0.8} 
+          <BarChart
+            data={realData.departmentData.length > 0 ? realData.departmentData : defaultDepartmentData}
+            height={200}
+            delay={0.8}
           />
         </motion.div>
 
@@ -1427,11 +1428,11 @@ const DashboardHome = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.8 }}
-          className="bg-white dark:bg-[#1a1a1a] rounded-[26px] p-6 border border-gray-100 dark:border-white/5 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)] flex flex-col items-center"
+          className="bg-white dark:bg-neutral-900 rounded-card-lg p-6 border border-gray-100 dark:border-white/5 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)] flex flex-col items-center"
         >
           <div className="flex justify-between items-center w-full mb-6">
-            <h3 className="font-bold text-[#1a1a1a] dark:text-white">Distribución</h3>
-            <BarChart3 className="w-5 h-5 text-[#E47B45]" />
+            <h3 className="font-bold text-neutral-900 dark:text-white">Distribución</h3>
+            <BarChart3 className="w-5 h-5 text-secondary-500" />
               </div>
           <DonutChart 
             data={realData.categoryData.length > 0 ? realData.categoryData : defaultCategoryData} 
@@ -1448,9 +1449,9 @@ const DashboardHome = () => {
                       className="w-3 h-3 rounded-full" 
                       style={{ backgroundColor: item.color || getCategoryColor(item.label, i) }} 
                     />
-                    <span className="text-[#6E6E73] dark:text-gray-400">{item.label}</span>
+                    <span className="text-neutral-500 dark:text-gray-400">{item.label}</span>
                   </div>
-                  <span className="font-bold text-[#1a1a1a] dark:text-white">{displayValue}%</span>
+                  <span className="font-bold text-neutral-900 dark:text-white">{displayValue}%</span>
                 </div>
               );
             })}
@@ -1465,18 +1466,18 @@ const DashboardHome = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 1 }}
-          className="bg-white dark:bg-[#1a1a1a] rounded-[26px] p-6 border border-gray-100 dark:border-white/5 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)]"
+          className="bg-white dark:bg-neutral-900 rounded-card-lg p-6 border border-gray-100 dark:border-white/5 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)]"
         >
           <div className="flex justify-between items-center mb-6">
-            <h3 className="font-bold text-[#1a1a1a] dark:text-white">Tendencia de Ahorro</h3>
-            <LineChart className="w-5 h-5 text-[#1C8FA0]" />
+            <h3 className="font-bold text-neutral-900 dark:text-white">Tendencia de Ahorro</h3>
+            <LineChart className="w-5 h-5 text-primary-500" />
           </div>
-          <LineChartComponent 
-            data={realData.monthlyData.length > 0 
+          <LineChartComponent
+            data={realData.monthlyData.length > 0
               ? realData.monthlyData.map(d => ({ label: d.label, value: d.value * 100 }))
               : defaultMonthlyData.map(d => ({ label: d.label, value: d.value * 100 }))
-            } 
-            height={200} 
+            }
+            height={200}
             delay={1.1}
           />
           </motion.div>
@@ -1486,11 +1487,11 @@ const DashboardHome = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 1.1 }}
-          className="bg-white dark:bg-[#1a1a1a] rounded-[26px] p-6 border border-gray-100 dark:border-white/5 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)]"
+          className="bg-white dark:bg-neutral-900 rounded-card-lg p-6 border border-gray-100 dark:border-white/5 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)]"
         >
           <div className="flex justify-between items-center mb-6">
-            <h3 className="font-bold text-[#1a1a1a] dark:text-white">Presupuesto vs Real</h3>
-            <Activity className="w-5 h-5 text-[#E47B45]" />
+            <h3 className="font-bold text-neutral-900 dark:text-white">Presupuesto vs Real</h3>
+            <Activity className="w-5 h-5 text-secondary-500" />
         </div>
           <div className="space-y-4">
             {realData.departmentData.length > 0 ? (
@@ -1513,7 +1514,7 @@ const DashboardHome = () => {
                 />
               ))
             ) : (
-              <div className="text-center py-8 text-[#6E6E73] dark:text-gray-400">
+              <div className="text-center py-8 text-neutral-500 dark:text-gray-400">
                 <p>No hay datos de presupuesto aún</p>
                 <p className="text-sm mt-2">Configura presupuestos para ver comparativas</p>
               </div>
@@ -1529,15 +1530,15 @@ const DashboardHome = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 1.2 }}
-        className="bg-white dark:bg-[#1a1a1a] rounded-[26px] border border-gray-100 dark:border-white/5 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)] overflow-hidden"
+        className="bg-white dark:bg-neutral-900 rounded-card-lg border border-gray-100 dark:border-white/5 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)] overflow-hidden"
       >
-        <div className="p-6 border-b border-gray-100 dark:border-white/5 flex justify-between items-center bg-white/50 dark:bg-[#1a1a1a]/50 backdrop-blur-sm">
-          <h3 className="font-bold text-[#1a1a1a] dark:text-white">Transacciones Recientes</h3>
+        <div className="p-6 border-b border-gray-100 dark:border-white/5 flex justify-between items-center bg-white/50 dark:bg-neutral-900/50 backdrop-blur-sm">
+          <h3 className="font-bold text-neutral-900 dark:text-white">Transacciones Recientes</h3>
           <div className="flex gap-2">
-            <button className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors text-[#6E6E73] dark:text-gray-400">
+            <button className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors text-neutral-500 dark:text-gray-400">
               <Search className="w-4 h-4" />
             </button>
-            <button className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors text-[#6E6E73] dark:text-gray-400">
+            <button className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors text-neutral-500 dark:text-gray-400">
               <MoreHorizontal className="w-4 h-4" />
             </button>
           </div>
@@ -1549,8 +1550,8 @@ const DashboardHome = () => {
             {/* IZQUIERDA: Balance Total + gráfico pequeño - MOBILE-FIRST OPTIMIZADO */}
             <div className="flex flex-col w-full">
               {/* Título - Mobile-first tipography */}
-              <p 
-                className="font-semibold text-[#6E6E73] dark:text-gray-400 uppercase tracking-wide mb-3 sm:mb-4"
+              <p
+                className="font-semibold text-neutral-500 dark:text-gray-400 uppercase tracking-wide mb-3 sm:mb-4"
                 style={{
                   fontSize: 'clamp(0.75rem, 3vw, 0.875rem)',
                   lineHeight: '1.4',
@@ -1586,7 +1587,7 @@ const DashboardHome = () => {
                         duration: 0.15,
                         ease: [0.4, 0, 0.2, 1]
                       }}
-                      className="font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']"
+                      className="font-bold text-neutral-900 dark:text-white font-['Inter_Tight']"
                       style={{
                         fontSize: 'clamp(1.5rem, 7vw, 1.875rem)',
                         lineHeight: '1.3',
@@ -1643,8 +1644,8 @@ const DashboardHome = () => {
                           ease: [0.4, 0, 0.2, 1]
                         }}
                         className="flex-1 rounded-t-sm origin-bottom"
-                        style={{ 
-                          background: 'linear-gradient(180deg,#1C8FA0, #167a8a)',
+                        style={{
+                          background: 'linear-gradient(180deg, var(--primary-500, #1C8FA0), var(--primary-600, #167a8a))',
                           willChange: 'transform',
                           transform: 'translateZ(0) scaleY(1)',
                           minHeight: '6%',
@@ -1704,26 +1705,26 @@ const DashboardHome = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: 1.3 + (i * 0.05) }}
-                className="grid grid-cols-[auto,1fr,auto] items-center gap-4 p-4 hover:bg-gray-50/80 dark:hover:bg-white/5 rounded-xl transition-colors group cursor-pointer border border-gray-50 dark:border-white/5"
+                className="grid grid-cols-[auto,1fr,auto] items-center gap-3 px-3 py-2.5 hover:bg-gray-50/80 dark:hover:bg-white/5 rounded-button transition-colors group cursor-pointer border border-gray-50 dark:border-white/5"
               >
-                <div className="w-11 h-11 rounded-full bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                  {React.isValidElement(item.icon) 
-                    ? item.icon 
-                    : React.createElement(item.icon, { className: "w-5 h-5 text-[#6E6E73] dark:text-gray-400" })}
+                <div className="w-10 h-10 flex-shrink-0 rounded-full bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                  {React.isValidElement(item.icon)
+                    ? item.icon
+                    : React.createElement(item.icon, { className: "w-4 h-4 text-neutral-500 dark:text-gray-400" })}
                 </div>
-                <div className="min-w-0 self-center">
-                  <p className="text-sm font-bold text-[#1a1a1a] dark:text-white break-words whitespace-normal">{item.name}</p>
-                  <p className="text-xs text-[#6E6E73] dark:text-gray-400 break-words whitespace-normal">{item.category} · {item.date}</p>
+                <div className="min-w-0 overflow-hidden">
+                  <p className="text-sm font-semibold text-neutral-900 dark:text-white truncate">{item.name}</p>
+                  <p className="text-xs text-neutral-500 dark:text-gray-400 truncate">{item.category} · {item.date}</p>
                 </div>
-                <div className="text-right self-center pl-2">
-                  <span className={`text-sm font-bold font-mono whitespace-nowrap ${item.isIncome ? 'text-green-600 dark:text-green-400' : 'text-[#1a1a1a] dark:text-white'}`}>
+                <div className="text-right flex-shrink-0 pl-2">
+                  <span className={`text-sm font-bold font-mono whitespace-nowrap ${item.isIncome ? 'text-green-600 dark:text-green-400' : 'text-neutral-900 dark:text-white'}`}>
                     {item.amount}
                   </span>
                 </div>
               </motion.div>
             ))
           ) : (
-            <div className="text-center py-8 text-[#6E6E73] dark:text-gray-400">
+            <div className="text-center py-8 text-neutral-500 dark:text-gray-400">
               <DollarSign className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p>No hay transacciones recientes</p>
               <p className="text-sm mt-2">Agrega tu primera transacción para comenzar</p>
@@ -1742,7 +1743,7 @@ const DashboardHome = () => {
         transition={{ duration: 0.6, delay: 1.3 }}
         className="mt-8"
       >
-        <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white mb-4">Acceso Rápido</h3>
+        <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-4">Acceso Rápido</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <QuickAccessCard
             title="Transacciones"
@@ -1762,7 +1763,7 @@ const DashboardHome = () => {
           playStartRecordingSound().catch(() => {});
           setIsVoiceModalOpen(true);
         }}
-        className="fixed bottom-8 right-8 w-[68px] h-[68px] bg-[#1C8FA0] hover:bg-[#167a8a] text-white rounded-full shadow-[0_20px_40px_-12px_rgba(28,143,160,0.5)] flex items-center justify-center hover:scale-110 transition-all duration-300 z-50 group"
+        className="fixed bottom-8 right-8 w-[68px] h-[68px] bg-primary-500 hover:bg-primary-600 text-white rounded-full shadow-[0_20px_40px_-12px_rgba(28,143,160,0.5)] flex items-center justify-center hover:scale-110 transition-all duration-300 z-50 group"
         title="Agregar transacción por voz"
       >
         <Mic className="w-8 h-8 group-hover:scale-110 transition-transform duration-300" />

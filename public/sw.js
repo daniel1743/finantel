@@ -149,10 +149,21 @@ self.addEventListener('fetch', (event) => {
   if (url.pathname.includes('/rest/v1/') || 
       url.pathname.includes('/functions/v1/') ||
       url.pathname.includes('/auth/v1/')) {
+    
+    // ⚠️ CRÍTICO: Para POST/PUT/DELETE/PATCH, NO interceptar
+    // Dejar que el navegador maneje estas peticiones directamente
+    // Esto evita problemas con respuestas inválidas que causan "Failed to convert value to Response"
+    if (request.method !== 'GET') {
+      // No usar event.respondWith para métodos que modifican datos
+      // Esto permite que el fetch se ejecute normalmente sin interferencia del SW
+      return;
+    }
+    
+    // Solo para GET requests: Network First con fallback a caché
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Solo cachear respuestas exitosas GET (no cachear POST, PUT, DELETE)
+          // Solo cachear respuestas exitosas GET
           if (response.status === 200 && request.method === 'GET') {
             const responseClone = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
@@ -163,19 +174,15 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => {
-          // Fallback a caché si no hay red
+        .catch((error) => {
+          // Para GET: Fallback a caché si no hay red
           return caches.match(request).then((cachedResponse) => {
             if (cachedResponse) {
               return cachedResponse;
             }
-            return new Response(
-              JSON.stringify({ error: 'Sin conexión' }),
-              {
-                headers: { 'Content-Type': 'application/json' },
-                status: 503
-              }
-            );
+            // Si no hay caché, re-lanzar el error para que el navegador lo maneje
+            // NO devolver un Response genérico que pueda causar problemas
+            throw error;
           });
         })
     );

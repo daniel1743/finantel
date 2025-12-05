@@ -242,33 +242,72 @@ const GoalCard = ({ goal, index, onDelete }) => {
       <div className="relative z-20 p-6 flex flex-col">
         {/* Header con icono, fecha y botón eliminar */}
         <div className="flex justify-between items-start mb-5">
-          {/* Badge con animación de pulso/latido */}
-          <div className="relative">
-            {/* Anillo pulsante de fondo */}
+          {/* Badge con animación de pulso/latido fusionado */}
+          <div className="relative w-12 h-12">
+            {/* Anillos pulsantes fusionados con el badge */}
+            <motion.div
+              className={cn("absolute inset-0 rounded-full", defaultColor)}
+              animate={{
+                scale: [1, 1.4, 1],
+                opacity: [0.4, 0, 0.4],
+              }}
+              transition={{
+                duration: 2.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              style={{ 
+                width: '48px', 
+                height: '48px',
+              }}
+            />
+            <motion.div
+              className={cn("absolute inset-0 rounded-full", defaultColor)}
+              animate={{
+                scale: [1, 1.3, 1],
+                opacity: [0.5, 0, 0.5],
+              }}
+              transition={{
+                duration: 2.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 0.2,
+              }}
+              style={{ 
+                width: '48px', 
+                height: '48px',
+              }}
+            />
             <motion.div
               className={cn("absolute inset-0 rounded-full", defaultColor)}
               animate={{
                 scale: [1, 1.2, 1],
-                opacity: [0.3, 0, 0.3],
+                opacity: [0.6, 0, 0.6],
               }}
               transition={{
-                duration: 2,
+                duration: 2.5,
                 repeat: Infinity,
                 ease: "easeInOut",
+                delay: 0.4,
               }}
-              style={{ width: '48px', height: '48px' }}
+              style={{ 
+                width: '48px', 
+                height: '48px',
+              }}
             />
-            {/* Badge principal */}
+            {/* Badge principal fusionado con el pulso */}
             <motion.div
               className={cn("w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg relative z-10", defaultColor)}
               animate={{
                 scale: [1, 1.05, 1],
               }}
               transition={{
-                duration: 2,
+                duration: 2.5,
                 repeat: Infinity,
-                ease: "easeInOut",
-                delay: 0.1,
+                ease: [0.4, 0, 0.6, 1],
+              }}
+              style={{
+                boxShadow: '0 4px 14px 0 rgba(0, 0, 0, 0.15)'
               }}
             >
               <GoalIcon className="w-4.5 h-4.5" style={{ width: '18px', height: '18px' }} />
@@ -977,8 +1016,8 @@ const Goals = () => {
         
         <div className="relative z-10 grid lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-7 space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider border border-white/10">
-              <Icon component={Sparkles} size="xs" color="default" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider border border-white/10 text-white">
+              <Icon component={Sparkles} size="xs" color="white" />
               Análisis de Metas
             </div>
             <h2 className="text-2xl md:text-3xl font-bold leading-tight">
@@ -998,41 +1037,79 @@ const Goals = () => {
             {goalAnalysis && (
               <button 
                 onClick={() => navigate('/dashboard/predictions')}
-                className="flex items-center gap-2 text-sm font-bold hover:gap-3 transition-all mt-2 cursor-pointer"
+                className="flex items-center gap-2 text-sm font-bold hover:gap-3 transition-all mt-2 cursor-pointer text-white hover:text-white/90"
               >
-                Ver detalles del plan <Icon component={ArrowRight} size="sm" color="default" />
+                Ver detalles del plan <Icon component={ArrowRight} size="sm" color="white" />
               </button>
             )}
           </div>
 
-          <div className="lg:col-span-5 h-32 flex items-end gap-2 pb-2 px-4 bg-white/10 rounded-xl border border-white/10 backdrop-blur-sm">
-            {/* Gráfico de proyección (datos reales o placeholder) */}
-            {(goalAnalysis && goalAnalysis.chartData.length > 0) ? (
-              goalAnalysis.chartData.map((h, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ height: 0 }}
-                  animate={{ height: `${h}%` }}
-                  transition={{ duration: 0.8, delay: i * 0.05 }}
-                  className="flex-1 bg-white/80 rounded-t-sm hover:bg-[#E47B45] transition-colors cursor-pointer relative group"
-                >
-                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-white text-[#1C8FA0] text-xs font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                    Mes {i + 1}
-                  </div>
-                </motion.div>
-              ))
-            ) : (
-              // Placeholder si no hay datos
-              [30, 45, 35, 60, 50, 75, 65, 85, 70, 90, 80, 100].map((h, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ height: 0 }}
-                  animate={{ height: `${h}%` }}
-                  transition={{ duration: 0.8, delay: i * 0.05 }}
-                  className="flex-1 bg-white/40 rounded-t-sm"
-                />
-              ))
-            )}
+          <div className="lg:col-span-5">
+            {/* Título del gráfico */}
+            <div className="mb-2">
+              <p className="text-white/90 text-xs font-semibold">Proyección de Ahorro (12 meses)</p>
+              {goalAnalysis && goalAnalysis.monthlySavings > 0 && (
+                <p className="text-white/70 text-xs mt-0.5">
+                  Basado en ahorro mensual de ${Math.round(goalAnalysis.monthlySavings).toLocaleString()}
+                </p>
+              )}
+            </div>
+            {/* Contenedor del gráfico */}
+            <div className="h-32 flex items-end gap-1.5 pb-2 px-2 bg-white/20 rounded-xl border border-white/20 backdrop-blur-sm">
+              {/* Gráfico de proyección (datos reales o placeholder) */}
+              {(goalAnalysis && goalAnalysis.chartData.length > 0) ? (
+                goalAnalysis.chartData.map((h, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ height: 0 }}
+                    animate={{ height: `${h}%` }}
+                    transition={{ duration: 0.8, delay: i * 0.05 }}
+                    className="flex-1 bg-white rounded-t-sm hover:bg-[#E47B45] transition-all cursor-pointer relative group shadow-sm min-h-[4px]"
+                    title={`Mes ${i + 1}: ${Math.round(h)}% de progreso proyectado`}
+                  >
+                    <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-white text-[#1C8FA0] text-xs font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 shadow-lg pointer-events-none">
+                      Mes {i + 1}
+                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-white"></div>
+                    </div>
+                    {/* Etiqueta de porcentaje en la barra */}
+                    {h > 15 && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-[10px] font-bold text-[#1C8FA0] opacity-0 group-hover:opacity-100 transition-opacity">
+                          {Math.round(h)}%
+                        </span>
+                      </div>
+                    )}
+                  </motion.div>
+                ))
+              ) : (
+                // Placeholder si no hay datos - más visible con explicación
+                <>
+                  {[30, 45, 35, 60, 50, 75, 65, 85, 70, 90, 80, 100].map((h, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ height: 0 }}
+                      animate={{ height: `${h}%` }}
+                      transition={{ duration: 0.8, delay: i * 0.05 }}
+                      className="flex-1 bg-white/70 rounded-t-sm shadow-sm min-h-[4px]"
+                      title={`Ejemplo Mes ${i + 1}: ${h}%`}
+                    />
+                  ))}
+                </>
+              )}
+            </div>
+            {/* Leyenda del gráfico */}
+            <div className="mt-2 flex items-center justify-center gap-4 text-white/80 text-xs">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 bg-white rounded-sm"></div>
+                <span>Progreso proyectado</span>
+              </div>
+              {goalAnalysis && goalAnalysis.monthlySavings > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 bg-[#E47B45] rounded-sm"></div>
+                  <span>Hover para detalles</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </motion.div>
