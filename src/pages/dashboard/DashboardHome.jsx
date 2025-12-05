@@ -72,9 +72,9 @@ const KPICard = ({ title, value, subtitle, trend, trendValue, trendUp, icon: Ico
           {trendValue}
           </div>
             </div>
-      <h3 className="text-neutral-500 dark:text-gray-400 text-sm font-medium mb-2 break-words whitespace-normal leading-tight">{title}</h3>
-      <p className="text-2xl font-bold text-neutral-900 dark:text-white font-mono tracking-normal mb-2 break-words whitespace-normal leading-tight" style={{ letterSpacing: '0.02em' }}>{value}</p>
-      {subtitle && <p className="text-xs text-neutral-500 dark:text-gray-400 break-words whitespace-normal leading-relaxed">{subtitle}</p>}
+      <h3 className="text-neutral-500 dark:text-gray-400 text-sm font-medium mb-2 leading-tight">{title}</h3>
+      <p className="text-2xl font-bold text-neutral-900 dark:text-white font-mono tracking-normal mb-2 leading-tight" style={{ letterSpacing: '0.02em' }}>{value}</p>
+      {subtitle && <p className="text-xs text-neutral-500 dark:text-gray-400 leading-relaxed">{subtitle}</p>}
       
       {/* Mini Sparkline Chart */}
       <div className="h-10 mt-4 flex items-end gap-1">
@@ -1350,7 +1350,7 @@ const DashboardHome = () => {
       ) : (
         <>
           {/* KPIs Row - 6 Tarjetas Principales: 3 arriba, 3 abajo */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* 1. Ingresos Totales - PRIMERA */}
             <KPICard
               title="Ingresos Totales"

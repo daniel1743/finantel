@@ -428,7 +428,22 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [suggestedMonthly, setSuggestedMonthly] = useState(null);
   const [selectedIcon, setSelectedIcon] = useState(null);
+  const [selectedColor, setSelectedColor] = useState('#1C8FA0');
   const [showIconPicker, setShowIconPicker] = useState(false);
+  
+  // Paleta de colores para las metas
+  const colorPalette = [
+    { name: 'Azul', value: '#1C8FA0', bg: 'bg-[#1C8FA0]' },
+    { name: 'Naranja', value: '#E47B45', bg: 'bg-[#E47B45]' },
+    { name: 'Rosa', value: '#EC4899', bg: 'bg-[#EC4899]' },
+    { name: 'Verde', value: '#10B981', bg: 'bg-[#10B981]' },
+    { name: 'Morado', value: '#8B5CF6', bg: 'bg-[#8B5CF6]' },
+    { name: 'Amarillo', value: '#F59E0B', bg: 'bg-[#F59E0B]' },
+    { name: 'Rojo', value: '#EF4444', bg: 'bg-[#EF4444]' },
+    { name: 'Cian', value: '#14B8A6', bg: 'bg-[#14B8A6]' },
+    { name: 'Índigo', value: '#6366F1', bg: 'bg-[#6366F1]' },
+    { name: 'Gris', value: '#6B7280', bg: 'bg-[#6B7280]' },
+  ];
 
   // Sugerir icono automáticamente cuando cambia el nombre
   useEffect(() => {
@@ -442,6 +457,7 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
   useEffect(() => {
     if (isOpen) {
       setSelectedIcon(null);
+      setSelectedColor('#1C8FA0');
       setShowIconPicker(false);
     }
   }, [isOpen]);
@@ -534,6 +550,7 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
         target_amount: parsedAmount,
         deadline: deadlineDate,
         description: formData.description.trim() || null,
+        color: selectedColor,
         metadata: iconName ? { icon_name: iconName } : {}
       };
 
@@ -548,6 +565,7 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
       });
       setSuggestedMonthly(null);
       setSelectedIcon(null);
+      setSelectedColor('#1C8FA0');
       setShowIconPicker(false);
       
       onClose();
@@ -634,18 +652,27 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
               Icono de la meta
             </label>
             
-            {/* Icono seleccionado */}
-            {selectedIcon && (
-              <div className="mb-3 flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center border-2 border-[#1C8FA0]">
-                  {React.createElement(selectedIcon, { className: "w-6 h-6 text-[#1C8FA0]" })}
+            {/* Icono y color seleccionados */}
+            {(selectedIcon || selectedColor) && (
+              <div className="mb-4 flex items-center gap-3">
+                <div 
+                  className="w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all"
+                  style={{ 
+                    backgroundColor: `${selectedColor}15`,
+                    borderColor: selectedColor
+                  }}
+                >
+                  {selectedIcon && React.createElement(selectedIcon, { 
+                    className: "w-6 h-6",
+                    style: { color: selectedColor }
+                  })}
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-[#1a1a1a] dark:text-white">
-                    {goalIcons.find(opt => opt.icon === selectedIcon)?.name || 'Icono seleccionado'}
+                    {selectedIcon ? goalIcons.find(opt => opt.icon === selectedIcon)?.name || 'Icono seleccionado' : 'Sin icono'}
                   </p>
                   <p className="text-xs text-[#6E6E73] dark:text-gray-400">
-                    El icono se sugiere automáticamente según el nombre
+                    {colorPalette.find(c => c.value === selectedColor)?.name || 'Color seleccionado'}
                   </p>
                 </div>
                 <button
@@ -658,40 +685,86 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
               </div>
             )}
 
-            {/* Grid de iconos */}
+            {/* Grid de iconos y colores */}
             {showIconPicker && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="grid grid-cols-5 sm:grid-cols-6 gap-3 p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10 max-h-64 overflow-y-auto"
+                className="space-y-6"
               >
-                {goalIcons.map((iconOption, idx) => {
-                  const IconComponent = iconOption.icon;
-                  const isSelected = selectedIcon === iconOption.icon;
-                  return (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => {
-                        setSelectedIcon(iconOption.icon);
-                        setShowIconPicker(false);
-                      }}
-                      className={cn(
-                        "p-3 rounded-xl transition-all hover:scale-110 flex flex-col items-center gap-2",
-                        isSelected
-                          ? "bg-[#1C8FA0] text-white shadow-lg"
-                          : "bg-white dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 text-[#6E6E73] dark:text-gray-400 border border-gray-200 dark:border-white/10"
-                      )}
-                      title={iconOption.name}
-                    >
-                      <IconComponent className="w-5 h-5" />
-                      <span className="text-xs font-medium truncate w-full text-center">
-                        {iconOption.name}
-                      </span>
-                    </button>
-                  );
-                })}
+                {/* Selector de Iconos */}
+                <div>
+                  <label className="block text-xs font-medium text-[#6E6E73] dark:text-gray-400 mb-3">
+                    Seleccionar Icono
+                  </label>
+                  <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10 max-h-80 overflow-y-auto justify-items-center">
+                    {goalIcons.map((iconOption, idx) => {
+                      const IconComponent = iconOption.icon;
+                      const isSelected = selectedIcon === iconOption.icon;
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            setSelectedIcon(iconOption.icon);
+                          }}
+                          className={cn(
+                            "w-20 h-20 p-3 rounded-xl transition-all hover:scale-105 flex flex-col items-center justify-center gap-1.5 aspect-square",
+                            isSelected
+                              ? "bg-white dark:bg-white/10 shadow-lg border-2"
+                              : "bg-white dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10"
+                          )}
+                          style={isSelected ? { 
+                            borderColor: selectedColor,
+                            backgroundColor: `${selectedColor}10`
+                          } : {}}
+                          title={iconOption.name}
+                        >
+                          <IconComponent 
+                            className="w-5 h-5 flex-shrink-0" 
+                            style={isSelected ? { color: selectedColor } : {}}
+                          />
+                          <span className={cn(
+                            "text-[10px] font-medium text-center leading-tight px-0.5 line-clamp-2",
+                            isSelected ? "text-[#1a1a1a] dark:text-white" : "text-[#6E6E73] dark:text-gray-400"
+                          )}>
+                            {iconOption.name}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Selector de Colores */}
+                <div>
+                  <label className="block text-xs font-medium text-[#6E6E73] dark:text-gray-400 mb-3">
+                    Seleccionar Color
+                  </label>
+                  <div className="grid grid-cols-5 sm:grid-cols-10 gap-4 p-5 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10">
+                    {colorPalette.map((color, idx) => {
+                      const isSelected = selectedColor === color.value;
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setSelectedColor(color.value)}
+                          className={cn(
+                            "w-12 h-12 rounded-full transition-all hover:scale-110 flex items-center justify-center shadow-sm",
+                            isSelected && "ring-3 ring-offset-2 ring-[#1a1a1a] dark:ring-white scale-110"
+                          )}
+                          style={{ backgroundColor: color.value }}
+                          title={color.name}
+                        >
+                          {isSelected && (
+                            <span className="text-white text-base font-bold drop-shadow-lg">✓</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </motion.div>
             )}
 
@@ -707,11 +780,11 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-4">
             <div>
               <label className="block text-sm font-medium text-[#6E6E73] dark:text-gray-400 mb-2">Monto objetivo</label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">$</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 font-medium z-10">$</span>
                 <input 
                   type="number" 
                   inputMode="numeric"
@@ -731,7 +804,7 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
                     setFormData({ ...formData, target_amount: cleanedValue });
                   }}
                   disabled={isLoading}
-                  className="w-full pl-8 pr-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50"
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1C8FA0]/20 focus:border-[#1C8FA0] transition-all disabled:opacity-50 text-right"
                 />
               </div>
             </div>
@@ -775,20 +848,20 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
             </div>
           )}
 
-          <div className="pt-4 flex gap-3">
+          <div className="pt-4 flex flex-col gap-3">
             <Button 
               type="button"
               variant="outline" 
               onClick={onClose} 
               disabled={isLoading}
-              className="flex-1 h-12 rounded-xl border-gray-200 dark:border-white/10 text-[#6E6E73] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5"
+              className="w-full h-12 rounded-xl border-gray-200 dark:border-white/10 text-[#6E6E73] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5"
             >
               Cancelar
             </Button>
             <Button 
               type="submit"
               disabled={isLoading || !formData.name.trim() || !formData.target_amount}
-              className="flex-1 h-12 rounded-xl bg-[#1a1a1a] dark:bg-white hover:bg-black dark:hover:bg-gray-100 text-white dark:text-black shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full h-12 rounded-xl bg-[#1a1a1a] dark:bg-white hover:bg-black dark:hover:bg-gray-100 text-white dark:text-black shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>
