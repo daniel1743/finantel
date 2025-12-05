@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Icon from '@/components/ui/Icon';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, ShoppingBag, Coffee, DollarSign, Home, Zap, Plane, Car } from 'lucide-react';
+import { ArrowRight, DollarSign, Zap, ShoppingBag, Clock, Laptop } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useABTest } from '@/contexts/ABTestContext';
@@ -13,9 +13,11 @@ const Hero = () => {
 
   // Transacciones disponibles para rotación
   const allTransactions = [
-    { name: "Supermercado", cat: "Alimentación", amount: "-$124.50", color: "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400", icon: ShoppingBag },
-    { name: "Freelance Project", cat: "Ingresos", amount: "+$850.00", positive: true, color: "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400", icon: DollarSign },
     { name: "Netflix", cat: "Suscripciones", amount: "-$15.99", color: "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400", icon: Zap },
+    { name: "Freelance Project", cat: "Ingresos", amount: "+$850.00", positive: true, color: "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400", icon: DollarSign },
+    { name: "Compras", cat: "Compras", amount: "-$45.00", color: "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400", icon: ShoppingBag },
+    { name: "Reloj Inteligente", cat: "Gadgets", amount: "-$120.00", color: "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400", icon: Clock },
+    { name: "Laptop", cat: "Equipo de trabajo", amount: "-$1,050.00", color: "bg-slate-100 text-slate-600 dark:bg-slate-900/30 dark:text-slate-400", icon: Laptop },
   ];
 
   // Rotar transacciones cada 3 segundos

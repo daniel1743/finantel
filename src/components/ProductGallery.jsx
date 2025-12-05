@@ -61,8 +61,8 @@ const ProductGallery = () => {
 
   return (
     <>
-      <section className="py-16 md:py-20 bg-[#F9FAFB] dark:bg-[#1a1a1a]">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      <section className="py-16 md:py-20 bg-[#F9FAFB] dark:bg-[#1a1a1a] overflow-hidden">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -79,7 +79,7 @@ const ProductGallery = () => {
           </motion.div>
 
           {/* Main Screenshot Display */}
-          <div className="relative max-w-5xl mx-auto mb-8">
+          <div className="relative max-w-3xl mx-auto mb-8">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}

@@ -56,11 +56,11 @@ const DemoConversionModal = () => {
                   e.stopPropagation(); // Prevenir que se propague al backdrop
                   handleClose(); // OBLIGATORIO: Redirige al landing page
                 }}
-                className="absolute top-4 right-4 w-12 h-12 rounded-full bg-white dark:bg-[#1a1a1a] border-2 border-gray-200 dark:border-white/20 hover:bg-gray-50 dark:hover:bg-white/10 hover:border-[#1C8FA0] dark:hover:border-[#1C8FA0] flex items-center justify-center transition-all shadow-lg hover:shadow-xl z-[102] group"
+                className="absolute top-4 right-4 w-7 h-7 rounded-full bg-white/80 dark:bg-[#1a1a1a]/80 backdrop-blur-sm border border-gray-200/50 dark:border-white/10 hover:bg-white dark:hover:bg-[#1a1a1a] hover:border-[#1C8FA0]/50 dark:hover:border-[#1C8FA0]/50 flex items-center justify-center transition-all shadow-sm hover:shadow-md z-[102] group"
                 aria-label="Cerrar y volver al inicio"
                 title="Cerrar y volver al inicio"
               >
-                <X className="w-6 h-6 text-gray-700 dark:text-gray-200 group-hover:text-[#1C8FA0] dark:group-hover:text-[#1C8FA0] transition-colors font-bold" strokeWidth={2.5} />
+                <X className="w-3.5 h-3.5 text-gray-600 dark:text-gray-300 group-hover:text-[#1C8FA0] dark:group-hover:text-[#1C8FA0] transition-colors" strokeWidth={2} />
               </button>
 
               {/* Content */}
