@@ -57,9 +57,11 @@ const Icon = ({
   );
 
   // Props para Lucide React (stroke-width, etc.)
+  // NO pasar 'size' a Lucide icons ya que usamos clases CSS
+  const { size: _, ...restProps } = props;
   const lucideProps = isLucideIcon ? {
     strokeWidth: 1.5,
-    ...props,
+    ...restProps,
   } : props;
 
   // Para MUI icons, usar fontSize en lugar de className para tamaño

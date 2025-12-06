@@ -4,7 +4,7 @@
 // Muestra simulaciones financieras futuras del usuario
 // ============================================================================
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -71,14 +71,40 @@ const HORIZON_OPTIONS = [
 // ============================================================================
 const ScenarioCard = ({ scenario, config, currency, delay = 0 }) => {
   const Icon = config.icon;
-  const isPositive = scenario.projected_net_worth >= 0;
+  
+  // ========================================================================
+  // CORRECCIÓN 1.6: Validación de datos antes de renderizar
+  // ========================================================================
+  const projectedNetWorth = scenario.projected_net_worth;
+  const isValidNetWorth = projectedNetWorth !== null && 
+                          projectedNetWorth !== undefined && 
+                          !isNaN(projectedNetWorth);
+  
+  // Log de validación
+  if (!isValidNetWorth) {
+    console.warn('[SIMULADOR-FIX] [1.6] Valor inválido de patrimonio neto:', {
+      scenario_type: scenario.scenario_type,
+      projected_net_worth: projectedNetWorth,
+      scenario: scenario
+    });
+  } else {
+    console.log('[SIMULADOR-FIX] [1.6] Validando escenario:', {
+      scenario_type: scenario.scenario_type,
+      projected_net_worth: projectedNetWorth,
+      isValid: true
+    });
+  }
+  
+  // Usar valor por defecto si es inválido
+  const safeNetWorth = isValidNetWorth ? projectedNetWorth : 0;
+  const isPositive = safeNetWorth >= 0;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
-      className={`${config.bgColor} rounded-[22px] border-2 ${config.borderColor} p-6 shadow-sm`}
+      className={`${config.bgColor} rounded-[22px] border-2 ${config.borderColor} p-4 md:p-6 shadow-sm overflow-hidden`}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
@@ -106,29 +132,39 @@ const ScenarioCard = ({ scenario, config, currency, delay = 0 }) => {
           Patrimonio Neto Proyectado
         </p>
         <p
-          className={`text-3xl font-bold font-['Inter_Tight'] ${
+          className={`text-2xl md:text-3xl font-bold font-['Inter_Tight'] break-words ${
             isPositive
               ? 'text-green-600 dark:text-green-400'
               : 'text-red-600 dark:text-red-400'
           }`}
         >
-          {formatCurrency(scenario.projected_net_worth, currency)}
+          {formatCurrency(safeNetWorth, currency)}
         </p>
       </div>
 
       {/* Métricas */}
       <div className="space-y-2 mb-4">
-        <div className="flex justify-between text-sm">
-          <span className="text-[#6E6E73] dark:text-gray-400">Ahorros proyectados</span>
-          <span className="font-medium text-[#1a1a1a] dark:text-white">
-            {formatCurrency(scenario.projected_savings, currency)}
+        <div className="flex justify-between items-center gap-2 text-sm">
+          <span className="text-[#6E6E73] dark:text-gray-400 flex-shrink-0">Ahorros proyectados</span>
+          <span className="font-medium text-[#1a1a1a] dark:text-white text-right break-words">
+            {formatCurrency(
+              (scenario.projected_savings !== null && scenario.projected_savings !== undefined && !isNaN(scenario.projected_savings)) 
+                ? scenario.projected_savings 
+                : 0, 
+              currency
+            )}
           </span>
         </div>
         {scenario.projected_debt > 0 && (
-          <div className="flex justify-between text-sm">
-            <span className="text-[#6E6E73] dark:text-gray-400">Deuda proyectada</span>
-            <span className="font-medium text-red-600 dark:text-red-400">
-              {formatCurrency(scenario.projected_debt, currency)}
+          <div className="flex justify-between items-center gap-2 text-sm">
+            <span className="text-[#6E6E73] dark:text-gray-400 flex-shrink-0">Deuda proyectada</span>
+            <span className="font-medium text-red-600 dark:text-red-400 text-right break-words">
+              {formatCurrency(
+                (scenario.projected_debt !== null && scenario.projected_debt !== undefined && !isNaN(scenario.projected_debt)) 
+                  ? scenario.projected_debt 
+                  : 0, 
+                currency
+              )}
             </span>
           </div>
         )}
@@ -139,7 +175,7 @@ const ScenarioCard = ({ scenario, config, currency, delay = 0 }) => {
         <div className="bg-white/50 dark:bg-black/20 rounded-xl p-4 mb-4">
           <div className="flex items-start gap-2">
             <Icon component={Sparkles} size="sm" color="primary" className="mt-0.5 flex-shrink-0" />
-            <p className="text-sm text-[#1a1a1a] dark:text-white leading-relaxed">
+            <p className="text-sm text-[#1a1a1a] dark:text-white leading-relaxed break-words">
               {scenario.summary_text}
             </p>
           </div>
@@ -158,12 +194,12 @@ const ScenarioCard = ({ scenario, config, currency, delay = 0 }) => {
               className="flex items-start gap-2 bg-white/30 dark:bg-black/10 rounded-lg p-2"
             >
               <Icon component={CheckCircle2} size="sm" color="success" className="mt-0.5 flex-shrink-0" />
-              <div className="flex-1">
-                <p className="text-xs font-medium text-[#1a1a1a] dark:text-white">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-[#1a1a1a] dark:text-white break-words">
                   {action.description}
                 </p>
                 {action.impact && (
-                  <p className="text-xs text-green-600 dark:text-green-400">
+                  <p className="text-xs text-green-600 dark:text-green-400 break-words">
                     Ahorro estimado: {formatCurrency(action.impact, currency)}/mes
                   </p>
                 )}
@@ -214,6 +250,30 @@ function formatCurrency(amount, currency = 'CLP') {
 // ============================================================================
 export default function FutureSelfView() {
   const [horizonMonths, setHorizonMonths] = useState(12);
+  
+  // ========================================================================
+  // CORRECCIÓN 2.4: Validación de horizonte temporal
+  // ========================================================================
+  const validHorizons = [3, 6, 12, 24];
+  
+  useEffect(() => {
+    const isValidHorizon = validHorizons.includes(horizonMonths);
+    
+    if (!isValidHorizon) {
+      console.warn('[SIMULADOR-FIX] [2.4] Horizonte inválido detectado:', {
+        horizonMonths,
+        willReset: true
+      });
+      // Resetear a valor válido por defecto
+      setHorizonMonths(12);
+    } else {
+      console.log('[SIMULADOR-FIX] [2.4] Validando horizonte:', {
+        horizonMonths,
+        isValid: true
+      });
+    }
+  }, [horizonMonths]);
+  
   const { scenarios, currentMetrics, loading, error, refresh } = useFutureSelf(horizonMonths);
   const { currency } = useUserCurrency();
   const { toast } = useToast();

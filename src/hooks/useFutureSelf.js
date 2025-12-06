@@ -36,7 +36,34 @@ export function useFutureSelf(horizonMonths = 12) {
       if (dbError) throw dbError;
 
       if (data && data.length > 0) {
-        setScenarios(data);
+        // ========================================================================
+        // CORRECCIÓN CRÍTICA: Normalizar datos desde caché
+        // Los datos de BD ya vienen planos, pero verificamos estructura
+        // ========================================================================
+        const normalizedScenarios = data.map(scenario => {
+          // Si tiene projection anidado, normalizar
+          if (scenario.projection) {
+            return {
+              ...scenario,
+              projected_income: scenario.projection.projected_income || scenario.projected_income,
+              projected_expenses: scenario.projection.projected_expenses || scenario.projected_expenses,
+              projected_savings: scenario.projection.projected_savings || scenario.projected_savings,
+              projected_debt: scenario.projection.projected_debt || scenario.projected_debt,
+              projected_net_worth: scenario.projection.projected_net_worth || scenario.projected_net_worth,
+              monthly_income: scenario.projection.monthly_income || scenario.projected_income / horizonMonths,
+              monthly_expenses: scenario.projection.monthly_expenses || scenario.projected_expenses / horizonMonths,
+            };
+          }
+          // Si ya viene plano, devolver tal cual
+          return scenario;
+        });
+        
+        console.log('[SIMULADOR-FIX] [HOOK] Datos desde caché normalizados:', {
+          count: normalizedScenarios.length,
+          sample: normalizedScenarios[0]
+        });
+        
+        setScenarios(normalizedScenarios);
         return true;
       }
       return false;
@@ -115,7 +142,36 @@ export function useFutureSelf(horizonMonths = 12) {
       }
 
       if (data?.success) {
-        setScenarios(data.scenarios);
+        // ========================================================================
+        // CORRECCIÓN CRÍTICA: Normalizar estructura de datos
+        // La Edge Function devuelve datos anidados en 'projection', pero el UI espera datos planos
+        // ========================================================================
+        const normalizedScenarios = data.scenarios.map(scenario => {
+          // Si viene de Edge Function, tiene estructura anidada: scenario.projection.*
+          if (scenario.projection) {
+            return {
+              ...scenario,
+              projected_income: scenario.projection.projected_income,
+              projected_expenses: scenario.projection.projected_expenses,
+              projected_savings: scenario.projection.projected_savings,
+              projected_debt: scenario.projection.projected_debt,
+              projected_net_worth: scenario.projection.projected_net_worth,
+              monthly_income: scenario.projection.monthly_income,
+              monthly_expenses: scenario.projection.monthly_expenses,
+              // Mantener projection para compatibilidad, pero los valores planos tienen prioridad
+            };
+          }
+          // Si ya viene plano (desde caché), devolver tal cual
+          return scenario;
+        });
+        
+        console.log('[SIMULADOR-FIX] [HOOK] Datos normalizados:', {
+          original: data.scenarios.length,
+          normalized: normalizedScenarios.length,
+          sample: normalizedScenarios[0]
+        });
+        
+        setScenarios(normalizedScenarios);
         setCurrentMetrics(data.current_metrics);
         setError(null);
       } else {
