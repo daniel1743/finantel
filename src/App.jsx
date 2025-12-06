@@ -55,6 +55,7 @@ const Analysis = lazy(() => import('@/pages/dashboard/Analysis'));
 const Support = lazy(() => import('@/pages/dashboard/Support'));
 const SupportTicketDetail = lazy(() => import('@/pages/dashboard/SupportTicketDetail'));
 const AdminSupport = lazy(() => import('@/pages/dashboard/AdminSupport'));
+const AdminDashboard = lazy(() => import('@/pages/dashboard/AdminDashboard'));
 const SharedExpenses = lazy(() => import('@/pages/dashboard/SharedExpenses'));
 const Notifications = lazy(() => import('@/pages/dashboard/Notifications'));
 const SystemNotifications = lazy(() => import('@/pages/dashboard/SystemNotifications'));
@@ -92,7 +93,7 @@ function App() {
                 {/* <UpdateNotification /> */}
                 <DemoModeBanner />
                 <DemoConversionModal />
-                <div className="min-h-screen bg-[#F5F7F9] dark:bg-[#0f0f11] font-sans selection:bg-[#1C8FA0]/20 selection:text-[#1C8FA0] transition-colors duration-300">
+                <div className="min-h-screen bg-[#F5F7F9] dark:bg-[#0f0f11] font-sans selection:bg-[#1C8FA0]/20 selection:text-[#1C8FA0] transition-colors duration-300 overflow-x-hidden w-full">
                   <ErrorBoundary useRouterFallback={true}>
                     <Suspense fallback={<PageLoader />}>
                       <Routes>
@@ -162,6 +163,7 @@ function App() {
                     <Route path="ab-testing" element={<ABTesting />} />
                     <Route path="support" element={<Support />} />
                     <Route path="support/:ticketId" element={<SupportTicketDetail />} />
+                    <Route path="admin" element={<AdminDashboard />} />
                     <Route path="admin/support" element={<AdminSupport />} />
                     <Route path="admin/system-notifications" element={<SystemNotifications />} />
                     <Route path="admin/webhooks" element={<WebhookInbox />} />

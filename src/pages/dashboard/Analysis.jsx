@@ -19,6 +19,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useFinance } from '@/hooks/useFinance';
+import { useToolTracking } from '@/hooks/useToolTracking';
 
 const ChartCard = ({ title, children, className }) => (
   <motion.div 

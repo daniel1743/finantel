@@ -71,7 +71,7 @@ const Footer = () => {
               <img
                 src="/INANTEL.svg"
                 alt="Finantel Logo"
-                className="h-[36.8px] w-auto"
+                className="h-[110px] w-auto drop-shadow-2xl"
               />
             </div>
             <p className="text-neutral-500 max-w-sm leading-relaxed">

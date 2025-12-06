@@ -75,7 +75,7 @@ const Header = () => {
             <img
               src="/INANTEL.svg"
               alt="Finantel Logo"
-              className="h-[36.8px] w-auto"
+              className="h-[110px] w-auto drop-shadow-2xl"
             />
           </Link>
 
@@ -154,7 +154,7 @@ const Header = () => {
                   <img
                     src="/INANTEL.svg"
                     alt="Finantel Logo"
-                    className="h-[36.8px] w-auto"
+                    className="h-[110px] w-auto drop-shadow-2xl"
                   />
                   <button
                     onClick={() => setMobileMenuOpen(false)}

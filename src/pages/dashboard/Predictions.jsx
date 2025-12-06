@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useFinance } from '@/hooks/useFinance';
 import { useToast } from '@/components/ui/use-toast';
+import { useToolTracking } from '@/hooks/useToolTracking';
 
 const ScenarioCard = ({ title, description, impact, type, delay, onClick }) => (
   <motion.div

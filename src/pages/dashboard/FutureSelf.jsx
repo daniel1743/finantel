@@ -27,6 +27,7 @@ import { useFutureSelf } from '@/hooks/useFutureSelf';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { useUserCurrency } from '@/hooks/useUserCurrency';
+import { useToolTracking } from '@/hooks/useToolTracking';
 
 // ============================================================================
 // CONFIGURACIÓN DE ESCENARIOS

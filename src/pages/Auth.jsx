@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { 
   Mail, 
   Lock, 
@@ -27,6 +28,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { signIn, signUp, signInWithGoogle } = useAuth();
+  const { trackEvent } = useAnalytics();
   
   const searchParams = new URLSearchParams(location.search);
   const offerParam = searchParams.get('offer');
@@ -60,6 +62,7 @@ const Auth = () => {
         // Pasar el parámetro rememberMe al signIn
         const { error } = await signIn(formData.email, formData.password, rememberMe);
         if (error) throw error;
+        trackEvent('login', 'user_login', { method: 'email' });
         navigate(from, { replace: true });
       } else {
         if (formData.password !== formData.confirmPassword) {
@@ -70,6 +73,7 @@ const Auth = () => {
         });
         if (error) throw error;
         
+        trackEvent('signup', 'user_signup', { method: 'email' });
         toast({
           title: "¡Cuenta creada!",
           description: "Por favor verifica tu correo electrónico para continuar.",
@@ -263,6 +267,9 @@ const Auth = () => {
                   console.log('📝 Asegúrate de agregar esta URL en Google Cloud Console → OAuth 2.0 Client → Authorized redirect URIs');
 
                   const { error } = await signInWithGoogle(rememberMe);
+                  if (!error) {
+                    trackEvent('login', 'user_login', { method: 'google' });
+                  }
                   if (error) {
                     // Si es error de redirect_uri_mismatch, dar instrucciones más claras
                     if (error.message?.includes('redirect_uri_mismatch') || error.message?.includes('redirect')) {

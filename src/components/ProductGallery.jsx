@@ -104,26 +104,26 @@ const ProductGallery = () => {
               {/* Expand button overlay */}
               <button
                 onClick={() => openLightbox(selectedImage)}
-                className="absolute top-4 right-4 bg-white/90 dark:bg-black/90 backdrop-blur-sm p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:scale-110 hover:bg-white dark:hover:bg-black"
+                className="absolute top-4 right-4 bg-white/50 dark:bg-black/50 backdrop-blur-sm p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:scale-110 hover:bg-white/60 dark:hover:bg-black/60"
                 aria-label="Ampliar imagen"
               >
-                <Icon component={Maximize2} size="md" color="white" className="dark:" />
+                <Icon component={Maximize2} size="sm" color="default" />
               </button>
 
               {/* Navigation buttons */}
               <button
                 onClick={prevImage}
-                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-black/90 backdrop-blur-sm p-3 rounded-full shadow-lg hover:scale-110 transition-all hover:bg-white dark:hover:bg-black"
+                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/50 dark:bg-black/50 backdrop-blur-sm p-1.5 rounded-full shadow-md hover:scale-110 transition-all hover:bg-white/60 dark:hover:bg-black/60"
                 aria-label="Imagen anterior"
               >
-                <Icon component={ChevronLeft} size="lg" color="white" className="dark:" />
+                <Icon component={ChevronLeft} size="md" color="default" />
               </button>
               <button
                 onClick={nextImage}
-                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-black/90 backdrop-blur-sm p-3 rounded-full shadow-lg hover:scale-110 transition-all hover:bg-white dark:hover:bg-black"
+                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/50 dark:bg-black/50 backdrop-blur-sm p-1.5 rounded-full shadow-md hover:scale-110 transition-all hover:bg-white/60 dark:hover:bg-black/60"
                 aria-label="Siguiente imagen"
               >
-                <Icon component={ChevronRight} size="lg" color="white" className="dark:" />
+                <Icon component={ChevronRight} size="md" color="default" />
               </button>
             </motion.div>
 
@@ -200,10 +200,10 @@ const ProductGallery = () => {
             {/* Close button */}
             <button
               onClick={() => setLightboxOpen(false)}
-              className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 p-3 rounded-full transition-colors"
+              className="absolute top-4 right-4 bg-white/30 hover:bg-white/40 backdrop-blur-sm p-1.5 rounded-full transition-colors shadow-md"
               aria-label="Cerrar"
             >
-              <Icon component={X} size="lg" color="white" />
+              <Icon component={X} size="md" color="white" />
             </button>
 
             {/* Navigation in lightbox */}
@@ -212,20 +212,20 @@ const ProductGallery = () => {
                 e.stopPropagation();
                 prevImage();
               }}
-              className="absolute left-4 bg-white/10 hover:bg-white/20 p-3 rounded-full transition-colors"
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/40 backdrop-blur-sm p-1.5 rounded-full transition-colors shadow-md"
               aria-label="Imagen anterior"
             >
-              <Icon component={ChevronLeft} size="xl" color="white" />
+              <Icon component={ChevronLeft} size="md" color="white" />
             </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 nextImage();
               }}
-              className="absolute right-4 bg-white/10 hover:bg-white/20 p-3 rounded-full transition-colors"
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/40 backdrop-blur-sm p-1.5 rounded-full transition-colors shadow-md"
               aria-label="Siguiente imagen"
             >
-              <Icon component={ChevronRight} size="xl" color="white" />
+              <Icon component={ChevronRight} size="md" color="white" />
             </button>
 
             {/* Image */}

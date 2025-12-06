@@ -21,6 +21,7 @@ import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useSupportTickets } from '@/hooks/useSupportTickets';
 import { useFinance } from '@/hooks/useFinance';
 import { useAIConversations } from '@/hooks/useAIConversations';
+import { useToolTracking } from '@/hooks/useToolTracking';
 
 // --- COMPONENTES VISUALES ---
 

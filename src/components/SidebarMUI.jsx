@@ -44,6 +44,7 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
+import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined';
 import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined';
 import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
 import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
@@ -204,6 +205,7 @@ const SidebarMUI = ({ isMobileOpen, setIsMobileOpen }) => {
     menuStructure.push({
       title: "Administración",
       items: [
+        { name: "Dashboard Analytics", icon: BarChartOutlinedIcon, path: "/dashboard/admin" },
         { name: "Panel de Soporte", icon: ShieldOutlinedIcon, path: "/dashboard/admin/support" },
         { name: "Webhook Inbox", icon: InboxOutlinedIcon, path: "/dashboard/admin/webhooks" },
         { name: "Notificaciones", icon: NotificationsOutlinedIcon, path: "/dashboard/admin/system-notifications" },
