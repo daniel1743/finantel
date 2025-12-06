@@ -80,12 +80,12 @@ const UserMenu = ({
     const ItemIcon = item.icon;
     const isHovered = hoveredItem === index;
 
-    const content = (
+    const menuItemContent = (
       <motion.div
         onHoverStart={() => setHoveredItem(index)}
         onHoverEnd={() => setHoveredItem(null)}
         className={cn(
-          "group relative flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 cursor-pointer",
+          "group relative flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 cursor-pointer w-full",
           isHovered
             ? "bg-[#1C8FA0]/10 text-[#1C8FA0]"
             : "text-[#6E6E73] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5"
@@ -102,14 +102,14 @@ const UserMenu = ({
           size="md"
           color={isHovered ? "primary" : "default"}
           className={cn(
-            "transition-all duration-300",
+            "transition-all duration-300 flex-shrink-0",
             isHovered ? "drop-shadow-[0_0_8px_rgba(28,143,160,0.5)]" : "group-hover:scale-110"
           )}
         />
 
         {/* Texto - EXACTO tamaño sidebar: text-sm font-medium */}
         <span className={cn(
-          "font-medium text-sm whitespace-nowrap flex-1",
+          "font-medium text-sm whitespace-nowrap flex-1 text-left",
           isHovered && "text-[#1C8FA0]"
         )}>
           {item.label}
@@ -117,7 +117,7 @@ const UserMenu = ({
 
         {/* Badge pequeño si es premium */}
         {item.badge && (
-          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 flex-shrink-0">
             {item.badge}
           </span>
         )}
@@ -126,15 +126,20 @@ const UserMenu = ({
 
     if (item.to) {
       return (
-        <Link key={index} to={item.to} onClick={onClose}>
-          {content}
+        <Link key={index} to={item.to} onClick={onClose} className="block w-full">
+          {menuItemContent}
         </Link>
       );
     }
 
     return (
-      <button key={index} onClick={item.onClick} className="w-full">
-        {content}
+      <button 
+        key={index} 
+        onClick={item.onClick} 
+        className="w-full text-left p-0 border-0 bg-transparent"
+        type="button"
+      >
+        {menuItemContent}
       </button>
     );
   };
