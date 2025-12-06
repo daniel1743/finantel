@@ -16,7 +16,7 @@ const LeakageCard = ({ leakages = [] }) => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-6 shadow-lg"
+        className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 shadow-lg"
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-green-500/10 border border-green-500/20">
@@ -104,7 +104,7 @@ const LeakageCard = ({ leakages = [] }) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-6 shadow-lg"
+      className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 shadow-lg"
     >
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -128,7 +128,7 @@ const LeakageCard = ({ leakages = [] }) => {
               Impacto Total Estimado
             </span>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <p className="text-xs text-red-700 dark:text-red-300 mb-1">Mensual</p>
               <p className="text-2xl font-bold text-red-900 dark:text-red-100">

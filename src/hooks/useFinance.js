@@ -485,6 +485,60 @@ export const useFinance = (userId) => {
     }
   };
 
+  const updateCategory = async (id, data) => {
+    // Optimistic update
+    const prevCategory = categories.find(c => c.id === id);
+    setCategories(prev => prev.map(cat => cat.id === id ? { ...cat, ...data } : cat));
+
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .update(data)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toastRef.current?.({ title: "Éxito", description: "Categoría actualizada correctamente." });
+    } catch (error) {
+      // Revertir cambio optimista
+      if (prevCategory) {
+        setCategories(prev => prev.map(cat => cat.id === id ? prevCategory : cat));
+      }
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error updating category:', error);
+      }
+      toastRef.current?.({ variant: "destructive", title: "Error", description: error.message });
+      throw error;
+    }
+  };
+
+  const deleteCategory = async (id) => {
+    // Optimistic update
+    const prevCategory = categories.find(c => c.id === id);
+    setCategories(prev => prev.filter(cat => cat.id !== id));
+
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toastRef.current?.({ title: "Éxito", description: "Categoría eliminada correctamente." });
+    } catch (error) {
+      // Revertir cambio optimista
+      if (prevCategory) {
+        setCategories(prev => [...prev, prevCategory]);
+      }
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error deleting category:', error);
+      }
+      toastRef.current?.({ variant: "destructive", title: "Error", description: error.message });
+      throw error;
+    }
+  };
+
   return {
     transactions,
     categories,
@@ -496,6 +550,8 @@ export const useFinance = (userId) => {
     deleteTransaction,
     duplicateTransaction,
     addCategory,
+    updateCategory,
+    deleteCategory,
     addGoal,
     updateGoalProgress,
     deleteGoal,

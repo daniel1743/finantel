@@ -105,55 +105,58 @@ const DeepFinance = () => {
   const aiInsights = analysis?.ai_insights || analysis?.aiInsights || null;
 
   return (
-    <div className="space-y-8 pb-12 h-full flex flex-col">
+    <div className="space-y-6 md:space-y-8 pb-12 h-full flex flex-col px-4 md:px-0">
       {/* Header Premium */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col lg:flex-row lg:items-center justify-between gap-6"
+        className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-6"
       >
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-[#1C8FA0]/10 to-purple-500/10 border border-[#1C8FA0]/20">
-              <Icon component={Sparkles} size="lg" color="primary" />
+        <div className="flex-1">
+          <div className="flex items-center gap-2 md:gap-3 mb-2">
+            <div className="p-1.5 md:p-2 rounded-xl bg-gradient-to-br from-[#1C8FA0]/10 to-purple-500/10 border border-[#1C8FA0]/20">
+              <Icon component={Sparkles} size="md" color="primary" className="md:w-6 md:h-6" />
             </div>
-            <h1 className="text-3xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">
+            <h1 className="text-2xl md:text-3xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">
               DeepFinance™
             </h1>
           </div>
-          <p className="text-[#6E6E73] dark:text-gray-400 text-lg">
+          <p className="text-[#6E6E73] dark:text-gray-400 text-base md:text-lg">
             Motor Avanzado de Evaluación Financiera
           </p>
-          <p className="text-sm text-[#6E6E73] dark:text-gray-400 mt-1">
+          <p className="text-xs md:text-sm text-[#6E6E73] dark:text-gray-400 mt-1">
             Análisis exhaustivo, profesional y accionable de tu situación financiera
           </p>
         </div>
 
         {/* Estado de créditos */}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4 w-full sm:w-auto">
           {creditsLoading ? (
-            <Icon component={Loader2} size="md" color="default" className="animate-spin" />
+            <div className="flex justify-center sm:justify-start">
+              <Icon component={Loader2} size="md" color="default" className="animate-spin" />
+            </div>
           ) : (
             <>
-              <div className="px-4 py-2 rounded-xl bg-white dark:bg-[#1a1a2e] border border-gray-200 dark:border-[#1C8FA0]/20">
-                <div className="flex items-center gap-2">
+              <div className="px-3 md:px-4 py-2 rounded-xl bg-white dark:bg-[#1a1a2e] border border-gray-200 dark:border-[#1C8FA0]/20 flex-1 sm:flex-none">
+                <div className="flex items-center justify-center sm:justify-start gap-2">
                   <Icon component={Zap} size="sm" color="primary" />
                   <span className="text-sm font-medium text-[#1a1a1a] dark:text-white">
                     {credits?.credits_remaining || 0} créditos
                   </span>
                 </div>
                 {(credits?.free_analyses_used || 0) < 4 && (
-                  <div className="text-xs text-[#6E6E73] dark:text-gray-400 mt-1">
+                  <div className="text-xs text-[#6E6E73] dark:text-gray-400 mt-1 text-center sm:text-left">
                     {4 - (credits?.free_analyses_used || 0)} análisis gratis restantes este mes
                   </div>
                 )}
               </div>
               <button
                 onClick={() => setShowCreditsModal(true)}
-                className="px-4 py-2 rounded-xl bg-[#1C8FA0] text-white text-sm font-medium hover:bg-[#1C8FA0]/90 transition-colors flex items-center gap-2"
+                className="px-4 py-2 rounded-xl bg-[#1C8FA0] text-white text-sm font-medium hover:bg-[#1C8FA0]/90 transition-colors flex items-center justify-center gap-2 w-full sm:w-auto"
               >
                 <Icon component={CreditCard} size="sm" color="default" />
-                Comprar créditos
+                <span className="hidden sm:inline">Comprar créditos</span>
+                <span className="sm:hidden">Comprar</span>
               </button>
             </>
           )}
@@ -190,7 +193,7 @@ const DeepFinance = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-8 shadow-lg"
+          className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 lg:p-8 shadow-lg"
         >
           <div className="text-center space-y-6">
             <div className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-[#1C8FA0]/10 to-purple-500/10 border border-[#1C8FA0]/20">
@@ -208,29 +211,31 @@ const DeepFinance = () => {
             </div>
 
             {/* Selector de período */}
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              <span className="text-sm font-medium text-[#6E6E73] dark:text-gray-400">
+            <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3">
+              <span className="text-sm font-medium text-[#6E6E73] dark:text-gray-400 w-full sm:w-auto text-center sm:text-left">
                 Período de análisis:
               </span>
-              {[
-                { value: '30days', label: '30 días' },
-                { value: '90days', label: '90 días' },
-                { value: '180days', label: '180 días' },
-                { value: 'all', label: 'Todo el historial' },
-              ].map((period) => (
-                <button
-                  key={period.value}
-                  onClick={() => setAnalysisPeriod(period.value)}
-                  className={cn(
-                    'px-4 py-2 rounded-xl text-sm font-medium transition-all',
-                    analysisPeriod === period.value
-                      ? 'bg-[#1C8FA0] text-white shadow-lg'
-                      : 'bg-gray-100 dark:bg-[#1a1a2e] text-[#1a1a1a] dark:text-white border border-gray-200 dark:border-[#1C8FA0]/20 hover:border-[#1C8FA0]/40'
-                  )}
-                >
-                  {period.label}
-                </button>
-              ))}
+              <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
+                {[
+                  { value: '30days', label: '30 días' },
+                  { value: '90days', label: '90 días' },
+                  { value: '180days', label: '180 días' },
+                  { value: 'all', label: 'Todo el historial' },
+                ].map((period) => (
+                  <button
+                    key={period.value}
+                    onClick={() => setAnalysisPeriod(period.value)}
+                    className={cn(
+                      'px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-medium transition-all',
+                      analysisPeriod === period.value
+                        ? 'bg-[#1C8FA0] text-white shadow-lg'
+                        : 'bg-gray-100 dark:bg-[#1a1a2e] text-[#1a1a1a] dark:text-white border border-gray-200 dark:border-[#1C8FA0]/20 hover:border-[#1C8FA0]/40'
+                    )}
+                  >
+                    {period.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Botón de análisis */}
@@ -301,7 +306,7 @@ const DeepFinance = () => {
             className="space-y-6"
           >
             {/* Score Display */}
-            <div className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-8 shadow-lg">
+            <div className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 lg:p-8 shadow-lg">
               <div className="flex items-center justify-center">
                 <ScoreDisplay score={currentScore} size="large" />
               </div>
@@ -322,7 +327,7 @@ const DeepFinance = () => {
             </div>
 
             {/* Grid de Cards de Análisis */}
-            <div className="grid lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               {/* Pattern Card */}
               <PatternCard patterns={patterns} />
               

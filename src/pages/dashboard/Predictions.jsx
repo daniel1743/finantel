@@ -314,12 +314,12 @@ const Predictions = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="bg-white rounded-[26px] p-8 border border-gray-100 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)] relative overflow-hidden"
+        className="bg-white rounded-[26px] p-8 border border-gray-100 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)] relative"
       >
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
             <h2 className="text-lg font-bold text-[#1a1a1a]">Proyección de Balance</h2>
-            <div className="flex items-center gap-4 mt-2 text-sm">
+            <div className="flex flex-wrap items-center gap-4 mt-2 text-sm">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-gray-300" />
                 <span className="text-[#6E6E73]">Histórico</span>
@@ -334,33 +334,39 @@ const Predictions = () => {
               </div>
             </div>
           </div>
-          <div className="text-right">
+          <div className="text-left md:text-right">
             <p className="text-sm text-[#6E6E73]">Balance estimado en {timeHorizon === '30d' ? '30 días' : timeHorizon === '90d' ? '90 días' : '1 año'}</p>
             <p className="text-3xl font-bold text-[#1C8FA0] font-['Inter_Tight']">$15,240.00</p>
           </div>
         </div>
 
         {/* Custom CSS Chart Visualization */}
-        <div className="h-64 w-full relative mt-8">
+        <div className="w-full relative mt-8" style={{ minHeight: '400px', height: '400px' }}>
           {/* Grid Lines */}
-          <div className="absolute inset-0 flex flex-col justify-between text-xs text-gray-300">
+          <div className="absolute inset-0 flex flex-col justify-between text-xs text-gray-300" style={{ paddingLeft: '2rem' }}>
             {[4, 3, 2, 1, 0].map((i) => (
               <div key={i} className="border-b border-gray-100 w-full h-0 relative">
-                <span className="absolute -top-2.5 -left-8">${i * 5}k</span>
+                <span className="absolute -top-2.5 -left-8 font-medium">${i * 5}k</span>
               </div>
             ))}
           </div>
 
           {/* Chart Area */}
-          <div className="absolute inset-0 ml-8 flex items-end">
-            {/* Historical Line (Gray) */}
-            <svg className="absolute inset-0 w-full h-full overflow-visible" preserveAspectRatio="none">
+          <div className="absolute inset-0" style={{ paddingLeft: '2rem', paddingRight: '1rem', paddingTop: '0.5rem', paddingBottom: '0.5rem' }}>
+            <svg 
+              className="w-full h-full" 
+              viewBox="0 0 600 240" 
+              preserveAspectRatio="xMidYMid meet"
+              style={{ overflow: 'visible' }}
+            >
+              {/* Historical Line (Gray) */}
               <path 
                 d="M0,180 C50,170 100,190 150,150 C200,110 250,130 300,100" 
                 fill="none" 
                 stroke="#E5E7EB" 
                 strokeWidth="3" 
                 strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
               />
               {/* Projected Line (Teal) */}
               <path 
@@ -370,10 +376,11 @@ const Predictions = () => {
                 strokeWidth="3" 
                 strokeLinecap="round"
                 strokeDasharray="6 4"
+                vectorEffect="non-scaling-stroke"
               />
               {/* Area under projected */}
               <path 
-                d="M300,100 C350,70 400,80 450,60 C500,40 550,50 600,20 V256 H300 Z" 
+                d="M300,100 C350,70 400,80 450,60 C500,40 550,50 600,20 L600,240 L300,240 Z" 
                 fill="url(#tealGradient)" 
                 opacity="0.1"
               />
@@ -386,6 +393,7 @@ const Predictions = () => {
                 strokeLinecap="round"
                 strokeDasharray="4 4"
                 opacity="0.6"
+                vectorEffect="non-scaling-stroke"
               />
               
               <defs>
@@ -398,6 +406,7 @@ const Predictions = () => {
               {/* Points */}
               <circle cx="300" cy="100" r="6" fill="#1a1a1a" stroke="white" strokeWidth="2" />
               <circle cx="600" cy="20" r="6" fill="#1C8FA0" stroke="white" strokeWidth="2" />
+              <circle cx="600" cy="0" r="5" fill="#E47B45" stroke="white" strokeWidth="2" opacity="0.6" />
             </svg>
           </div>
         </div>

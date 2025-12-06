@@ -15,7 +15,10 @@ import {
   Smartphone,
   X,
   Check,
-  Loader2
+  Loader2,
+  Edit,
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
@@ -48,7 +51,83 @@ const categoriesData = [
   { id: 8, name: "Tecnología", type: "Gasto", amount: 59.99, color: "bg-blue-500", icon: Smartphone },
 ];
 
-const CategoryCard = ({ category, delay }) => {
+// Modal de Confirmación de Eliminación
+const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, categoryName, isLoading }) => {
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+          onClick={onClose}
+        />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          onClick={(e) => e.stopPropagation()}
+          className="relative bg-white dark:bg-[#1a1a1a] rounded-[26px] p-8 w-full max-w-md shadow-2xl border border-gray-100 dark:border-white/10 z-10"
+        >
+          {/* Icono de advertencia */}
+          <div className="flex justify-center mb-6">
+            <div className="w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center border-2 border-red-200 dark:border-red-800">
+              <Icon component={AlertTriangle} size="xl" className="text-red-500 dark:text-red-400" />
+            </div>
+          </div>
+
+          {/* Título y mensaje */}
+          <div className="text-center mb-6">
+            <h3 className="text-xl font-bold text-[#1a1a1a] dark:text-white mb-2">
+              ¿Eliminar categoría?
+            </h3>
+            <p className="text-sm text-[#6E6E73] dark:text-gray-400 leading-relaxed">
+              Estás a punto de eliminar la categoría <span className="font-semibold text-[#1a1a1a] dark:text-white">"{categoryName}"</span>. Esta acción no se puede deshacer.
+            </p>
+          </div>
+
+          {/* Botones */}
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={onConfirm}
+              disabled={isLoading}
+              className="w-full py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
+                  Eliminando...
+                </>
+              ) : (
+                <>
+                  <Icon component={Trash2} size="sm" color="default" />
+                  Eliminar Categoría
+                </>
+              )}
+            </button>
+            <button
+              onClick={onClose}
+              disabled={isLoading}
+              className="w-full py-3 rounded-xl border border-gray-200 dark:border-white/10 text-[#6E6E73] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 font-medium transition-colors disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
+};
+
+const CategoryCard = ({ category, delay, onEdit, onDelete }) => {
+  const [showMenu, setShowMenu] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const menuRef = React.useRef(null);
+  
   // Determinar si usar style (hex) o className (clase de Tailwind)
   const iconBgStyle = category.colorHex 
     ? { backgroundColor: category.colorHex }
@@ -60,12 +139,42 @@ const CategoryCard = ({ category, delay }) => {
       ? undefined 
       : 'bg-[#1C8FA0]'; // Fallback
 
+  // Cerrar menú al hacer clic fuera
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMenu]);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await onDelete(category.id);
+      setShowDeleteModal(false);
+    } catch (error) {
+      console.error('Error deleting category:', error);
+    } finally {
+      setIsDeleting(false);
+      setShowMenu(false);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4, delay }}
-      className="group relative bg-white dark:bg-[#1a1a1a] rounded-[22px] p-6 border border-gray-100 dark:border-white/5 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+      className="group relative bg-white dark:bg-[#1a1a1a] rounded-[22px] p-6 border border-gray-100 dark:border-white/5 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300"
     >
       <div className="flex justify-between items-start mb-4">
         <div 
@@ -79,9 +188,53 @@ const CategoryCard = ({ category, delay }) => {
             ? category.icon 
             : React.createElement(category.icon, { className: "w-5 h-5" })}
         </div>
-        <button className="p-2 text-gray-300 dark:text-gray-600 hover:text-[#1a1a1a] dark:hover:text-white transition-colors opacity-0 group-hover:opacity-100">
-          <Icon component={MoreVertical} size="md" color="default" />
-        </button>
+        <div className="relative" ref={menuRef}>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowMenu(!showMenu);
+            }}
+            className="p-2 text-gray-300 dark:text-gray-600 hover:text-[#1a1a1a] dark:hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+          >
+            <Icon component={MoreVertical} size="md" color="default" />
+          </button>
+          
+          {/* Menú Dropdown */}
+          <AnimatePresence>
+            {showMenu && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                className="absolute right-0 top-full mt-2 w-40 bg-white dark:bg-[#1a1a1a] rounded-xl shadow-lg border border-gray-100 dark:border-white/10 z-50 overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMenu(false);
+                    onEdit(category);
+                  }}
+                  className="w-full px-4 py-3 text-left text-sm text-[#1a1a1a] dark:text-white hover:bg-gray-50 dark:hover:bg-white/5 flex items-center gap-2 transition-colors"
+                >
+                  <Icon component={Edit} size="sm" color="default" />
+                  Editar
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMenu(false);
+                    setShowDeleteModal(true);
+                  }}
+                  className="w-full px-4 py-3 text-left text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center gap-2 transition-colors"
+                >
+                  <Icon component={Trash2} size="sm" color="default" />
+                  Eliminar
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     
       <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white mb-1">{category.name}</h3>
@@ -104,24 +257,81 @@ const CategoryCard = ({ category, delay }) => {
         )}
         style={iconBgStyle ? { backgroundColor: category.colorHex } : undefined}
       />
+
+      {/* Modal de Confirmación de Eliminación */}
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setShowMenu(false);
+        }}
+        onConfirm={handleDelete}
+        categoryName={category.name}
+        isLoading={isDeleting}
+      />
     </motion.div>
   );
 };
 
-const AddCategoryModal = ({ isOpen, onClose, onSuccess }) => {
+const AddCategoryModal = ({ isOpen, onClose, onSuccess, editingCategory, onUpdate }) => {
   const { user } = useAuth();
   const { addCategory } = useFinance(user?.id);
   const { toast } = useToast();
   
-  const [formData, setFormData] = useState({
-    name: '',
-    type: 'expense', // 'expense' o 'income'
-    color: '#1C8FA0',
-    icon: 'Home'
+  const isEditing = !!editingCategory;
+  
+  // Inicializar formData basado en si está editando o creando
+  const getInitialFormData = () => {
+    if (editingCategory) {
+      const colorIndex = availableColors.findIndex(c => 
+        c.hex === editingCategory.color || c.bg === editingCategory.color
+      );
+      const iconIndex = iconNames.indexOf(editingCategory.icon || 'Home');
+      return {
+        name: editingCategory.name || '',
+        type: editingCategory.type === 'Gasto' ? 'expense' : (editingCategory.type === 'Ingreso' ? 'income' : 'expense'),
+        color: editingCategory.colorHex || editingCategory.color || '#1C8FA0',
+        icon: editingCategory.icon?.name || editingCategory.icon || 'Home'
+      };
+    }
+    return {
+      name: '',
+      type: 'expense',
+      color: '#1C8FA0',
+      icon: 'Home'
+    };
+  };
+
+  const [formData, setFormData] = useState(getInitialFormData());
+  const [selectedColorIndex, setSelectedColorIndex] = useState(() => {
+    if (editingCategory) {
+      return availableColors.findIndex(c => 
+        c.hex === editingCategory.color || c.bg === editingCategory.color
+      ) || 0;
+    }
+    return 0;
   });
-  const [selectedColorIndex, setSelectedColorIndex] = useState(0);
-  const [selectedIconIndex, setSelectedIconIndex] = useState(0);
+  const [selectedIconIndex, setSelectedIconIndex] = useState(() => {
+    if (editingCategory) {
+      return iconNames.indexOf(editingCategory.icon || 'Home') || 0;
+    }
+    return 0;
+  });
   const [isLoading, setIsLoading] = useState(false);
+
+  // Resetear form cuando cambia editingCategory
+  React.useEffect(() => {
+    if (isOpen) {
+      const initialData = getInitialFormData();
+      setFormData(initialData);
+      const colorIdx = availableColors.findIndex(c => 
+        c.hex === initialData.color || c.bg === initialData.color
+      );
+      const iconIdx = iconNames.indexOf(initialData.icon);
+      setSelectedColorIndex(colorIdx >= 0 ? colorIdx : 0);
+      setSelectedIconIndex(iconIdx >= 0 ? iconIdx : 0);
+    }
+  }, [isOpen, editingCategory]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -154,12 +364,21 @@ const AddCategoryModal = ({ isOpen, onClose, onSuccess }) => {
         icon: formData.icon,
       };
 
-      await addCategory(categoryData);
-      
-      toast({
-        title: "¡Éxito!",
-        description: "Categoría creada correctamente",
-      });
+      if (isEditing && editingCategory?.id) {
+        // Modo edición
+        await onUpdate(editingCategory.id, categoryData);
+        toast({
+          title: "¡Éxito!",
+          description: "Categoría actualizada correctamente",
+        });
+      } else {
+        // Modo creación
+        await addCategory(categoryData);
+        toast({
+          title: "¡Éxito!",
+          description: "Categoría creada correctamente",
+        });
+      }
       
       // Reset form
       setFormData({
@@ -218,7 +437,9 @@ const AddCategoryModal = ({ isOpen, onClose, onSuccess }) => {
         className="relative bg-white dark:bg-[#1a1a1a] rounded-[26px] p-8 w-full max-w-md shadow-2xl border border-gray-100 dark:border-white/10 z-10"
       >
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-[#1a1a1a] dark:text-white">Nueva Categoría</h2>
+          <h2 className="text-xl font-bold text-[#1a1a1a] dark:text-white">
+            {isEditing ? 'Editar Categoría' : 'Nueva Categoría'}
+          </h2>
           <button 
             onClick={onClose} 
             disabled={isLoading}
@@ -344,10 +565,10 @@ const AddCategoryModal = ({ isOpen, onClose, onSuccess }) => {
               {isLoading ? (
                 <>
                   <Icon component={Loader2} size="sm" color="default" className="animate-spin" />
-                  Guardando...
+                  {isEditing ? 'Actualizando...' : 'Guardando...'}
                 </>
               ) : (
-                'Guardar Categoría'
+                isEditing ? 'Actualizar Categoría' : 'Crear Categoría'
               )}
             </button>
           </div>
@@ -359,11 +580,46 @@ const AddCategoryModal = ({ isOpen, onClose, onSuccess }) => {
 
 const Categories = () => {
   const { user } = useAuth();
-  const { categories, loading, refresh } = useFinance(user?.id);
+  const { categories, loading, refresh, deleteCategory, updateCategory } = useFinance(user?.id);
+  const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
 
   const handleCategoryAdded = () => {
     refresh(); // Refrescar la lista de categorías
+  };
+
+  const handleEdit = (category) => {
+    setEditingCategory(category);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (categoryId) => {
+    try {
+      await deleteCategory(categoryId);
+      refresh();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo eliminar la categoría. Intenta de nuevo.",
+      });
+    }
+  };
+
+  const handleUpdate = async (categoryId, data) => {
+    try {
+      await updateCategory(categoryId, data);
+      refresh();
+      setEditingCategory(null);
+      setIsModalOpen(false);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo actualizar la categoría. Intenta de nuevo.",
+      });
+    }
   };
 
   return (
@@ -371,10 +627,15 @@ const Categories = () => {
       <AnimatePresence mode="wait">
         {isModalOpen && (
           <AddCategoryModal 
-            key="add-category-modal"
+            key={editingCategory ? `edit-category-modal-${editingCategory.id}` : "add-category-modal"}
             isOpen={isModalOpen} 
-            onClose={() => setIsModalOpen(false)}
+            onClose={() => {
+              setIsModalOpen(false);
+              setEditingCategory(null);
+            }}
             onSuccess={handleCategoryAdded}
+            editingCategory={editingCategory}
+            onUpdate={handleUpdate}
           />
         )}
       </AnimatePresence>
@@ -444,7 +705,15 @@ const Categories = () => {
               type: cat.type === 'expense' ? 'Gasto' : cat.type === 'income' ? 'Ingreso' : (cat.type || 'Gasto'),
               amount: 0 // Se calcularía desde transacciones
             };
-            return <CategoryCard key={cat.id} category={categoryWithIcon} delay={index * 0.1} />;
+            return (
+              <CategoryCard 
+                key={cat.id} 
+                category={categoryWithIcon} 
+                delay={index * 0.1}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            );
           })
         ) : null}
         
