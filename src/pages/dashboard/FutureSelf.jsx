@@ -104,10 +104,10 @@ const ScenarioCard = ({ scenario, config, currency, delay = 0 }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
-      className={`${config.bgColor} rounded-[22px] border-2 ${config.borderColor} p-4 md:p-6 shadow-sm overflow-hidden`}
+      className={`${config.bgColor} rounded-[22px] border-2 ${config.borderColor} pt-3 pb-4 px-4 md:pt-4 md:pb-6 md:px-6 shadow-sm overflow-hidden w-full max-w-full`}
     >
       {/* Header */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
           <div
             className="w-12 h-12 rounded-xl flex items-center justify-center"
@@ -127,7 +127,7 @@ const ScenarioCard = ({ scenario, config, currency, delay = 0 }) => {
       </div>
 
       {/* Patrimonio Neto Proyectado */}
-      <div className="mb-4">
+      <div className="mb-3">
         <p className="text-xs font-medium text-[#6E6E73] dark:text-gray-400 mb-1">
           Patrimonio Neto Proyectado
         </p>
@@ -143,7 +143,7 @@ const ScenarioCard = ({ scenario, config, currency, delay = 0 }) => {
       </div>
 
       {/* Métricas */}
-      <div className="space-y-2 mb-4">
+      <div className="space-y-2 mb-3">
         <div className="flex justify-between items-center gap-2 text-sm">
           <span className="text-[#6E6E73] dark:text-gray-400 flex-shrink-0">Ahorros proyectados</span>
           <span className="font-medium text-[#1a1a1a] dark:text-white text-right break-words">
@@ -172,10 +172,10 @@ const ScenarioCard = ({ scenario, config, currency, delay = 0 }) => {
 
       {/* Resumen generado por IA */}
       {scenario.summary_text && (
-        <div className="bg-white/50 dark:bg-black/20 rounded-xl p-4 mb-4">
-          <div className="flex items-start gap-2">
-            <Icon component={Sparkles} size="sm" color="primary" className="mt-0.5 flex-shrink-0" />
-            <p className="text-sm text-[#1a1a1a] dark:text-white leading-relaxed break-words">
+        <div className="bg-white/50 dark:bg-black/20 rounded-xl p-4 mb-4 w-full">
+          <div className="flex flex-col items-center gap-2">
+            <Icon component={Sparkles} size="sm" color="primary" className="flex-shrink-0" />
+            <p className="text-sm text-[#1a1a1a] dark:text-white leading-relaxed break-words text-center w-full px-2">
               {scenario.summary_text}
             </p>
           </div>
@@ -381,7 +381,7 @@ export default function FutureSelfView() {
         <>
           {/* Métricas Actuales */}
           {currentMetrics && (
-            <div className="bg-white dark:bg-[#1a1a1a] rounded-[22px] border border-gray-100 dark:border-white/5 p-6">
+            <div className="bg-white dark:bg-[#1a1a1a] rounded-[22px] border border-gray-100 dark:border-white/5 p-6 mb-4">
               <h3 className="font-semibold text-[#1a1a1a] dark:text-white mb-4">
                 Tu Situación Actual
               </h3>
@@ -423,7 +423,7 @@ export default function FutureSelfView() {
           )}
 
           {/* Cards de Escenarios */}
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-4 md:gap-6 -mt-2">
             {scenarios.map((scenario, index) => {
               const config = SCENARIO_CONFIG[scenario.scenario_type];
               if (!config) return null;
