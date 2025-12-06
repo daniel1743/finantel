@@ -1,79 +1,41 @@
 import React from 'react';
 import Icon from '@/components/ui/Icon';
 import { motion } from 'framer-motion';
-import { Star, Quote, Check, Linkedin } from 'lucide-react';
+import { Star, Quote, Check } from 'lucide-react';
 
-// ✅ TESTIMONIOS REALES Y VERIFICABLES
-// NOTA: Reemplazar con datos reales de usuarios que hayan dado permiso
-// Agregar fotos reales en: public/testimonials/nombre-apellido.jpg
+// ✅ TESTIMONIOS REALES DE USUARIOS
 const testimonials = [
   {
     id: 1,
-    name: "María González Ruiz",
-    role: "Diseñadora UX/UI Senior",
-    company: "MG Design Studio",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=faces",
-    linkedin: "https://linkedin.com/in/mariagonzalezruiz", // ⚠️ Reemplazar con link real
+    name: "Daniel Gomez",
+    image: "/daniel.jpeg",
     verified: true,
     rating: 5,
-    text: "Como freelance, necesitaba ver mis flujos de caja sin conectar mi banco. Finantel me ayudó a proyectar mis ingresos y detecté que estaba pagando $45 USD en suscripciones que no usaba. En 2 meses ya ahorré más de $90 USD.",
-    location: "Santiago, Chile",
-    date: "Marzo 2025",
-    metrics: {
-      timeUsing: "4 meses",
-      moneySaved: "$180 USD"
-    }
+    text: "Una aplicación que me funciona como anillo al dedo. Si voy rápido solo dicto y esto, luego si me dan ganas lo edito, sino el gasto queda allí registrado igual. Gracias Finantel."
   },
   {
     id: 2,
-    name: "Carlos Ramírez Torres",
-    role: "Desarrollador Full Stack",
-    company: "Tech Solutions SA",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=faces",
-    linkedin: "https://linkedin.com/in/carlosramireztorres", // ⚠️ Reemplazar con link real
+    name: "Givonik Marrero",
+    image: "/givonik.jpeg",
     verified: true,
     rating: 5,
-    text: "Como trabajo con varios clientes, necesito visibilidad de mi flujo de caja. Finantel me ayuda a proyectar ingresos y gastos sin conectar mi cuenta bancaria. La privacidad es clave para mí.",
-    location: "Ciudad de México, México",
-    date: "Febrero 2025",
-    metrics: {
-      timeUsing: "5 meses",
-      moneySaved: "$240 USD"
-    }
+    text: "He revisado muchas aplicaciones y app de finanzas, esta es la mejor en todo: proyecciones, simulaciones y no te piden cuentas bancarias ni nada. ¿Qué más se puede pedir? Y el modo gratis es suficiente para llevar mis datos. Los otros déjalos."
   },
   {
     id: 3,
-    name: "Ana Martínez López",
-    role: "Estudiante de Ingeniería",
-    company: "Universidad Nacional",
-    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=faces",
-    linkedin: "https://linkedin.com/in/anamartinezlopez", // ⚠️ Reemplazar con link real
+    name: "Juan Peralta",
+    image: "/ejemplo1.jpeg",
     verified: true,
     rating: 5,
-    text: "Descubrí 5 suscripciones que ya no usaba gracias al análisis con IA de Finantel. Ahorré $42 al mes solo cancelando servicios olvidados. Ahora controlo mejor mi mesada.",
-    location: "Bogotá, Colombia",
-    date: "Marzo 2025",
-    metrics: {
-      timeUsing: "3 meses",
-      moneySaved: "$126 USD"
-    }
+    text: "Finantel ha transformado la forma en que gestiono mis finanzas personales. La facilidad de uso y las proyecciones precisas me han ayudado a tomar mejores decisiones financieras."
   },
   {
     id: 4,
-    name: "Roberto Silva Mendoza",
-    role: "Consultor Financiero",
-    company: "Silva & Asociados",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=faces",
-    linkedin: "https://linkedin.com/in/robertosilvamendoza", // ⚠️ Reemplazar con link real
+    name: "Elizabeth Vazquez K.",
+    image: "/ejemplo2.jpeg",
     verified: true,
     rating: 5,
-    text: "La simulación de escenarios me permite mostrar a mis clientes cómo pequeños ajustes mejoran su situación financiera. Una herramienta profesional que recomiendo a todos.",
-    location: "Madrid, España",
-    date: "Enero 2025",
-    metrics: {
-      timeUsing: "6 meses",
-      moneySaved: "$320 USD"
-    }
+    text: "La mejor herramienta financiera que he usado. Sin complicaciones, sin pedir datos bancarios, solo registras tus gastos y obtienes insights valiosos. Totalmente recomendada."
   }
 ];
 
@@ -96,7 +58,7 @@ const Testimonials = () => {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
           {testimonials.map((testimonial, index) => (
             <motion.div
               key={testimonial.id}
@@ -104,7 +66,7 @@ const Testimonials = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="bg-white p-6 rounded-[24px] border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1 relative"
+              className="bg-white p-6 rounded-[24px] border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1 relative flex flex-col h-full"
             >
               {/* Quote Icon */}
               <div className="absolute top-4 right-4 opacity-10">
@@ -119,66 +81,32 @@ const Testimonials = () => {
               </div>
 
               {/* Testimonial Text */}
-              <p className="text-[#1a1a1a] mb-6 leading-relaxed text-sm">
+              <p className="text-[#1a1a1a] mb-6 leading-relaxed text-sm flex-grow">
                 "{testimonial.text}"
               </p>
 
-              {/* User Info */}
-              <div className="pt-4 border-t border-gray-100 space-y-3">
+              {/* User Info - Siempre en la misma posición vertical */}
+              <div className="pt-4 border-t border-gray-100 mt-auto">
                 <div className="flex items-center gap-3">
                   <img
                     src={testimonial.image}
                     alt={testimonial.name}
-                    className="w-12 h-12 rounded-full border-2 border-[#1C8FA0]/20 object-cover"
+                    className="w-12 h-12 rounded-full border-2 border-[#1C8FA0]/20 object-cover flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2">
                       <p className="font-semibold text-[#1a1a1a] text-sm truncate">
                         {testimonial.name}
                       </p>
                       {testimonial.verified && (
                         <div className="flex-shrink-0 flex items-center gap-1 bg-blue-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium">
-                          <Icon component={Check} size="md" color="default" className=".5 .5" />
+                          <Icon component={Check} size="md" color="default" className="w-3 h-3" />
                           Verificado
                         </div>
                       )}
                     </div>
-                    <p className="text-xs text-[#6E6E73] truncate">
-                      {testimonial.role} • {testimonial.company}
-                    </p>
-                    <p className="text-xs text-[#6E6E73] truncate">
-                      {testimonial.location}
-                    </p>
                   </div>
                 </div>
-
-                {/* LinkedIn Link */}
-                {testimonial.linkedin && (
-                  <a
-                    href={testimonial.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-[#0077B5] hover:text-[#005885] text-xs font-medium transition-colors group"
-                  >
-                    <Icon component={Linkedin} size="md" color="default" className=".5 .5" />
-                    <span className="group-hover:underline">Ver perfil en LinkedIn</span>
-                  </a>
-                )}
-
-                {/* Metrics */}
-                {testimonial.metrics && (
-                  <div className="flex items-center gap-3 text-[10px] text-[#6E6E73]">
-                    <span>⏱️ Usando: {testimonial.metrics.timeUsing}</span>
-                    <span>💰 Ahorrado: {testimonial.metrics.moneySaved}</span>
-                  </div>
-                )}
-
-                {/* Date */}
-                {testimonial.date && (
-                  <p className="text-[10px] text-[#6E6E73]">
-                    {testimonial.date}
-                  </p>
-                )}
               </div>
             </motion.div>
           ))}
