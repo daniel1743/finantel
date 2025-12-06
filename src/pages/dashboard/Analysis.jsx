@@ -548,9 +548,9 @@ const Analysis = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+      <div className="flex flex-col gap-4 md:gap-6">
         {/* Main Chart Area */}
-        <ChartCard title="Tendencias Mensuales" className="lg:col-span-2 min-h-[250px] md:min-h-[300px]">
+        <ChartCard title="Tendencias Mensuales" className="w-full min-h-[250px] md:min-h-[300px]">
           {monthlyTrends.length > 0 ? (
           <div className="h-48 md:h-64 w-full flex items-end justify-between gap-1 md:gap-2 px-1 md:px-2 overflow-x-auto">
               {monthlyTrends.map((h, i) => (
@@ -652,7 +652,7 @@ const Analysis = () => {
         </ChartCard>
 
         {/* Top Categories */}
-        <ChartCard title="Top Categorías" className="lg:col-span-3">
+        <ChartCard title="Top Categorías" className="w-full">
           {topCategories.length > 0 ? (
           <div className="space-y-4">
               {topCategories.map((cat, i) => {

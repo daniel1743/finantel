@@ -109,6 +109,13 @@ const Predictions = () => {
     const monthlySavings = currentIncome - currentExpenses;
     const monthlyFlow = monthlySavings;
 
+    // Calcular balance actual (suma de todas las transacciones)
+    const allTransactions = transactions || [];
+    const currentBalance = allTransactions.reduce((sum, t) => {
+      const amount = parseFloat(t.amount) || 0;
+      return sum + (t.type === 'income' ? amount : -amount);
+    }, 0);
+
     // Calcular proyección anual
     const monthsUntilYearEnd = 12 - now.getMonth();
     const projectedYearEnd = monthlySavings * monthsUntilYearEnd;
@@ -129,6 +136,7 @@ const Predictions = () => {
       topCategory,
       categoryExpenses,
       activeGoal,
+      currentBalance,
       expenseChange: lastMonthExpenses > 0 
         ? ((currentExpenses - lastMonthExpenses) / lastMonthExpenses) * 100 
         : 0,
@@ -336,7 +344,26 @@ const Predictions = () => {
           </div>
           <div className="text-left md:text-right">
             <p className="text-sm text-[#6E6E73]">Balance estimado en {timeHorizon === '30d' ? '30 días' : timeHorizon === '90d' ? '90 días' : '1 año'}</p>
-            <p className="text-3xl font-bold text-[#1C8FA0] font-['Inter_Tight']">$15,240.00</p>
+            <p className="text-3xl font-bold text-[#1C8FA0] font-['Inter_Tight']">
+              {financialMetrics ? (() => {
+                const currentBalance = financialMetrics.currentBalance || 0;
+                const monthlySavings = financialMetrics.monthlySavings || 0;
+                let projectedBalance = currentBalance;
+                
+                if (timeHorizon === '30d') {
+                  // 30 días = aproximadamente 1 mes
+                  projectedBalance = currentBalance + monthlySavings;
+                } else if (timeHorizon === '90d') {
+                  // 90 días = 3 meses
+                  projectedBalance = currentBalance + (monthlySavings * 3);
+                } else if (timeHorizon === '12m') {
+                  // 12 meses
+                  projectedBalance = currentBalance + (monthlySavings * 12);
+                }
+                
+                return `$${projectedBalance.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+              })() : '$0.00'}
+            </p>
           </div>
         </div>
 
@@ -414,7 +441,7 @@ const Predictions = () => {
 
       {/* Scenarios Grid */}
       {scenarios.length > 0 ? (
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="flex flex-col gap-6">
           {scenarios.map((scenario, index) => (
             <ScenarioCard 
               key={scenario.id}
