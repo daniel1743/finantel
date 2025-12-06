@@ -20,6 +20,7 @@ import { sendMessageToAI } from '@/lib/ai-service';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useSupportTickets } from '@/hooks/useSupportTickets';
 import { useFinance } from '@/hooks/useFinance';
+import { useAIConversations } from '@/hooks/useAIConversations';
 
 // --- COMPONENTES VISUALES ---
 
@@ -152,45 +153,119 @@ const AIAssistant = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const initialMessageFromState = location.state?.initialMessage;
 
+  // Hook para manejar conversaciones
+  const {
+    conversations,
+    currentConversationId,
+    setCurrentConversationId,
+    loading: conversationsLoading,
+    createConversation,
+    saveMessages,
+    renameConversationIfNeeded,
+    loadConversations
+  } = useAIConversations(user?.id);
+
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Inicialización (Simplificada)
+  // Cargar mensajes de la conversación actual
   useEffect(() => {
-    if (!isInitialized && !ticketsLoading) {
-      const initialMsgs = [];
-      if (initialMessageFromState) {
-        initialMsgs.push({ role: 'assistant', content: "¡Hola! He recibido tu consulta." });
-        initialMsgs.push({ role: 'user', content: initialMessageFromState });
-      } else {
-        const welcomeText = isSupportMode 
-          ? "Hola, soy el soporte de Finantel. ¿En qué puedo ayudarte hoy?"
-          : `¡Hola ${user?.user_metadata?.full_name?.split(' ')[0] || ''}! Soy tu Coach Financiero. ¿Revisamos tus gastos?`;
-        initialMsgs.push({ role: 'assistant', content: welcomeText });
+    if (currentConversationId && conversations.length > 0) {
+      const currentConv = conversations.find(c => c.id === currentConversationId);
+      if (currentConv) {
+        setMessages(currentConv.messages || []);
       }
-      setMessages(initialMsgs);
-      setIsInitialized(true);
     }
-  }, [ticketsLoading, isInitialized, initialMessageFromState, isSupportMode, user]);
+  }, [currentConversationId, conversations]);
+
+  // Inicialización: crear conversación si no existe
+  useEffect(() => {
+    if (!isInitialized && !ticketsLoading && !conversationsLoading && user) {
+      const initializeChat = async () => {
+        let convId = currentConversationId;
+        
+        // Si no hay conversación actual, crear una nueva
+        if (!convId) {
+          const welcomeText = isSupportMode 
+            ? "Hola, soy el soporte de Finantel. ¿En qué puedo ayudarte hoy?"
+            : `¡Hola ${user?.user_metadata?.full_name?.split(' ')[0] || ''}! Soy tu Coach Financiero. ¿Revisamos tus gastos?`;
+          
+          const initialMsgs = [];
+          if (initialMessageFromState) {
+            initialMsgs.push({ role: 'assistant', content: "¡Hola! He recibido tu consulta." });
+            initialMsgs.push({ role: 'user', content: initialMessageFromState });
+          } else {
+            initialMsgs.push({ role: 'assistant', content: welcomeText });
+          }
+          
+          const newConv = await createConversation(initialMessageFromState);
+          if (newConv) {
+            setMessages(initialMsgs);
+            await saveMessages(newConv.id, initialMsgs);
+          }
+        } else {
+          // Cargar mensajes de la conversación existente
+          const currentConv = conversations.find(c => c.id === convId);
+          if (currentConv) {
+            setMessages(currentConv.messages || []);
+          }
+        }
+        
+        setIsInitialized(true);
+      };
+      
+      initializeChat();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ticketsLoading, isInitialized, initialMessageFromState, isSupportMode, user, conversationsLoading]);
 
   const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   useEffect(() => scrollToBottom(), [messages, isLoading]);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || !currentConversationId) return;
+    
     const userMessage = { role: 'user', content: input };
-    setMessages(prev => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput("");
     setIsLoading(true);
 
     try {
-      // Simulación de envío
-      const contextMessages = [...messages, userMessage];
-      const aiResponseText = await sendMessageToAI(contextMessages);
-      setMessages(prev => [...prev, { role: 'assistant', content: aiResponseText }]);
+      // Guardar mensaje del usuario
+      await saveMessages(currentConversationId, newMessages);
+
+      // Obtener respuesta de IA
+      // ✅ CRÍTICO: Pasar userId y transactions para que la IA tenga datos reales
+      const contextMessages = newMessages;
+      
+      // 🔍 DEBUG: Verificar que tenemos transacciones
+      console.log('[AIAssistant] 📊 Transacciones disponibles:', {
+        count: transactions?.length || 0,
+        userId: user?.id,
+        hasTransactions: !!transactions && transactions.length > 0,
+        sampleTransaction: transactions?.[0] || null
+      });
+      
+      const aiResponseText = await sendMessageToAI(
+        contextMessages,
+        user?.id,  // Para consultar transacciones en la Edge Function
+        transactions  // Datos reales - La IA NO debe inventar
+      );
+      const aiMessage = { role: 'assistant', content: aiResponseText };
+      const finalMessages = [...newMessages, aiMessage];
+      
+      setMessages(finalMessages);
+      
+      // Guardar respuesta de IA
+      await saveMessages(currentConversationId, finalMessages);
+
+      // Verificar si necesita renombrar (después de 3 interacciones del usuario)
+      await renameConversationIfNeeded(currentConversationId, finalMessages);
     } catch (error) {
+      console.error('Error enviando mensaje:', error);
       setMessages(prev => [...prev, { role: 'assistant', content: "Error de conexión." }]);
     } finally {
       setIsLoading(false);
@@ -204,11 +279,30 @@ const AIAssistant = () => {
     }
   };
 
+  // Crear nueva conversación
+  const handleNewConversation = async () => {
+    const welcomeText = isSupportMode 
+      ? "Hola, soy el soporte de Finantel. ¿En qué puedo ayudarte hoy?"
+      : `¡Hola ${user?.user_metadata?.full_name?.split(' ')[0] || ''}! Soy tu Coach Financiero. ¿Revisamos tus gastos?`;
+    
+    const initialMsgs = [{ role: 'assistant', content: welcomeText }];
+    const newConv = await createConversation();
+    if (newConv) {
+      setMessages(initialMsgs);
+      await saveMessages(newConv.id, initialMsgs);
+    }
+  };
+
+  // Cambiar de conversación
+  const handleSelectConversation = (conversationId) => {
+    setCurrentConversationId(conversationId);
+    const selectedConv = conversations.find(c => c.id === conversationId);
+    if (selectedConv) {
+      setMessages(selectedConv.messages || []);
+    }
+  };
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [chatHistory, setChatHistory] = useState([
-    { id: 1, title: 'Nueva conversación', preview: '¡Hola! Soy tu Coach Financiero...', date: new Date() }
-  ]);
-  const [currentChatId, setCurrentChatId] = useState(1);
 
   return (
     <div className="flex h-screen w-screen bg-white font-sans overflow-hidden">
@@ -225,7 +319,10 @@ const AIAssistant = () => {
               <p className="text-xs text-gray-500 font-medium">Coach Financiero</p>
             </div>
           </div>
-          <button className="w-full flex items-center gap-2 px-3 py-2 bg-white hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors">
+          <button 
+            onClick={handleNewConversation}
+            className="w-full flex items-center gap-2 px-3 py-2 bg-white hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
+          >
             <Plus className="w-4 h-4 text-gray-600" />
             <span className="text-sm font-medium text-gray-700">Nueva conversación</span>
           </button>
@@ -233,38 +330,49 @@ const AIAssistant = () => {
 
         {/* Historial de Conversaciones */}
         <div className="flex-1 overflow-y-auto px-2 py-2 min-h-0">
-          <div className="space-y-1">
-            {chatHistory.map((chat) => (
-              <button
-                key={chat.id}
-                onClick={() => setCurrentChatId(chat.id)}
-                className={cn(
-                  "w-full text-left px-3 py-2.5 rounded-lg transition-colors group",
-                  currentChatId === chat.id
-                    ? "bg-[#1C8FA0]/10 border border-[#1C8FA0]/20"
-                    : "hover:bg-gray-100"
-                )}
-              >
-                <div className="flex items-start gap-2">
-                  <MessageSquare className={cn(
-                    "w-4 h-4 mt-0.5 shrink-0",
-                    currentChatId === chat.id ? "text-[#1C8FA0]" : "text-gray-400"
-                  )} />
-                  <div className="flex-1 min-w-0">
-                    <p className={cn(
-                      "text-sm font-medium truncate",
-                      currentChatId === chat.id ? "text-[#1C8FA0]" : "text-gray-700"
-                    )}>
-                      {chat.title}
-                    </p>
-                    <p className="text-xs text-gray-500 truncate mt-0.5">
-                      {chat.preview}
-                    </p>
+          {conversationsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+            </div>
+          ) : conversations.length === 0 ? (
+            <div className="text-center py-8 px-4">
+              <p className="text-sm text-gray-500">No hay conversaciones aún</p>
+              <p className="text-xs text-gray-400 mt-1">Crea una nueva para comenzar</p>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {conversations.map((chat) => (
+                <button
+                  key={chat.id}
+                  onClick={() => handleSelectConversation(chat.id)}
+                  className={cn(
+                    "w-full text-left px-3 py-2.5 rounded-lg transition-colors group",
+                    currentConversationId === chat.id
+                      ? "bg-[#1C8FA0]/10 border border-[#1C8FA0]/20"
+                      : "hover:bg-gray-100"
+                  )}
+                >
+                  <div className="flex items-start gap-2">
+                    <MessageSquare className={cn(
+                      "w-4 h-4 mt-0.5 shrink-0",
+                      currentConversationId === chat.id ? "text-[#1C8FA0]" : "text-gray-400"
+                    )} />
+                    <div className="flex-1 min-w-0">
+                      <p className={cn(
+                        "text-sm font-medium truncate",
+                        currentConversationId === chat.id ? "text-[#1C8FA0]" : "text-gray-700"
+                      )}>
+                        {chat.title}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate mt-0.5">
+                        {chat.preview || 'Sin mensajes'}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </button>
-            ))}
-          </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </aside>
 
@@ -333,52 +441,52 @@ const AIAssistant = () => {
               <div className="w-10"></div> {/* Spacer para centrar */}
             </div>
             <div className="flex-1 overflow-y-auto px-4 pt-4 pb-2 scrollbar-thin scrollbar-thumb-gray-200 min-h-0">
-              {messages.map((msg, idx) => (
+          {messages.map((msg, idx) => (
                 <MessageBubble key={idx} message={msg} user={user} isDesktop={false} />
-              ))}
-              {isLoading && (
-                <div className="flex gap-2 mb-3">
-                  <div className="w-6 h-6 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center shrink-0 mt-1">
-                    <Bot size={14} className="text-[#1C8FA0]" />
-                  </div>
-                  <div className="bg-white px-3 py-2.5 rounded-2xl rounded-tl-sm border border-gray-100 shadow-sm flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
-                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-75"></span>
-                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-150"></span>
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-            <div className="p-3 bg-white border-t border-gray-100 shrink-0">
-              <div className="relative flex items-end gap-2 bg-gray-50 rounded-xl border border-gray-200 focus-within:border-[#1C8FA0] focus-within:ring-1 focus-within:ring-[#1C8FA0]/20 transition-all px-3 py-2">
-                <button className="p-1.5 text-gray-400 hover:text-[#1C8FA0] hover:bg-[#1C8FA0]/10 rounded-lg transition-colors mb-0.5">
-                  <Paperclip size={18} />
-                </button>
-                <textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Escribe aquí..."
-                  rows={1}
-                  className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-gray-800 placeholder:text-gray-400 py-1.5 resize-none max-h-24 min-h-[36px]"
-                  style={{ lineHeight: '1.5' }}
-                />
-                <button 
-                  onClick={handleSend}
-                  disabled={!input.trim()}
-                  className={cn(
-                    "p-1.5 rounded-lg transition-all mb-0.5",
-                    input.trim() 
-                      ? "bg-[#1C8FA0] text-white hover:bg-[#157885] shadow-sm" 
-                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  )}
-                >
-                  <Send size={16} />
-                </button>
+          ))}
+          {isLoading && (
+            <div className="flex gap-2 mb-3">
+              <div className="w-6 h-6 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center shrink-0 mt-1">
+                 <Bot size={14} className="text-[#1C8FA0]" />
               </div>
-              <div className="text-center mt-2">
-                <span className="text-[10px] text-gray-300 font-medium">Finantel Secure Chat</span>
+              <div className="bg-white px-3 py-2.5 rounded-2xl rounded-tl-sm border border-gray-100 shadow-sm flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
+                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-75"></span>
+                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-150"></span>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+            <div className="p-3 bg-white border-t border-gray-100 shrink-0">
+          <div className="relative flex items-end gap-2 bg-gray-50 rounded-xl border border-gray-200 focus-within:border-[#1C8FA0] focus-within:ring-1 focus-within:ring-[#1C8FA0]/20 transition-all px-3 py-2">
+            <button className="p-1.5 text-gray-400 hover:text-[#1C8FA0] hover:bg-[#1C8FA0]/10 rounded-lg transition-colors mb-0.5">
+              <Paperclip size={18} />
+            </button>
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Escribe aquí..."
+              rows={1}
+              className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-gray-800 placeholder:text-gray-400 py-1.5 resize-none max-h-24 min-h-[36px]"
+              style={{ lineHeight: '1.5' }}
+            />
+            <button 
+              onClick={handleSend}
+              disabled={!input.trim()}
+              className={cn(
+                "p-1.5 rounded-lg transition-all mb-0.5",
+                input.trim() 
+                  ? "bg-[#1C8FA0] text-white hover:bg-[#157885] shadow-sm" 
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
+              )}
+            >
+              <Send size={16} />
+            </button>
+          </div>
+          <div className="text-center mt-2">
+             <span className="text-[10px] text-gray-300 font-medium">Finantel Secure Chat</span>
               </div>
             </div>
           </div>

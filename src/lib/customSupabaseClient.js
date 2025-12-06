@@ -146,11 +146,26 @@ if (typeof window !== 'undefined') {
       errorString.includes('ERR_NAME_NOT_RESOLVED') ||
       (errorMessage.includes('Failed to fetch') && errorString.includes('supabase.co'));
     
+    // Filtrar errores de conexión cerrada (ERR_CONNECTION_CLOSED)
+    const isConnectionClosedError = 
+      errorString.includes('ERR_CONNECTION_CLOSED') ||
+      errorMessage.includes('Connection closed') ||
+      (errorMessage.includes('Failed to fetch') && errorString.includes('ERR_CONNECTION_CLOSED'));
+    
     // Solo suprimir en desarrollo si son errores esperados
     if (import.meta.env.DEV) {
-      if (isWebSocketConnectionError || isSupabaseDNSError) {
-        // No mostrar errores de conexión WebSocket/DNS en desarrollo
-        // Estos son esperados cuando Realtime no está configurado o hay problemas de red
+      if (isWebSocketConnectionError || isSupabaseDNSError || isConnectionClosedError) {
+        // No mostrar errores de conexión en desarrollo
+        // Estos son esperados cuando hay problemas de red temporales
+        // Solo loguear una vez para no saturar la consola
+        if (!window.__supabase_connection_error_logged) {
+          console.warn('⚠️ [Supabase] Error de conexión detectado. Esto puede ser temporal. Verifica tu conexión a internet.');
+          window.__supabase_connection_error_logged = true;
+          // Resetear el flag después de 5 segundos
+          setTimeout(() => {
+            window.__supabase_connection_error_logged = false;
+          }, 5000);
+        }
         return;
       }
     }

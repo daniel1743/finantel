@@ -6,6 +6,7 @@
 // =====================================================
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // CORS Headers - Definidos localmente para evitar problemas de importación
 const corsHeaders = {
@@ -95,6 +96,24 @@ PROHIBIDO - VIOLACIÓN ÉTICA GRAVE
 
 REGLA DE ORO: Si no hay datos reales, sé honesto y di que no tienes esa información. NUNCA inventes.
 
+🚫 PROHIBICIÓN ABSOLUTA - VIOLACIÓN ÉTICA GRAVE:
+
+ANTES DE MENCIONAR CUALQUIER GASTO O CATEGORÍA:
+1. VERIFICA que exista en la lista de transacciones proporcionada
+2. Si NO existe en la lista, NO LO MENCIONES
+3. Si la lista está vacía, di claramente: "No veo transacciones registradas en [período]"
+4. NUNCA uses palabras como "aproximadamente" o "alrededor de" con datos que no existan
+5. NUNCA asumas categorías comunes (transporte, comida, etc.) si no están en los datos
+6. NUNCA inventes patrones que no estén explícitamente en los datos
+
+EJEMPLO INCORRECTO (NUNCA HAGAS ESTO):
+- "Has gastado en comida y transporte" → Si no hay gastos en transporte en los datos, NO lo digas
+- "Tus gastos principales fueron en comida (aproximadamente $180,000)" → Si no hay datos reales, NO lo digas
+
+EJEMPLO CORRECTO:
+- Si hay datos: "Veo que este mes registraste gastos en Alimentación ($150,000). Si quieres, podemos revisar cómo optimizar esa categoría."
+- Si NO hay datos: "No veo transacciones registradas este mes. Si quieres, puedo ayudarte a empezar a registrar tus gastos."
+
 ESTILO DE RESPUESTA
 
 Siempre escribe como humano:
@@ -137,7 +156,14 @@ serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json();
+    const { messages, userId, transactions } = await req.json();
+
+    console.log('[AI Assistant] 📥 Datos recibidos:', {
+      messagesCount: messages?.length || 0,
+      userId: userId || 'NO PROPORCIONADO',
+      transactionsReceived: transactions?.length || 0,
+      hasTransactions: !!transactions && transactions.length > 0
+    });
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(
@@ -149,13 +175,74 @@ serve(async (req) => {
       );
     }
 
+    // ✅ CRÍTICO: Obtener transacciones reales del usuario
+    let userTransactions = transactions || [];
+    
+    console.log('[AI Assistant] 📊 Estado de transacciones:', {
+      receivedCount: transactions?.length || 0,
+      finalCount: userTransactions.length,
+      willQuerySupabase: (!userTransactions || userTransactions.length === 0) && userId
+    });
+    
+    // Si no vienen transacciones pero tenemos userId, consultarlas desde Supabase
+    if ((!userTransactions || userTransactions.length === 0) && userId) {
+      try {
+        // Obtener URL y Service Role Key de variables de entorno
+        const supabaseUrl = Deno.env.get('SUPABASE_URL');
+        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+        
+        if (supabaseUrl && supabaseServiceKey) {
+          const supabase = createClient(supabaseUrl, supabaseServiceKey);
+          
+          const { data, error } = await supabase
+            .from('transactions')
+            .select('*, categories(name, icon, color)')
+            .eq('user_id', userId)
+            // ✅ IMPORTANTE: Incluir TODOS los tipos (expense e income) para análisis completo
+            .order('date', { ascending: false })
+            .limit(100);
+          
+          if (!error && data) {
+            userTransactions = data;
+            console.log(`[AI Assistant] ✅ Consultadas ${data.length} transacciones desde Supabase`);
+          } else {
+            console.warn('[AI Assistant] ⚠️ Error consultando transacciones:', error);
+          }
+        } else {
+          console.warn('[AI Assistant] ⚠️ Variables de entorno SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY no configuradas');
+        }
+      } catch (error) {
+        console.warn('[AI Assistant] ⚠️ Error al consultar transacciones:', error);
+      }
+    }
+
     // Obtener API keys desde variables de entorno de Supabase
     const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
     const QWEN_API_KEY = Deno.env.get('QWEN_API_KEY');
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 
+    // ✅ CRÍTICO: Incluir transacciones en el contexto del system prompt
+    console.log('[AI Assistant] 📝 Preparando contexto con transacciones:', {
+      totalTransactions: userTransactions.length,
+      willIncludeInContext: userTransactions.length > 0
+    });
+    
+    const transactionsContext = userTransactions.length > 0
+      ? `\n\n=== DATOS REALES DEL USUARIO (SOLO USA ESTOS DATOS - NUNCA INVENTES) ===\n\nTransacciones recientes (${userTransactions.length} registros):\n${JSON.stringify(userTransactions.slice(0, 50).map(t => ({
+          id: t.id,
+          amount: parseFloat(t.amount) || 0,
+          description: t.description || 'Sin descripción',
+          date: t.date || 'Sin fecha',
+          type: t.type || 'expense',
+          category: t.categories?.name || t.category_id || 'Sin categoría',
+          categoryColor: t.categories?.color || null
+        })), null, 2)}\n\n=== REGLAS CRÍTICAS ===\n1. Solo menciona gastos/categorías que estén EXPLÍCITAMENTE en esta lista\n2. Si una categoría NO está en la lista, NO la menciones\n3. Si no hay datos en una categoría, NO la inventes\n4. Si la lista está vacía, di claramente: "No veo transacciones registradas"\n5. NUNCA uses palabras como "aproximadamente" o "alrededor de" con datos que no existan\n6. NUNCA asumas categorías comunes (transporte, comida, etc.) si no están en los datos\n\nIMPORTANTE: Antes de mencionar CUALQUIER gasto o categoría, verifica que exista en esta lista.`
+      : `\n\n=== DATOS REALES DEL USUARIO ===\n\nNo hay transacciones registradas en este momento.\n\n=== REGLAS CRÍTICAS ===\n1. Di claramente: "No veo transacciones registradas [período]"\n2. NUNCA inventes gastos o categorías\n3. NUNCA asumas patrones que no estén en los datos\n4. Ofrece ayuda para registrar transacciones si el usuario lo necesita`;
+
+    const enhancedSystemPrompt = SYSTEM_PROMPT + transactionsContext;
+
     const formattedMessages = [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: enhancedSystemPrompt },
       ...messages
     ];
 

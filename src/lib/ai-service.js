@@ -1,9 +1,11 @@
 
 import { supabase } from '@/lib/customSupabaseClient';
 
-export const sendMessageToAI = async (messages) => {
+export const sendMessageToAI = async (messages, userId = null, transactions = null) => {
   console.log('[AI Service] 🚀 Iniciando llamada a Edge Function ai-assistant', {
     messagesCount: messages.length,
+    userId: userId || 'no proporcionado',
+    transactionsCount: transactions?.length || 0,
     timestamp: new Date().toISOString(),
     supabaseClientExists: !!supabase,
     supabaseFunctionsExists: !!supabase?.functions
@@ -17,11 +19,24 @@ export const sendMessageToAI = async (messages) => {
     }
 
     console.log('[AI Service] 📡 Invocando supabase.functions.invoke("ai-assistant")...');
+    console.log('[AI Service] 📊 Datos que se envían:', {
+      messagesCount: messages.length,
+      userId: userId || 'NO PROPORCIONADO',
+      transactionsCount: transactions?.length || 0,
+      hasTransactions: !!transactions && transactions.length > 0,
+      sampleTransaction: transactions?.[0] || null
+    });
+    
     const invokeStartTime = Date.now();
     
     // Llamar a la Edge Function de Supabase (resuelve CORS y protege API keys)
+    // ✅ CRÍTICO: Pasar userId y transactions para que la IA tenga datos reales
     const { data, error } = await supabase.functions.invoke('ai-assistant', {
-      body: { messages }
+      body: { 
+        messages,
+        userId,  // Para consultar transacciones en la Edge Function si no vienen
+        transactions: transactions || []  // Datos reales del usuario - NUNCA inventar (siempre array)
+      }
     });
 
     const invokeDuration = Date.now() - invokeStartTime;
