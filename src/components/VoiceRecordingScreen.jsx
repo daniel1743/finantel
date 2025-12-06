@@ -219,11 +219,15 @@ const VoiceRecordingScreen = ({ isOpen, onClose, onTransactionCreated, userId })
       console.log('📡 [VoiceRecording] Enviando audio a Edge Function...');
       const requestStartTime = Date.now();
       
-      // Timeout de 60 segundos para evitar que se quede colgado
+      // Timeout dinámico: 90 segundos base + 30 segundos por cada minuto de audio
+      // Esto permite procesar grabaciones largas sin cortarlas prematuramente
+      const audioDurationSeconds = audioBlob.size > 0 ? Math.ceil(audioBlob.size / 1000) : 60;
+      const dynamicTimeout = Math.max(90000, 90000 + (Math.ceil(audioDurationSeconds / 60) * 30000));
+      
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
         controller.abort();
-      }, 60000); // 60 segundos
+      }, dynamicTimeout);
       
       let response;
       try {
@@ -237,7 +241,8 @@ const VoiceRecordingScreen = ({ isOpen, onClose, onTransactionCreated, userId })
       } catch (fetchError) {
         clearTimeout(timeoutId);
         if (fetchError.name === 'AbortError') {
-          throw new Error('La petición tardó demasiado (timeout de 60s). Por favor, intenta de nuevo.');
+          const timeoutSeconds = Math.round(dynamicTimeout / 1000);
+          throw new Error(`El procesamiento de audio está tardando más de ${timeoutSeconds} segundos. Esto puede ocurrir con grabaciones muy largas. Por favor, intenta con una grabación más corta o intenta de nuevo.`);
         }
         throw fetchError;
       }

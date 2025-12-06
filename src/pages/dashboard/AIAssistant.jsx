@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Icon from '@/components/ui/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSearchParams, useLocation } from 'react-router-dom';
+import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Send, 
   Loader2, 
@@ -9,7 +9,11 @@ import {
   Smile, 
   Paperclip,
   Bot,
-  X
+  X,
+  Plus,
+  MessageSquare,
+  Menu,
+  ArrowLeft
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { sendMessageToAI } from '@/lib/ai-service';
@@ -31,7 +35,8 @@ const Header = ({ isSupportMode, onClose }) => (
             className="text-[#1C8FA0]" // Color de tu marca
           />
         </div>
-        <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white"></div>
+        {/* Punto verde sutil: 80% fuera, 20% dentro */}
+        <div className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 bg-green-500/80 rounded-full border border-white shadow-sm"></div>
       </div>
       
       <div className="flex flex-col">
@@ -51,7 +56,7 @@ const Header = ({ isSupportMode, onClose }) => (
   </div>
 );
 
-const MessageBubble = ({ message, user }) => {
+const MessageBubble = ({ message, user, isDesktop = false }) => {
   const isUser = message.role === 'user';
   const isSystem = message.role === 'system';
 
@@ -65,6 +70,42 @@ const MessageBubble = ({ message, user }) => {
     );
   }
 
+  // Estilo Desktop (tipo ChatGPT)
+  if (isDesktop) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={cn(
+          "flex gap-4 mb-6 w-full",
+          isUser ? "justify-end" : "justify-start"
+        )}
+      >
+        {!isUser && (
+          <div className="shrink-0 w-8 h-8 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center">
+            <Bot size={18} className="text-[#1C8FA0]" />
+          </div>
+        )}
+        <div className={cn(
+          "px-4 py-3 text-[15px] leading-relaxed max-w-[85%] break-words",
+          isUser 
+            ? "bg-[#1C8FA0] text-white rounded-2xl" 
+            : "bg-gray-100 text-gray-800 rounded-2xl"
+        )}>
+          <div className="whitespace-pre-wrap">{message.content}</div>
+        </div>
+        {isUser && (
+          <div className="shrink-0 w-8 h-8 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center">
+            <div className="w-6 h-6 rounded-full bg-[#1C8FA0] flex items-center justify-center text-white text-xs font-semibold">
+              {user?.user_metadata?.full_name?.charAt(0)?.toUpperCase() || 'U'}
+            </div>
+          </div>
+        )}
+      </motion.div>
+    );
+  }
+
+  // Estilo Mobile (original)
   return (
     <motion.div 
       initial={{ opacity: 0, y: 5 }}
@@ -74,24 +115,18 @@ const MessageBubble = ({ message, user }) => {
         isUser ? "justify-end" : "justify-start"
       )}
     >
-      {/* Avatar IA (Solo izquierda) */}
       {!isUser && (
         <div className="shrink-0 w-6 h-6 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center mt-1">
           <Bot size={14} className="text-[#1C8FA0]" />
         </div>
       )}
-
-      {/* Burbuja */}
       <div className={cn(
-        "px-4 py-2.5 shadow-sm text-[14px] leading-normal max-w-[90%] break-words", // max-w-90% permite que sea larga
+        "px-4 py-2.5 shadow-sm text-[14px] leading-normal max-w-[90%] break-words",
         isUser 
-          ? "bg-[#1C8FA0] text-white rounded-2xl rounded-tr-sm" // Color marca usuario
+          ? "bg-[#1C8FA0] text-white rounded-2xl rounded-tr-sm"
           : "bg-white text-gray-700 rounded-2xl rounded-tl-sm border border-gray-100"
       )}>
-        <div className="whitespace-pre-wrap">
-          {message.content}
-        </div>
-        {/* Hora sutil */}
+        <div className="whitespace-pre-wrap">{message.content}</div>
         <div className={cn(
           "text-[9px] mt-1 text-right opacity-70",
           isUser ? "text-white/80" : "text-gray-400"
@@ -108,6 +143,7 @@ const MessageBubble = ({ message, user }) => {
 const AIAssistant = () => {
   const [searchParams] = useSearchParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const topic = searchParams.get('topic');
   const { user } = useAuth();
   const { tickets, loading: ticketsLoading } = useSupportTickets(user?.id);
@@ -168,76 +204,249 @@ const AIAssistant = () => {
     }
   };
 
-  return (
-    <div className="flex justify-center items-center min-h-[calc(100vh-100px)] p-4 font-sans">
-      {/* Contenedor Principal */}
-      <div className="w-full max-w-[420px] h-[650px] bg-[#F5F7F9] rounded-[24px] shadow-2xl overflow-hidden flex flex-col border border-gray-200 relative">
-        
-        {/* 1. Header Blanco y Limpio */}
-        <Header isSupportMode={isSupportMode} />
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [chatHistory, setChatHistory] = useState([
+    { id: 1, title: 'Nueva conversación', preview: '¡Hola! Soy tu Coach Financiero...', date: new Date() }
+  ]);
+  const [currentChatId, setCurrentChatId] = useState(1);
 
-        {/* 2. Área de Chat */}
-        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-2 scrollbar-thin scrollbar-thumb-gray-200">
-          {messages.map((msg, idx) => (
-            <MessageBubble key={idx} message={msg} user={user} />
-          ))}
-          
-          {isLoading && (
-            <div className="flex gap-2 mb-3">
-              <div className="w-6 h-6 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center shrink-0 mt-1">
-                 <Bot size={14} className="text-[#1C8FA0]" />
+  return (
+    <div className="flex h-screen w-screen bg-white font-sans overflow-hidden">
+      {/* Sidebar - Solo visible en desktop */}
+      <aside className="hidden lg:flex lg:flex-col lg:w-64 bg-gray-50 border-r border-gray-200 overflow-hidden">
+        {/* Logo y Header del Sidebar */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#1C8FA0] to-[#157885] flex items-center justify-center shadow-lg">
+              <Bot className="w-7 h-7 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-[#1a1a1a]">Finantel AI</h2>
+              <p className="text-xs text-gray-500 font-medium">Coach Financiero</p>
+            </div>
+          </div>
+          <button className="w-full flex items-center gap-2 px-3 py-2 bg-white hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors">
+            <Plus className="w-4 h-4 text-gray-600" />
+            <span className="text-sm font-medium text-gray-700">Nueva conversación</span>
+          </button>
+        </div>
+
+        {/* Historial de Conversaciones */}
+        <div className="flex-1 overflow-y-auto px-2 py-2 min-h-0">
+          <div className="space-y-1">
+            {chatHistory.map((chat) => (
+              <button
+                key={chat.id}
+                onClick={() => setCurrentChatId(chat.id)}
+                className={cn(
+                  "w-full text-left px-3 py-2.5 rounded-lg transition-colors group",
+                  currentChatId === chat.id
+                    ? "bg-[#1C8FA0]/10 border border-[#1C8FA0]/20"
+                    : "hover:bg-gray-100"
+                )}
+              >
+                <div className="flex items-start gap-2">
+                  <MessageSquare className={cn(
+                    "w-4 h-4 mt-0.5 shrink-0",
+                    currentChatId === chat.id ? "text-[#1C8FA0]" : "text-gray-400"
+                  )} />
+                  <div className="flex-1 min-w-0">
+                    <p className={cn(
+                      "text-sm font-medium truncate",
+                      currentChatId === chat.id ? "text-[#1C8FA0]" : "text-gray-700"
+                    )}>
+                      {chat.title}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate mt-0.5">
+                      {chat.preview}
+                    </p>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </aside>
+
+      {/* Área Principal - Desktop: pantalla completa, Mobile: contenedor centrado */}
+      <div className="flex-1 flex flex-col lg:bg-white">
+        {/* Header - Solo en desktop, diferente estilo */}
+        <div className="hidden lg:flex lg:items-center lg:justify-between lg:px-6 lg:py-4 lg:border-b lg:border-gray-200 lg:shrink-0">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 hover:text-[#1a1a1a]"
+              title="Volver al dashboard"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <div className="relative">
+              <div className="w-10 h-10 rounded-full overflow-hidden bg-[#1C8FA0]/10 flex items-center justify-center border border-[#1C8FA0]/20">
+                <Icon 
+                  component={isSupportMode ? LifeBuoy : Bot} 
+                  size="md" 
+                  className="text-[#1C8FA0]"
+                />
               </div>
-              <div className="bg-white px-3 py-2.5 rounded-2xl rounded-tl-sm border border-gray-100 shadow-sm flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
-                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-75"></span>
-                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-150"></span>
+              {/* Punto verde sutil: 80% fuera, 20% dentro */}
+              <div className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 bg-green-500/80 rounded-full border border-white shadow-sm"></div>
+            </div>
+            <div>
+              <h1 className="text-[#1a1a1a] font-semibold text-base">
+                {isSupportMode ? 'Soporte Finantel' : 'Coach Financiero'}
+              </h1>
+              <p className="text-gray-500 text-xs">En línea</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Contenedor Mobile (mantiene diseño original) */}
+        <div className="lg:hidden flex flex-col h-screen w-screen bg-[#F5F7F9] overflow-hidden">
+          <div className="w-full h-full bg-[#F5F7F9] flex flex-col border border-gray-200 relative">
+            {/* Header Mobile con botón volver */}
+            <div className="bg-white px-4 py-3 border-b border-gray-100 flex items-center justify-between shrink-0">
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 hover:text-[#1a1a1a]"
+                title="Volver"
+              >
+                <ArrowLeft size={20} />
+              </button>
+              <div className="flex items-center gap-3 flex-1 justify-center">
+                <div className="relative">
+                  <div className="w-9 h-9 rounded-full overflow-hidden bg-[#1C8FA0]/10 flex items-center justify-center border border-[#1C8FA0]/20">
+                    <Icon 
+                      component={isSupportMode ? LifeBuoy : Bot} 
+                      size="sm" 
+                      className="text-[#1C8FA0]"
+                    />
+                  </div>
+                  <div className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 bg-green-500/80 rounded-full border border-white shadow-sm"></div>
+                </div>
+                <div className="flex flex-col">
+                  <h1 className="text-[#1a1a1a] font-bold text-sm leading-tight">
+                    {isSupportMode ? 'Soporte Finantel' : 'Coach Financiero'}
+                  </h1>
+                  <p className="text-gray-400 text-[11px] font-medium">En línea</p>
+                </div>
+              </div>
+              <div className="w-10"></div> {/* Spacer para centrar */}
+            </div>
+            <div className="flex-1 overflow-y-auto px-4 pt-4 pb-2 scrollbar-thin scrollbar-thumb-gray-200 min-h-0">
+              {messages.map((msg, idx) => (
+                <MessageBubble key={idx} message={msg} user={user} isDesktop={false} />
+              ))}
+              {isLoading && (
+                <div className="flex gap-2 mb-3">
+                  <div className="w-6 h-6 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center shrink-0 mt-1">
+                    <Bot size={14} className="text-[#1C8FA0]" />
+                  </div>
+                  <div className="bg-white px-3 py-2.5 rounded-2xl rounded-tl-sm border border-gray-100 shadow-sm flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
+                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-75"></span>
+                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-150"></span>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+            <div className="p-3 bg-white border-t border-gray-100 shrink-0">
+              <div className="relative flex items-end gap-2 bg-gray-50 rounded-xl border border-gray-200 focus-within:border-[#1C8FA0] focus-within:ring-1 focus-within:ring-[#1C8FA0]/20 transition-all px-3 py-2">
+                <button className="p-1.5 text-gray-400 hover:text-[#1C8FA0] hover:bg-[#1C8FA0]/10 rounded-lg transition-colors mb-0.5">
+                  <Paperclip size={18} />
+                </button>
+                <textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Escribe aquí..."
+                  rows={1}
+                  className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-gray-800 placeholder:text-gray-400 py-1.5 resize-none max-h-24 min-h-[36px]"
+                  style={{ lineHeight: '1.5' }}
+                />
+                <button 
+                  onClick={handleSend}
+                  disabled={!input.trim()}
+                  className={cn(
+                    "p-1.5 rounded-lg transition-all mb-0.5",
+                    input.trim() 
+                      ? "bg-[#1C8FA0] text-white hover:bg-[#157885] shadow-sm" 
+                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  )}
+                >
+                  <Send size={16} />
+                </button>
+              </div>
+              <div className="text-center mt-2">
+                <span className="text-[10px] text-gray-300 font-medium">Finantel Secure Chat</span>
               </div>
             </div>
-          )}
-          <div ref={messagesEndRef} />
+          </div>
         </div>
 
-        {/* 3. Área de Input Refinada */}
-        <div className="p-3 bg-white border-t border-gray-100"> 
-          
-          <div className="relative flex items-end gap-2 bg-gray-50 rounded-xl border border-gray-200 focus-within:border-[#1C8FA0] focus-within:ring-1 focus-within:ring-[#1C8FA0]/20 transition-all px-3 py-2">
-            
-            {/* Botones de acción (Izquierda) */}
-            <button className="p-1.5 text-gray-400 hover:text-[#1C8FA0] hover:bg-[#1C8FA0]/10 rounded-lg transition-colors mb-0.5">
-              <Paperclip size={18} />
-            </button>
-
-            {/* Input */}
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Escribe aquí..."
-              rows={1}
-              className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-gray-800 placeholder:text-gray-400 py-1.5 resize-none max-h-24 min-h-[36px]"
-              style={{ lineHeight: '1.5' }}
-            />
-            
-            {/* Botón Enviar (Derecha) */}
-            <button 
-              onClick={handleSend}
-              disabled={!input.trim()}
-              className={cn(
-                "p-1.5 rounded-lg transition-all mb-0.5",
-                input.trim() 
-                  ? "bg-[#1C8FA0] text-white hover:bg-[#157885] shadow-sm" 
-                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
+        {/* Área Principal Desktop - Estilo ChatGPT */}
+        <div className="hidden lg:flex lg:flex-col lg:flex-1 lg:overflow-hidden lg:min-h-0">
+          {/* Área de Mensajes */}
+          <div className="flex-1 overflow-y-auto px-6 py-8 bg-white min-h-0">
+            <div className="max-w-3xl mx-auto">
+              {messages.map((msg, idx) => (
+                <MessageBubble key={idx} message={msg} user={user} isDesktop={true} />
+              ))}
+              {isLoading && (
+                <div className="flex gap-3 mb-4">
+                  <div className="w-8 h-8 rounded-full bg-[#1C8FA0]/10 flex items-center justify-center shrink-0">
+                    <Bot size={16} className="text-[#1C8FA0]" />
+                  </div>
+                  <div className="bg-gray-100 px-4 py-3 rounded-2xl flex items-center gap-1.5">
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-75"></span>
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-150"></span>
+                  </div>
+                </div>
               )}
-            >
-              <Send size={16} />
-            </button>
+              <div ref={messagesEndRef} />
+            </div>
           </div>
-          
-          <div className="text-center mt-2">
-             <span className="text-[10px] text-gray-300 font-medium">Finantel Secure Chat</span>
+
+          {/* Input Area Desktop */}
+          <div className="border-t border-gray-200 bg-white shrink-0">
+            <div className="max-w-3xl mx-auto px-4 py-4">
+              <div className="relative flex items-end gap-2 bg-white rounded-2xl border-2 border-gray-300 focus-within:border-[#1C8FA0] focus-within:shadow-lg transition-all px-4 py-3">
+                <button className="p-2 text-gray-400 hover:text-[#1C8FA0] hover:bg-gray-50 rounded-lg transition-colors">
+                  <Paperclip size={20} />
+                </button>
+                <textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Envía un mensaje..."
+                  rows={1}
+                  className="flex-1 bg-transparent border-none focus:ring-0 text-base text-gray-800 placeholder:text-gray-400 py-2 resize-none max-h-32 min-h-[44px]"
+                  style={{ lineHeight: '1.5' }}
+                />
+                <button 
+                  onClick={handleSend}
+                  disabled={!input.trim() || isLoading}
+                  className={cn(
+                    "p-2 rounded-lg transition-all",
+                    input.trim() && !isLoading
+                      ? "bg-[#1C8FA0] text-white hover:bg-[#157885] shadow-sm" 
+                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  )}
+                >
+                  {isLoading ? (
+                    <Loader2 size={20} className="animate-spin" />
+                  ) : (
+                    <Send size={20} />
+                  )}
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 text-center mt-3">
+                Finantel puede cometer errores. Considera verificar la información importante.
+              </p>
+            </div>
           </div>
         </div>
-
       </div>
     </div>
   );

@@ -637,14 +637,14 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
         className="relative bg-white dark:bg-[#1a1a1a] rounded-[26px] p-8 w-full max-w-lg shadow-2xl border border-gray-100 dark:border-white/10 z-10 max-h-[90vh] overflow-y-auto"
       >
         {/* Botón cerrar en esquina superior derecha */}
-        <button 
-          onClick={onClose} 
-          disabled={isLoading}
+          <button 
+            onClick={onClose} 
+            disabled={isLoading}
           className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors disabled:opacity-50 z-20"
           aria-label="Cerrar"
-        >
+          >
           <Icon component={X} size="md" color="default" />
-        </button>
+          </button>
 
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-[#1a1a1a] dark:text-white font-['Inter_Tight']">Nueva Meta</h2>
@@ -718,28 +718,28 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
                     Seleccionar Icono
                   </label>
                   <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10 max-h-80 overflow-y-auto justify-items-center">
-                    {goalIcons.map((iconOption, idx) => {
-                      const IconComponent = iconOption.icon;
-                      const isSelected = selectedIcon === iconOption.icon;
-                      return (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => {
-                            setSelectedIcon(iconOption.icon);
-                          }}
-                          className={cn(
+                {goalIcons.map((iconOption, idx) => {
+                  const IconComponent = iconOption.icon;
+                  const isSelected = selectedIcon === iconOption.icon;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setSelectedIcon(iconOption.icon);
+                      }}
+                      className={cn(
                             "w-20 h-20 p-3 rounded-xl transition-all hover:scale-105 flex flex-col items-center justify-center gap-1.5 aspect-square",
-                            isSelected
+                        isSelected
                               ? "bg-white dark:bg-white/10 shadow-lg border-2"
                               : "bg-white dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10"
-                          )}
+                      )}
                           style={isSelected ? { 
                             borderColor: selectedColor,
                             backgroundColor: `${selectedColor}10`
                           } : {}}
-                          title={iconOption.name}
-                        >
+                      title={iconOption.name}
+                    >
                           <IconComponent 
                             className="w-5 h-5 flex-shrink-0" 
                             style={isSelected ? { color: selectedColor } : {}}
@@ -748,11 +748,11 @@ const CreateGoalModal = ({ isOpen, onClose, onSuccess }) => {
                             "text-[10px] font-medium text-center leading-tight px-0.5 line-clamp-2",
                             isSelected ? "text-[#1a1a1a] dark:text-white" : "text-[#6E6E73] dark:text-gray-400"
                           )}>
-                            {iconOption.name}
-                          </span>
-                        </button>
-                      );
-                    })}
+                        {iconOption.name}
+                      </span>
+                    </button>
+                  );
+                })}
                   </div>
                 </div>
 

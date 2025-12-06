@@ -196,8 +196,8 @@ const CategoryCard = ({ category, delay, onEdit, onDelete }) => {
             }}
             className="p-2 text-gray-300 dark:text-gray-600 hover:text-[#1a1a1a] dark:hover:text-white transition-colors opacity-0 group-hover:opacity-100"
           >
-            <Icon component={MoreVertical} size="md" color="default" />
-          </button>
+          <Icon component={MoreVertical} size="md" color="default" />
+        </button>
           
           {/* Menú Dropdown */}
           <AnimatePresence>
@@ -295,10 +295,10 @@ const AddCategoryModal = ({ isOpen, onClose, onSuccess, editingCategory, onUpdat
       };
     }
     return {
-      name: '',
+    name: '',
       type: 'expense',
-      color: '#1C8FA0',
-      icon: 'Home'
+    color: '#1C8FA0',
+    icon: 'Home'
     };
   };
 
@@ -373,11 +373,11 @@ const AddCategoryModal = ({ isOpen, onClose, onSuccess, editingCategory, onUpdat
         });
       } else {
         // Modo creación
-        await addCategory(categoryData);
-        toast({
-          title: "¡Éxito!",
-          description: "Categoría creada correctamente",
-        });
+      await addCategory(categoryData);
+      toast({
+        title: "¡Éxito!",
+        description: "Categoría creada correctamente",
+      });
       }
       
       // Reset form

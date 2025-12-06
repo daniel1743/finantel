@@ -386,7 +386,7 @@ const Predictions = () => {
               preserveAspectRatio="xMidYMid meet"
               style={{ overflow: 'visible' }}
             >
-              {/* Historical Line (Gray) */}
+            {/* Historical Line (Gray) */}
               <path 
                 d="M0,180 C50,170 100,190 150,150 C200,110 250,130 300,100" 
                 fill="none" 

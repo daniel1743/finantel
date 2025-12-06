@@ -130,7 +130,10 @@ IMPORTANTE TÉCNICO: Si la respuesta requiere mostrar datos visuales, incluye et
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, { 
+      status: 204,
+      headers: corsHeaders 
+    });
   }
 
   try {
