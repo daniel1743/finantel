@@ -20,6 +20,8 @@ import {
   ArrowRight,
   Sparkles,
   Loader2,
+  X,
+  Info,
 } from 'lucide-react';
 import { useFutureSelf } from '@/hooks/useFutureSelf';
 import { Button } from '@/components/ui/button';
@@ -247,6 +249,9 @@ function formatCurrency(amount, currency = 'CLP') {
 // ============================================================================
 export default function FutureSelfView() {
   const [horizonMonths, setHorizonMonths] = useState(12);
+  const [showRecalculateModal, setShowRecalculateModal] = useState(false);
+  const [previousHorizon, setPreviousHorizon] = useState(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   
   // ========================================================================
   // CORRECCIÓN 2.4: Validación de horizonte temporal
@@ -271,11 +276,30 @@ export default function FutureSelfView() {
     }
   }, [horizonMonths]);
   
+  // ========================================================================
+  // Modal de Recalcular: Mostrar cuando cambia el horizonte
+  // ========================================================================
+  useEffect(() => {
+    // Marcar que la carga inicial terminó después del primer render
+    if (isInitialLoad) {
+      setIsInitialLoad(false);
+      setPreviousHorizon(horizonMonths);
+      return;
+    }
+    
+    // Solo mostrar modal si el horizonte cambió y no es la carga inicial
+    if (horizonMonths !== previousHorizon && previousHorizon !== null) {
+      setShowRecalculateModal(true);
+    }
+    setPreviousHorizon(horizonMonths);
+  }, [horizonMonths, previousHorizon, isInitialLoad]);
+  
   const { scenarios, currentMetrics, loading, error, refresh } = useFutureSelf(horizonMonths);
   const { currency } = useUserCurrency();
   const { toast } = useToast();
 
   const handleRefresh = async () => {
+    setShowRecalculateModal(false);
     await refresh();
     toast({
       title: 'Escenarios actualizados',
@@ -283,8 +307,76 @@ export default function FutureSelfView() {
     });
   };
 
+  const handleRecalculateFromModal = async () => {
+    setShowRecalculateModal(false);
+    await handleRefresh();
+  };
+
   return (
     <div className="space-y-6 pb-12">
+      {/* Modal de Recalcular */}
+      <AnimatePresence>
+        {showRecalculateModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-[#1a1a1a] rounded-[22px] border border-gray-200 dark:border-white/10 shadow-xl p-6 max-w-md w-full mx-4"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#1C8FA0]/10 flex items-center justify-center">
+                    <Icon component={Info} size="md" color="primary" />
+                  </div>
+                  <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white">
+                    Actualizar Resultados
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setShowRecalculateModal(false)}
+                  className="text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <p className="text-sm text-[#6E6E73] dark:text-gray-400 mb-6 leading-relaxed">
+                Para ver resultados actualizados en este período ({HORIZON_OPTIONS.find(o => o.value === horizonMonths)?.label || `${horizonMonths} meses`}), 
+                por favor haz clic en <strong>Recalcular</strong> para obtener proyecciones precisas y fiables.
+              </p>
+              
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => setShowRecalculateModal(false)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleRecalculateFromModal}
+                  disabled={loading}
+                  className="flex-1 bg-[#1C8FA0] hover:bg-[#1C8FA0]/90 text-white"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Calculando...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Recalcular
+                    </>
+                  )}
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
