@@ -183,7 +183,7 @@ const ScenarioCard = ({ scenario, config, currency, delay = 0 }) => {
 
       {/* Acciones sugeridas */}
       {scenario.suggested_actions && scenario.suggested_actions.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-2 mb-3">
           <p className="text-xs font-bold text-[#6E6E73] dark:text-gray-400 uppercase tracking-wider">
             Acciones Sugeridas
           </p>
@@ -207,6 +207,13 @@ const ScenarioCard = ({ scenario, config, currency, delay = 0 }) => {
           ))}
         </div>
       )}
+
+      {/* Disclaimer profesional */}
+      <div className="mt-auto pt-3 border-t border-gray-200/50 dark:border-white/5">
+        <p className="text-[10px] leading-relaxed text-[#6E6E73] dark:text-gray-500 text-center italic">
+          <span className="font-medium">Nota:</span> Esta proyección es una estimación basada en tus transacciones registradas, patrones de gasto históricos y tendencias financieras. No constituye una predicción exacta y puede variar según cambios en tus hábitos, ingresos o circunstancias económicas.
+        </p>
+      </div>
     </motion.div>
   );
 };
