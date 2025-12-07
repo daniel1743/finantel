@@ -58,7 +58,7 @@ const RiskCard = ({ risk = {} }) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 shadow-lg"
+      className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 shadow-lg overflow-hidden min-w-0"
     >
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -147,8 +147,8 @@ const RiskCard = ({ risk = {} }) => {
                 ) : (
                   <Icon component={CheckCircle2} size="md" color="warning" className="dark: shrink-0 mt-0.5" />
                 )}
-                <div className="flex-1">
-                  <p className="text-sm text-[#1a1a1a] dark:text-white">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-[#1a1a1a] dark:text-white break-words" style={{ wordBreak: 'break-word' }}>
                     {factorText}
                   </p>
                   {factor.recommendation && (

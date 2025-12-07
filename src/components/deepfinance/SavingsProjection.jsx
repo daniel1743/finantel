@@ -16,7 +16,7 @@ const SavingsProjection = ({ projections = {} }) => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 shadow-lg"
+        className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 shadow-lg overflow-hidden min-w-0"
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-green-500/10 border border-green-500/20">
@@ -51,7 +51,7 @@ const SavingsProjection = ({ projections = {} }) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 shadow-lg"
+      className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 shadow-lg overflow-hidden min-w-0"
     >
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-xl bg-green-500/10 border border-green-500/20">
@@ -66,7 +66,7 @@ const SavingsProjection = ({ projections = {} }) => {
       </div>
 
       {/* Proyecciones por Período */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 mb-6">
         {scenario30.potential !== undefined && (
           <ProjectionPeriodCard
             period="30 días"
@@ -195,9 +195,9 @@ const ScenarioCard = ({ icon: Icon, title, description, monthly, annual, current
         <div className={cn('p-2 rounded-lg border shrink-0', currentColor)}>
           <Icon className="w-4 h-4" />
         </div>
-        <div className="flex-1">
-          <h4 className="font-semibold text-sm mb-1">{title}</h4>
-          <p className="text-xs opacity-80">{description}</p>
+        <div className="flex-1 min-w-0">
+          <h4 className="font-semibold text-sm mb-1 break-words" style={{ wordBreak: 'break-word' }}>{title}</h4>
+          <p className="text-xs opacity-80 break-words" style={{ wordBreak: 'break-word' }}>{description}</p>
         </div>
       </div>
 

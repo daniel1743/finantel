@@ -41,7 +41,7 @@ const RecommendationsCard = ({ recommendations = [], aiInsights = null }) => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-6 shadow-lg"
+        className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 shadow-lg overflow-hidden min-w-0"
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
@@ -115,7 +115,7 @@ const RecommendationsCard = ({ recommendations = [], aiInsights = null }) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-6 shadow-lg"
+      className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 shadow-lg overflow-hidden min-w-0"
     >
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
@@ -160,19 +160,19 @@ const RecommendationsCard = ({ recommendations = [], aiInsights = null }) => {
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <h4 className={cn('font-semibold text-sm', colors.text)}>
+                    <div className="flex items-start justify-between gap-2 mb-2 flex-wrap">
+                      <h4 className={cn('font-semibold text-sm break-words min-w-0 flex-1', colors.text)} style={{ wordBreak: 'break-word' }}>
                         {recommendation.title || 'Recomendación'}
                       </h4>
                       <span className={cn(
-                        'text-xs font-bold px-2 py-1 rounded-md shrink-0',
+                        'text-xs font-bold px-2 py-1 rounded-md shrink-0 whitespace-nowrap',
                         colors.badge
                       )}>
                         {impact.toUpperCase()}
                       </span>
                     </div>
                     
-                    <p className={cn('text-xs leading-relaxed', colors.text, 'opacity-90')}>
+                    <p className={cn('text-xs leading-relaxed break-words', colors.text, 'opacity-90')} style={{ wordBreak: 'break-word' }}>
                       {recommendation.description || recommendation.recommendation || 'Sin descripción'}
                     </p>
 

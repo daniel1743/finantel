@@ -105,7 +105,7 @@ const DeepFinance = () => {
   const aiInsights = analysis?.ai_insights || analysis?.aiInsights || null;
 
   return (
-    <div className="space-y-6 md:space-y-8 pb-12 h-full flex flex-col px-4 md:px-0">
+    <div className="space-y-6 md:space-y-8 pb-12 h-full flex flex-col px-4 md:px-0 w-full min-w-0 overflow-x-hidden">
       {/* Header Premium */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -306,7 +306,7 @@ const DeepFinance = () => {
             className="space-y-6"
           >
             {/* Score Display */}
-            <div className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 lg:p-8 shadow-lg">
+            <div className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 lg:p-8 shadow-lg overflow-hidden min-w-0">
               <div className="flex items-center justify-center">
                 <ScoreDisplay score={currentScore} size="large" />
               </div>
@@ -327,7 +327,7 @@ const DeepFinance = () => {
             </div>
 
             {/* Grid de Cards de Análisis */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full min-w-0">
               {/* Pattern Card */}
               <PatternCard patterns={patterns} />
               

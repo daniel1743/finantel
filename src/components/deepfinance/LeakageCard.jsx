@@ -16,7 +16,7 @@ const LeakageCard = ({ leakages = [] }) => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 shadow-lg"
+        className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 shadow-lg overflow-hidden min-w-0"
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-green-500/10 border border-green-500/20">
@@ -104,7 +104,7 @@ const LeakageCard = ({ leakages = [] }) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 shadow-lg"
+      className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 shadow-lg overflow-hidden min-w-0"
     >
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -164,7 +164,7 @@ const LeakageCard = ({ leakages = [] }) => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
               className={cn(
-                'p-4 rounded-xl border-2 flex items-start justify-between gap-4 hover:shadow-md transition-all',
+                'p-4 rounded-xl border-2 flex items-start gap-4 hover:shadow-md transition-all overflow-hidden min-w-0',
                 colorClasses
               )}
             >
@@ -177,8 +177,8 @@ const LeakageCard = ({ leakages = [] }) => {
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-semibold text-sm text-[#1a1a1a] dark:text-white">
+                  <div className="flex items-start gap-2 mb-1 flex-wrap">
+                    <h4 className="font-semibold text-sm text-[#1a1a1a] dark:text-white break-words flex-1 min-w-0" style={{ wordBreak: 'break-word' }}>
                       {description}
                     </h4>
                     <span className="text-xs px-2 py-0.5 rounded-md bg-white/50 dark:bg-black/20 text-[#1a1a1a] dark:text-white">

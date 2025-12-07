@@ -31,7 +31,7 @@ const EmotionalCard = ({ emotional = {} }) => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 shadow-lg"
+        className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 shadow-lg overflow-hidden min-w-0"
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-green-500/10 border border-green-500/20">
@@ -77,7 +77,7 @@ const EmotionalCard = ({ emotional = {} }) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 shadow-lg"
+      className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 shadow-lg overflow-hidden min-w-0"
     >
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -181,19 +181,19 @@ const EmotionalCard = ({ emotional = {} }) => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#1a1a2e] border border-gray-200 dark:border-[#1C8FA0]/20"
+                className="flex items-center justify-between gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#1a1a2e] border border-gray-200 dark:border-[#1C8FA0]/20 min-w-0"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
                   {type === 'impulsive' ? (
-                    <Icon component={Zap} size="sm" color="warning" className="dark:" />
+                    <Icon component={Zap} size="sm" color="warning" className="dark: shrink-0" />
                   ) : (
-                    <Icon component={Heart} size="sm" color="default" className="dark:" />
+                    <Icon component={Heart} size="sm" color="default" className="dark: shrink-0" />
                   )}
-                  <span className="text-sm text-[#1a1a1a] dark:text-white">
+                  <span className="text-sm text-[#1a1a1a] dark:text-white break-words min-w-0" style={{ wordBreak: 'break-word' }}>
                     {description}
                   </span>
                 </div>
-                <span className="text-sm font-semibold text-[#1a1a1a] dark:text-white">
+                <span className="text-sm font-semibold text-[#1a1a1a] dark:text-white shrink-0 whitespace-nowrap">
                   {formatCurrency(amount)}
                 </span>
               </motion.div>

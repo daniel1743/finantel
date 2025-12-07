@@ -46,8 +46,8 @@ const ScoreDisplay = ({ score, size = 'large', showLabel = true, className = '' 
   // Tamaños del círculo
   const sizeClasses = {
     small: 'w-32 h-32',
-    medium: 'w-48 h-48',
-    large: 'w-64 h-64',
+    medium: 'w-40 h-40 md:w-48 md:h-48',
+    large: 'w-56 h-56 sm:w-64 sm:h-64',
   };
 
   const strokeWidths = {
@@ -120,7 +120,7 @@ const ScoreDisplay = ({ score, size = 'large', showLabel = true, className = '' 
 
         {/* Contenido central */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className={cn('text-5xl font-bold', getScoreColor(validScore))}>
+          <div className={cn('text-3xl sm:text-4xl md:text-5xl font-bold', getScoreColor(validScore))}>
             {Math.round(validScore)}
           </div>
           {showLabel && (
