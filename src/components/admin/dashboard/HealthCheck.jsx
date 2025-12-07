@@ -68,10 +68,10 @@ const HealthCheck = () => {
         },
       ];
 
-      // Test real de latencia de base de datos
+      // Test real de latencia de base de datos (usar una tabla que existe)
       const dbStart = Date.now();
       try {
-        await supabase.from('users').select('id').limit(1);
+        await supabase.from('transactions').select('id').limit(1);
         const dbLatency = Date.now() - dbStart;
         checks[1].latency_ms = dbLatency;
         checks[1].status = dbLatency < 500 ? 'healthy' : dbLatency < 1000 ? 'degraded' : 'down';

@@ -22,7 +22,9 @@ import {
   Plus,
   Loader2,
   Calendar,
-  DollarSign
+  DollarSign,
+  Mic,
+  FileText
 } from 'lucide-react';
 import { cn, formatCurrency, getLocalDateString, parseLocalDate } from '@/lib/utils';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
@@ -772,6 +774,9 @@ const Transactions = () => {
   const [transactionModalMode, setTransactionModalMode] = useState('add');
   const [transactionToEdit, setTransactionToEdit] = useState(null);
   const [userCurrency, setUserCurrency] = useState('USD');
+  const [isRegisterMenuOpen, setIsRegisterMenuOpen] = useState(false);
+  const [showVoiceInput, setShowVoiceInput] = useState(false);
+  const registerMenuRef = useRef(null);
 
   // Filtrar transacciones con memoización para mejor rendimiento
   const filteredTransactions = useMemo(() => {
@@ -880,6 +885,35 @@ const Transactions = () => {
     setTransactionModalMode('add');
   };
 
+  // Cerrar menú de registro al hacer click fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (registerMenuRef.current && !registerMenuRef.current.contains(event.target)) {
+        setIsRegisterMenuOpen(false);
+      }
+    };
+
+    if (isRegisterMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isRegisterMenuOpen]);
+
+  const handleVoiceRegister = () => {
+    setIsRegisterMenuOpen(false);
+    setShowVoiceInput(true);
+  };
+
+  const handleManualRegister = () => {
+    setIsRegisterMenuOpen(false);
+    openNewTransactionModal();
+  };
+
   return (
     <div className="space-y-6 pb-12 h-full flex flex-col">
       <AnimatePresence>
@@ -901,36 +935,110 @@ const Transactions = () => {
           <p className="text-[#6E6E73] dark:text-gray-400">Gestiona y revisa todos tus movimientos financieros</p>
         </div>
 
-        {/* Voice Input + Actions */}
-        <div className="flex flex-col sm:flex-row items-center gap-6">
-          {/* Componente de Voz */}
-          <div className="bg-gradient-to-br from-[#1C8FA0]/5 to-purple-500/5 rounded-2xl px-4 py-3 border border-[#1C8FA0]/15 shadow-sm w-full sm:w-auto flex items-center gap-3">
+        {/* Botón Registrar con Menú Desplegable + Download */}
+        <div className="flex items-center gap-3">
+          {/* Botón Download */}
+          <button className="p-2.5 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-xl text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white transition-colors shadow-sm">
+            <Icon component={Download} size="md" color="default" />
+          </button>
+
+          {/* Botón Registrar con Menú Desplegable */}
+          <div ref={registerMenuRef} className="relative">
+            <button
+              onClick={() => setIsRegisterMenuOpen(!isRegisterMenuOpen)}
+              className="px-6 py-2.5 bg-[#1a1a1a] dark:bg-white text-white dark:text-[#1a1a1a] rounded-xl text-sm font-medium hover:bg-black dark:hover:bg-gray-100 transition-colors shadow-lg shadow-black/10 flex items-center gap-2"
+            >
+              REGISTRAR
+              <Icon 
+                component={ChevronDown} 
+                size="sm" 
+                color="default" 
+                className={cn(
+                  "transition-transform",
+                  isRegisterMenuOpen && "transform rotate-180"
+                )}
+              />
+            </button>
+
+            {/* Menú Desplegable */}
+            <AnimatePresence>
+              {isRegisterMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10 shadow-lg z-50 overflow-hidden"
+                >
+                  {/* Opción: Grabar por Voz */}
+                  <div className="p-2">
+                    <div
+                      onClick={handleVoiceRegister}
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-colors"
+                    >
+                      <div className="p-2 bg-[#1C8FA0]/10 rounded-lg">
+                        <Icon component={Mic} size="md" color="default" className="text-[#1C8FA0]" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-semibold text-[#1a1a1a] dark:text-white">Grabar</div>
+                        <div className="text-xs text-[#6E6E73] dark:text-gray-400">Registro por voz</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Opción: Manual */}
+                  <div className="p-2 pt-0">
+                    <div
+                      onClick={handleManualRegister}
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-colors"
+                    >
+                      <div className="p-2 bg-gray-100 dark:bg-white/10 rounded-lg">
+                        <Icon component={FileText} size="md" color="default" className="text-[#6E6E73] dark:text-gray-400" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-semibold text-[#1a1a1a] dark:text-white">Manual</div>
+                        <div className="text-xs text-[#6E6E73] dark:text-gray-400">Registro manual</div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+        </div>
+      </div>
+
+      {/* Componente de Voz - Se muestra cuando se selecciona "Grabar" desde el menú */}
+      <AnimatePresence>
+        {showVoiceInput && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="bg-gradient-to-br from-[#1C8FA0]/5 to-purple-500/5 rounded-2xl px-4 py-3 border border-[#1C8FA0]/15 shadow-sm flex items-center gap-3"
+          >
             <VoiceInput
-              onTransactionCreated={handleTransactionAdded}
+              onTransactionCreated={(transaction) => {
+                handleTransactionAdded();
+                setShowVoiceInput(false);
+              }}
               userId={user?.id}
               currency={userCurrency}
             />
-            <div className="hidden sm:flex flex-col text-left">
-              <span className="text-sm font-semibold text-[#1a1a1a] dark:text-white">Registrar por voz</span>
-              <span className="text-xs text-[#6E6E73] dark:text-gray-400">Captura gastos con tu micrófono</span>
+            <div className="flex-1 flex flex-col text-left">
+              <span className="text-sm font-semibold text-[#1a1a1a] dark:text-white">Grabando transacción</span>
+              <span className="text-xs text-[#6E6E73] dark:text-gray-400">Di algo como: "Gasté 50 mil en Jumbo"</span>
             </div>
-          </div>
-
-          {/* Botones tradicionales */}
-        <div className="flex gap-3">
-            <button className="p-2.5 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-xl text-[#6E6E73] dark:text-gray-400 hover:text-[#1a1a1a] dark:hover:text-white transition-colors shadow-sm">
-            <Icon component={Download} size="md" color="default" />
-          </button>
-          <button
-              onClick={openNewTransactionModal}
-              className="px-4 py-2.5 bg-[#1a1a1a] dark:bg-white text-white dark:text-[#1a1a1a] rounded-xl text-sm font-medium hover:bg-black dark:hover:bg-gray-100 transition-colors shadow-lg shadow-black/10 flex items-center gap-2"
-          >
-            <Icon component={Plus} size="sm" color="default" />
-            Nueva Transacción
-          </button>
-          </div>
-        </div>
-      </div>
+            <button
+              onClick={() => setShowVoiceInput(false)}
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            >
+              <Icon component={X} size="sm" color="default" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Filters & Search */}
       <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
