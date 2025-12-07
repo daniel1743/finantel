@@ -1,176 +1,187 @@
-import { useCallback, useEffect, useRef } from 'react';
+// =====================================================
+// HOOK DE ANALYTICS
+// =====================================================
+// Hook para facilitar el uso de analytics en componentes
+// =====================================================
+
+import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { supabase } from '@/lib/customSupabaseClient';
+import { 
+  trackEvent, 
+  trackPageView, 
+  identifyUser,
+  AnalyticsEvents 
+} from '@/lib/analytics';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 
-// Generar session ID único
-const getSessionId = () => {
-  let sessionId = sessionStorage.getItem('analytics_session_id');
-  if (!sessionId) {
-    sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    sessionStorage.setItem('analytics_session_id', sessionId);
-  }
-  return sessionId;
-};
-
-// Detectar si es bot
-const isBot = (userAgent) => {
-  const botPatterns = /bot|crawler|spider|crawling/i;
-  return botPatterns.test(userAgent || '');
-};
-
-// Detectar motor de búsqueda
-const getSearchEngine = (referrer) => {
-  if (!referrer) return 'direct';
-  const url = new URL(referrer);
-  const hostname = url.hostname.toLowerCase();
-  
-  if (hostname.includes('google')) return 'google';
-  if (hostname.includes('bing')) return 'bing';
-  if (hostname.includes('yahoo')) return 'yahoo';
-  if (hostname.includes('duckduckgo')) return 'duckduckgo';
-  return 'other';
-};
-
+/**
+ * Hook para trackear eventos y páginas automáticamente
+ */
 export const useAnalytics = () => {
-  const { user } = useAuth();
   const location = useLocation();
-  const sessionIdRef = useRef(getSessionId());
-  const pageStartTimeRef = useRef(Date.now());
-  const scrollDepthRef = useRef(0);
+  const { user } = useAuth();
 
-  // Track evento genérico
-  const trackEvent = useCallback(async (eventType, eventName, metadata = {}) => {
-    try {
-      const userAgent = navigator.userAgent;
-      const referrer = document.referrer || null;
-      
-      // No trackear si es bot
-      if (isBot(userAgent)) return;
+  // Trackear cambio de página automáticamente
+  useEffect(() => {
+    const pageName = location.pathname;
+    trackPageView(pageName, {
+      path: location.pathname,
+      search: location.search,
+    });
+  }, [location]);
 
-      await supabase.from('analytics_events').insert({
-        user_id: user?.id || null,
-        event_type: eventType,
-        event_name: eventName,
-        page_path: location.pathname,
-        metadata: metadata,
-        user_agent: userAgent,
-        referrer: referrer,
-        session_id: sessionIdRef.current,
+  // Identificar usuario cuando cambia
+  useEffect(() => {
+    if (user) {
+      identifyUser(user.id, {
+        email: user.email,
+        name: user.user_metadata?.full_name || user.email?.split('@')[0],
       });
-    } catch (error) {
-      console.error('Error tracking event:', error);
-    }
-  }, [user, location.pathname]);
-
-  // Track page view
-  const trackPageView = useCallback(async (pagePath, pageTitle) => {
-    try {
-      const userAgent = navigator.userAgent;
-      const referrer = document.referrer || null;
-      
-      if (isBot(userAgent)) return;
-
-      // Calcular tiempo en página anterior
-      const timeOnPage = Math.floor((Date.now() - pageStartTimeRef.current) / 1000);
-      
-      await supabase.from('analytics_page_views').insert({
-        user_id: user?.id || null,
-        page_path: pagePath || location.pathname,
-        page_title: pageTitle || document.title,
-        referrer: referrer,
-        user_agent: userAgent,
-        session_id: sessionIdRef.current,
-        time_on_page: timeOnPage > 0 ? timeOnPage : null,
-        scroll_depth: scrollDepthRef.current,
-      });
-
-      // Reset para nueva página
-      pageStartTimeRef.current = Date.now();
-      scrollDepthRef.current = 0;
-    } catch (error) {
-      console.error('Error tracking page view:', error);
-    }
-  }, [user, location.pathname]);
-
-  // Track uso de herramienta
-  const trackToolUsage = useCallback(async (toolName, actionType = 'view', metadata = {}) => {
-    try {
-      await supabase.from('analytics_tool_usage').insert({
-        user_id: user?.id,
-        tool_name: toolName,
-        action_type: actionType,
-        metadata: metadata,
-        session_id: sessionIdRef.current,
-      });
-    } catch (error) {
-      console.error('Error tracking tool usage:', error);
     }
   }, [user]);
-
-  // Track impresión (SEO)
-  const trackImpression = useCallback(async (pagePath, pageTitle) => {
-    try {
-      const userAgent = navigator.userAgent;
-      const referrer = document.referrer || null;
-      
-      const searchEngine = getSearchEngine(referrer);
-      const isBotUser = isBot(userAgent);
-
-      await supabase.from('analytics_impressions').insert({
-        page_path: pagePath || location.pathname,
-        page_title: pageTitle || document.title,
-        referrer: referrer,
-        user_agent: userAgent,
-        search_engine: searchEngine,
-        is_bot: isBotUser,
-      });
-    } catch (error) {
-      console.error('Error tracking impression:', error);
-    }
-  }, [location.pathname]);
-
-  // Track sección del landing
-  const trackLandingSection = useCallback(async (sectionName) => {
-    await trackEvent('landing_section_view', sectionName, {
-      section: sectionName,
-    });
-  }, [trackEvent]);
-
-  // Track scroll depth
-  useEffect(() => {
-    const handleScroll = () => {
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-      const scrollTop = window.scrollY;
-      const scrollPercent = Math.round((scrollTop / (documentHeight - windowHeight)) * 100);
-      
-      if (scrollPercent > scrollDepthRef.current) {
-        scrollDepthRef.current = scrollPercent;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Track page view cuando cambia la ruta
-  useEffect(() => {
-    trackPageView(location.pathname, document.title);
-  }, [location.pathname, trackPageView]);
-
-  // Track impresión al cargar
-  useEffect(() => {
-    if (location.pathname === '/') {
-      trackImpression('/', document.title);
-    }
-  }, [location.pathname, trackImpression]);
 
   return {
     trackEvent,
     trackPageView,
-    trackToolUsage,
-    trackImpression,
-    trackLandingSection,
+    AnalyticsEvents,
   };
 };
+
+/**
+ * Hook para trackear eventos específicos de transacciones
+ */
+export const useTransactionAnalytics = () => {
+  const { trackEvent, AnalyticsEvents } = useAnalytics();
+
+  const trackTransactionCreated = (data) => {
+    trackEvent(AnalyticsEvents.TRANSACTION_CREATED, {
+      amount: data.amount,
+      type: data.type,
+      category: data.category,
+      method: data.method || 'manual',
+      ...data,
+    });
+  };
+
+  const trackTransactionCreatedVoice = (data) => {
+    trackEvent(AnalyticsEvents.TRANSACTION_CREATED_VOICE, {
+      amount: data.amount,
+      type: data.type,
+      category: data.category,
+      ...data,
+    });
+  };
+
+  return {
+    trackTransactionCreated,
+    trackTransactionCreatedVoice,
+  };
+};
+
+/**
+ * Hook para trackear eventos de presupuestos
+ */
+export const useBudgetAnalytics = () => {
+  const { trackEvent, AnalyticsEvents } = useAnalytics();
+
+  const trackBudgetCreated = (data) => {
+    trackEvent(AnalyticsEvents.BUDGET_CREATED, {
+      amount: data.amount,
+      period: data.period,
+      category: data.category,
+      ...data,
+    });
+  };
+
+  const trackBudgetExceeded = (data) => {
+    trackEvent(AnalyticsEvents.BUDGET_EXCEEDED, {
+      budget_id: data.budget_id,
+      percentage: data.percentage,
+      amount: data.amount,
+      ...data,
+    });
+  };
+
+  return {
+    trackBudgetCreated,
+    trackBudgetExceeded,
+  };
+};
+
+/**
+ * Hook para trackear eventos de IA
+ */
+export const useAIAnalytics = () => {
+  const { trackEvent, AnalyticsEvents } = useAnalytics();
+
+  const trackAIMessageSent = (data) => {
+    trackEvent(AnalyticsEvents.AI_MESSAGE_SENT, {
+      message_length: data.message?.length || 0,
+      mode: data.mode || 'finance',
+      ...data,
+    });
+  };
+
+  const trackAIResponseReceived = (data) => {
+    trackEvent(AnalyticsEvents.AI_RESPONSE_RECEIVED, {
+      response_length: data.response?.length || 0,
+      response_time: data.responseTime,
+      ...data,
+    });
+  };
+
+  return {
+    trackAIMessageSent,
+    trackAIResponseReceived,
+  };
+};
+
+/**
+ * Hook para trackear eventos de pagos
+ */
+export const usePaymentAnalytics = () => {
+  const { trackEvent, trackConversion, AnalyticsEvents } = useAnalytics();
+
+  const trackSubscriptionStarted = (data) => {
+    trackEvent(AnalyticsEvents.SUBSCRIPTION_STARTED, {
+      plan: data.plan,
+      amount: data.amount,
+      currency: data.currency,
+      ...data,
+    });
+
+    trackConversion('subscription', data.amount, data.currency, {
+      plan: data.plan,
+      provider: data.provider,
+    });
+  };
+
+  const trackPaymentCompleted = (data) => {
+    trackEvent(AnalyticsEvents.PAYMENT_COMPLETED, {
+      amount: data.amount,
+      currency: data.currency,
+      method: data.method,
+      ...data,
+    });
+
+    trackConversion('payment', data.amount, data.currency, {
+      method: data.method,
+    });
+  };
+
+  const trackPaymentFailed = (data) => {
+    trackEvent(AnalyticsEvents.PAYMENT_FAILED, {
+      amount: data.amount,
+      currency: data.currency,
+      error: data.error,
+      ...data,
+    });
+  };
+
+  return {
+    trackSubscriptionStarted,
+    trackPaymentCompleted,
+    trackPaymentFailed,
+  };
+};
+

@@ -19,7 +19,6 @@ import {
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useFinance } from '@/hooks/useFinance';
-import { useToolTracking } from '@/hooks/useToolTracking';
 
 const ChartCard = ({ title, children, className }) => (
   <motion.div 
@@ -210,23 +209,23 @@ const Analysis = () => {
 
     // 1. Patrón por día de la semana - SIEMPRE mostrar si hay gastos
     if (expenses.length > 0) {
-      const dayTotals = {};
-      const dayMap = { 0: 'Domingo', 1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábado' };
-      
-      expenses.forEach(tx => {
-        const txDate = new Date(tx.date);
-        const dayOfWeek = txDate.getDay();
-        if (!dayTotals[dayOfWeek]) dayTotals[dayOfWeek] = 0;
-        dayTotals[dayOfWeek] += parseFloat(tx.amount || 0);
-      });
+    const dayTotals = {};
+    const dayMap = { 0: 'Domingo', 1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábado' };
+    
+    expenses.forEach(tx => {
+      const txDate = new Date(tx.date);
+      const dayOfWeek = txDate.getDay();
+      if (!dayTotals[dayOfWeek]) dayTotals[dayOfWeek] = 0;
+      dayTotals[dayOfWeek] += parseFloat(tx.amount || 0);
+    });
 
-      if (Object.keys(dayTotals).length > 0) {
-        const avgDayExpense = Object.values(dayTotals).reduce((a, b) => a + b, 0) / Object.keys(dayTotals).length;
-        const maxDay = Object.entries(dayTotals).reduce((a, b) => dayTotals[a[0]] > dayTotals[b[0]] ? a : b);
-        const maxDayName = dayMap[maxDay[0]];
-        const maxDayAmount = dayTotals[maxDay[0]];
-        const percentMore = avgDayExpense > 0 ? ((maxDayAmount - avgDayExpense) / avgDayExpense) * 100 : 0;
-        
+    if (Object.keys(dayTotals).length > 0) {
+      const avgDayExpense = Object.values(dayTotals).reduce((a, b) => a + b, 0) / Object.keys(dayTotals).length;
+      const maxDay = Object.entries(dayTotals).reduce((a, b) => dayTotals[a[0]] > dayTotals[b[0]] ? a : b);
+      const maxDayName = dayMap[maxDay[0]];
+      const maxDayAmount = dayTotals[maxDay[0]];
+      const percentMore = avgDayExpense > 0 ? ((maxDayAmount - avgDayExpense) / avgDayExpense) * 100 : 0;
+      
         // Mostrar siempre, con diferentes mensajes según el caso
         if (percentMore > 5 && expenses.length >= 2) {
           insightsList.push({
@@ -265,34 +264,34 @@ const Analysis = () => {
 
     // 2. Categoría que consume más porcentaje del ingreso - SIEMPRE mostrar si hay gastos
     if (expenses.length > 0) {
-      const categoryTotals = {};
+    const categoryTotals = {};
       
-      expenses.forEach(tx => {
-        if (tx.categories) {
-          const catName = tx.categories.name || 'Sin categoría';
-          if (!categoryTotals[catName]) categoryTotals[catName] = 0;
-          categoryTotals[catName] += parseFloat(tx.amount || 0);
+    expenses.forEach(tx => {
+      if (tx.categories) {
+        const catName = tx.categories.name || 'Sin categoría';
+        if (!categoryTotals[catName]) categoryTotals[catName] = 0;
+        categoryTotals[catName] += parseFloat(tx.amount || 0);
         } else {
           // Contar gastos sin categoría
           if (!categoryTotals['Sin categoría']) categoryTotals['Sin categoría'] = 0;
           categoryTotals['Sin categoría'] += parseFloat(tx.amount || 0);
-        }
-      });
+      }
+    });
 
       if (Object.keys(categoryTotals).length > 0) {
-        const topCategory = Object.entries(categoryTotals).reduce((a, b) => 
-          categoryTotals[a[0]] > categoryTotals[b[0]] ? a : b
-        );
+      const topCategory = Object.entries(categoryTotals).reduce((a, b) => 
+        categoryTotals[a[0]] > categoryTotals[b[0]] ? a : b
+      );
         
         // Mostrar siempre la categoría top, con diferentes mensajes según el caso
         if (totalIncome > 0) {
-          const topCategoryPercent = (categoryTotals[topCategory[0]] / totalIncome) * 100;
-          insightsList.push({
-            title: "CATEGORÍA TOP",
-            desc: `${topCategory[0]} consume el ${Math.round(topCategoryPercent)}% de tu ingreso`,
-            icon: Layers,
-            color: "text-[#1C8FA0]"
-          });
+      const topCategoryPercent = (categoryTotals[topCategory[0]] / totalIncome) * 100;
+        insightsList.push({
+          title: "CATEGORÍA TOP",
+          desc: `${topCategory[0]} consume el ${Math.round(topCategoryPercent)}% de tu ingreso`,
+          icon: Layers,
+          color: "text-[#1C8FA0]"
+        });
         } else {
           // Si no hay ingresos, mostrar el monto absoluto
           const topCategoryAmount = categoryTotals[topCategory[0]];
@@ -325,13 +324,13 @@ const Analysis = () => {
     // 3. Hábito de ahorro - SIEMPRE mostrar, incluso si es negativo
     // Esta tarjeta SIEMPRE debe aparecer si hay transacciones
     if (totalIncome > 0) {
-      if (savingsRate > 0) {
-        insightsList.push({
-          title: "HÁBITO DE AHORRO",
-          desc: `Ahorras consistentemente el ${Math.round(savingsRate)}%`,
-          icon: TrendingUp,
-          color: "text-green-500"
-        });
+    if (savingsRate > 0) {
+      insightsList.push({
+        title: "HÁBITO DE AHORRO",
+        desc: `Ahorras consistentemente el ${Math.round(savingsRate)}%`,
+        icon: TrendingUp,
+        color: "text-green-500"
+      });
       } else if (savingsRate < 0) {
         // Mostrar alerta si gastas más de lo que ganas
         insightsList.push({
@@ -376,7 +375,7 @@ const Analysis = () => {
     }
 
     console.log('[Analysis] Insights generados:', insightsList.length, insightsList);
-    
+
     return insightsList;
   }, [transactions, timeRange]);
 

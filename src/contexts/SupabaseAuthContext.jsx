@@ -469,7 +469,19 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    // En lugar de lanzar un error, retornar valores por defecto
+    // Esto permite que el componente se renderice durante la inicialización
+    console.warn('useAuth called outside AuthProvider, returning default values');
+    return {
+      user: null,
+      session: null,
+      loading: true,
+      signUp: async () => ({ error: new Error('Auth not initialized') }),
+      signIn: async () => ({ error: new Error('Auth not initialized') }),
+      signInWithGoogle: async () => ({ error: new Error('Auth not initialized') }),
+      signOut: async () => {},
+      refreshUser: async () => {},
+    };
   }
   return context;
 };

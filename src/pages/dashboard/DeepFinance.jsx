@@ -27,7 +27,6 @@ import { useDeepFinance } from '@/hooks/useDeepFinance';
 import { useDeepFinanceCredits } from '@/hooks/useDeepFinanceCredits';
 import { useMercadoPagoCallback } from '@/hooks/useMercadoPagoCallback';
 import { useToast } from '@/components/ui/use-toast';
-import { useToolTracking } from '@/hooks/useToolTracking';
 import ScoreDisplay from '@/components/deepfinance/ScoreDisplay';
 import PatternCard from '@/components/deepfinance/PatternCard';
 import LeakageCard from '@/components/deepfinance/LeakageCard';

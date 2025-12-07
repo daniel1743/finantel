@@ -24,7 +24,6 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useFinance } from '@/hooks/useFinance';
 import { useToast } from '@/components/ui/use-toast';
-import { useToolTracking } from '@/hooks/useToolTracking';
 
 // Iconos y colores disponibles (compartidos)
 const availableIcons = [Home, ShoppingBag, Car, Coffee, Plane, Zap, Heart, Smartphone];

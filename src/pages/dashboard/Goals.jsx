@@ -48,7 +48,6 @@ import {
 import { cn, getLocalDateString } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
-import { useToolTracking } from '@/hooks/useToolTracking';
 import { useFinance } from '@/hooks/useFinance';
 import { useToast } from '@/components/ui/use-toast';
 

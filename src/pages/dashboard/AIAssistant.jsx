@@ -21,7 +21,6 @@ import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useSupportTickets } from '@/hooks/useSupportTickets';
 import { useFinance } from '@/hooks/useFinance';
 import { useAIConversations } from '@/hooks/useAIConversations';
-import { useToolTracking } from '@/hooks/useToolTracking';
 
 // --- COMPONENTES VISUALES ---
 
@@ -193,17 +192,17 @@ const AIAssistant = () => {
             ? "Hola, soy el soporte de Finantel. ¿En qué puedo ayudarte hoy?"
             : `¡Hola ${user?.user_metadata?.full_name?.split(' ')[0] || ''}! Soy tu Coach Financiero. ¿Revisamos tus gastos?`;
           
-          const initialMsgs = [];
-          if (initialMessageFromState) {
-            initialMsgs.push({ role: 'assistant', content: "¡Hola! He recibido tu consulta." });
-            initialMsgs.push({ role: 'user', content: initialMessageFromState });
-          } else {
-            initialMsgs.push({ role: 'assistant', content: welcomeText });
-          }
+      const initialMsgs = [];
+      if (initialMessageFromState) {
+        initialMsgs.push({ role: 'assistant', content: "¡Hola! He recibido tu consulta." });
+        initialMsgs.push({ role: 'user', content: initialMessageFromState });
+      } else {
+        initialMsgs.push({ role: 'assistant', content: welcomeText });
+      }
           
           const newConv = await createConversation(initialMessageFromState);
           if (newConv) {
-            setMessages(initialMsgs);
+      setMessages(initialMsgs);
             await saveMessages(newConv.id, initialMsgs);
           }
         } else {
@@ -214,7 +213,7 @@ const AIAssistant = () => {
           }
         }
         
-        setIsInitialized(true);
+      setIsInitialized(true);
       };
       
       initializeChat();

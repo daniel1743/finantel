@@ -31,7 +31,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
 import VoiceInput from '@/components/VoiceInput';
 import { useDebounce } from '@/hooks/useDebounce';
-import { useToolTracking } from '@/hooks/useToolTracking';
 
 const FilterButton = ({ label, active }) => (
   <button className={cn(

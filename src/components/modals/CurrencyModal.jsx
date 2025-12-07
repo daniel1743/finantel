@@ -216,26 +216,28 @@ const CurrencyModal = ({ isOpen, onClose }) => {
                       key={currency.code}
                       onClick={() => setSelectedCurrency(currency.code)}
                       disabled={saving}
-                      className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${
+                      className={`w-full flex flex-col items-start p-4 rounded-xl border transition-all relative ${
                         selectedCurrency === currency.code
                           ? 'bg-[#1C8FA0]/10 border-[#1C8FA0] text-[#1C8FA0]'
                           : 'bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10 hover:border-gray-200 dark:hover:border-white/20'
                       } disabled:opacity-50`}
                     >
-                      <div className="flex items-center gap-4">
-                        <span className="text-2xl">{currency.flag}</span>
-                        <div className="text-left">
-                          <p className="font-bold text-[#1a1a1a] dark:text-white text-sm">
-                            {currency.name}
-                          </p>
-                          <p className="text-xs text-[#6E6E73] dark:text-gray-400">
-                            {currency.code} • {currency.symbol}
-                          </p>
+                      <div className="flex flex-col items-start gap-2 w-full">
+                        <div className="flex items-center gap-3 w-full">
+                          <span className="text-2xl">{currency.flag}</span>
+                          <div className="flex-1 text-left">
+                            <p className="font-bold text-[#1a1a1a] dark:text-white text-sm">
+                              {currency.name}
+                            </p>
+                          </div>
+                          {selectedCurrency === currency.code && (
+                            <Icon component={Check} size="md" color="primary" className="flex-shrink-0" />
+                          )}
                         </div>
+                        <p className="text-xs text-[#6E6E73] dark:text-gray-400 ml-9">
+                          {currency.code} • {currency.symbol}
+                        </p>
                       </div>
-                      {selectedCurrency === currency.code && (
-                        <Icon component={Check} size="md" color="primary" />
-                      )}
                     </button>
                   ))}
                 </div>

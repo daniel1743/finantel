@@ -44,7 +44,6 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
-import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined';
 import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined';
 import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
 import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
@@ -70,7 +69,10 @@ const SidebarMUI = ({ isMobileOpen, setIsMobileOpen }) => {
   const location = useLocation();
   const currentPath = location.pathname;
   const navigate = useNavigate();
+  
+  // Obtener contexto de autenticación
   const { signOut, user } = useAuth();
+  
   const { subscription, loading: billingLoading } = useBilling(user?.id);
   const { isStaff, checkingStaff } = useStaffTickets(user?.id);
   const { theme: appTheme, toggleTheme } = useTheme();
@@ -201,11 +203,18 @@ const SidebarMUI = ({ isMobileOpen, setIsMobileOpen }) => {
   ];
 
   // Agregar sección de administración solo si es staff
+  // Debug: Verificar estado de staff
+  useEffect(() => {
+    if (user?.id) {
+      console.log('[SIDEBAR] Checking staff status:', { checkingStaff, isStaff, userId: user.id });
+    }
+  }, [checkingStaff, isStaff, user?.id]);
+
   if (!checkingStaff && isStaff) {
     menuStructure.push({
       title: "Administración",
       items: [
-        { name: "Dashboard Analytics", icon: BarChartOutlinedIcon, path: "/dashboard/admin" },
+        { name: "Analytics", icon: AnalyticsOutlinedIcon, path: "/dashboard/admin/analytics" },
         { name: "Panel de Soporte", icon: ShieldOutlinedIcon, path: "/dashboard/admin/support" },
         { name: "Webhook Inbox", icon: InboxOutlinedIcon, path: "/dashboard/admin/webhooks" },
         { name: "Notificaciones", icon: NotificationsOutlinedIcon, path: "/dashboard/admin/system-notifications" },

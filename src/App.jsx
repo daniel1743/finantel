@@ -55,7 +55,7 @@ const Analysis = lazy(() => import('@/pages/dashboard/Analysis'));
 const Support = lazy(() => import('@/pages/dashboard/Support'));
 const SupportTicketDetail = lazy(() => import('@/pages/dashboard/SupportTicketDetail'));
 const AdminSupport = lazy(() => import('@/pages/dashboard/AdminSupport'));
-const AdminDashboard = lazy(() => import('@/pages/dashboard/AdminDashboard'));
+const AdminAnalytics = lazy(() => import('@/pages/dashboard/AdminAnalytics'));
 const SharedExpenses = lazy(() => import('@/pages/dashboard/SharedExpenses'));
 const Notifications = lazy(() => import('@/pages/dashboard/Notifications'));
 const SystemNotifications = lazy(() => import('@/pages/dashboard/SystemNotifications'));
@@ -163,7 +163,7 @@ function App() {
                     <Route path="ab-testing" element={<ABTesting />} />
                     <Route path="support" element={<Support />} />
                     <Route path="support/:ticketId" element={<SupportTicketDetail />} />
-                    <Route path="admin" element={<AdminDashboard />} />
+                    <Route path="admin/analytics" element={<AdminAnalytics />} />
                     <Route path="admin/support" element={<AdminSupport />} />
                     <Route path="admin/system-notifications" element={<SystemNotifications />} />
                     <Route path="admin/webhooks" element={<WebhookInbox />} />
