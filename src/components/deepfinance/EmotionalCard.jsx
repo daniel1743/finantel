@@ -181,15 +181,15 @@ const EmotionalCard = ({ emotional = {} }) => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="flex items-center justify-between gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#1a1a2e] border border-gray-200 dark:border-[#1C8FA0]/20 min-w-0"
+                className="flex items-center justify-between gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#1a1a2e] border border-gray-200 dark:border-[#1C8FA0]/20 overflow-hidden w-full"
               >
-                <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex items-center gap-3 flex-1 min-w-0 overflow-hidden">
                   {type === 'impulsive' ? (
                     <Icon component={Zap} size="sm" color="warning" className="dark: shrink-0" />
                   ) : (
                     <Icon component={Heart} size="sm" color="default" className="dark: shrink-0" />
                   )}
-                  <span className="text-sm text-[#1a1a1a] dark:text-white break-words min-w-0" style={{ wordBreak: 'break-word' }}>
+                  <span className="text-sm text-[#1a1a1a] dark:text-white min-w-0" style={{ wordBreak: 'break-word', overflowWrap: 'break-word', lineHeight: '1.4' }}>
                     {description}
                   </span>
                 </div>

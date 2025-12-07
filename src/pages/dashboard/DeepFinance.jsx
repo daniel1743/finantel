@@ -327,7 +327,7 @@ const DeepFinance = () => {
             </div>
 
             {/* Grid de Cards de Análisis */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full min-w-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full min-w-0" style={{ maxWidth: '100%', overflow: 'hidden' }}>
               {/* Pattern Card */}
               <PatternCard patterns={patterns} />
               

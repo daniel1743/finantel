@@ -154,14 +154,14 @@ const RecommendationsCard = ({ recommendations = [], aiInsights = null }) => {
                 className="p-4 cursor-pointer"
                 onClick={() => setExpandedId(isExpanded ? null : index)}
               >
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-3 w-full">
                   <div className={cn('p-2 rounded-lg border shrink-0', colors.border, colors.icon)}>
-                    <Icon className="w-5 h-5" />
+                    <Icon className="w-4 h-4 md:w-5 md:h-5" />
                   </div>
                   
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2 mb-2 flex-wrap">
-                      <h4 className={cn('font-semibold text-sm break-words min-w-0 flex-1', colors.text)} style={{ wordBreak: 'break-word' }}>
+                  <div className="flex-1 min-w-0 overflow-hidden">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
+                      <h4 className={cn('font-semibold text-sm min-w-0 flex-1', colors.text)} style={{ wordBreak: 'break-word', overflowWrap: 'break-word', lineHeight: '1.4' }}>
                         {recommendation.title || 'Recomendación'}
                       </h4>
                       <span className={cn(
@@ -172,7 +172,7 @@ const RecommendationsCard = ({ recommendations = [], aiInsights = null }) => {
                       </span>
                     </div>
                     
-                    <p className={cn('text-xs leading-relaxed break-words', colors.text, 'opacity-90')} style={{ wordBreak: 'break-word' }}>
+                    <p className={cn('text-xs leading-relaxed', colors.text, 'opacity-90')} style={{ wordBreak: 'break-word', overflowWrap: 'break-word', lineHeight: '1.4' }}>
                       {recommendation.description || recommendation.recommendation || 'Sin descripción'}
                     </p>
 

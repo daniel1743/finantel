@@ -164,11 +164,11 @@ const LeakageCard = ({ leakages = [] }) => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
               className={cn(
-                'p-4 rounded-xl border-2 flex items-start gap-4 hover:shadow-md transition-all overflow-hidden min-w-0',
+                'p-3 md:p-4 rounded-xl border-2 hover:shadow-md transition-all overflow-hidden w-full',
                 colorClasses
               )}
             >
-              <div className="flex items-start gap-3 flex-1 min-w-0">
+              <div className="flex items-start gap-3 w-full">
                 <div className={cn(
                   'p-2 rounded-lg border shrink-0',
                   colorClasses
@@ -176,12 +176,12 @@ const LeakageCard = ({ leakages = [] }) => {
                   <Icon className="w-4 h-4" />
                 </div>
                 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start gap-2 mb-1 flex-wrap">
-                    <h4 className="font-semibold text-sm text-[#1a1a1a] dark:text-white break-words flex-1 min-w-0" style={{ wordBreak: 'break-word' }}>
+                <div className="flex-1 min-w-0 overflow-hidden">
+                  <div className="flex items-start gap-2 mb-2 flex-wrap">
+                    <h4 className="font-semibold text-sm text-[#1a1a1a] dark:text-white flex-1 min-w-0" style={{ wordBreak: 'break-word', overflowWrap: 'break-word', lineHeight: '1.4' }}>
                       {description}
                     </h4>
-                    <span className="text-xs px-2 py-0.5 rounded-md bg-white/50 dark:bg-black/20 text-[#1a1a1a] dark:text-white">
+                    <span className="text-xs px-2 py-0.5 rounded-md bg-white/50 dark:bg-black/20 text-[#1a1a1a] dark:text-white shrink-0 whitespace-nowrap">
                       {getLeakageLabel(leakage.type || leakage.leakage_type)}
                     </span>
                   </div>

@@ -136,7 +136,7 @@ const RiskCard = ({ risk = {} }) => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
                 className={cn(
-                  'p-4 rounded-xl border-2 flex items-start gap-3',
+                  'p-3 md:p-4 rounded-xl border-2 flex items-start gap-3 overflow-hidden w-full',
                   isCritical
                     ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
                     : 'bg-gray-50 dark:bg-[#1a1a2e] border-gray-200 dark:border-[#1C8FA0]/20'
@@ -147,12 +147,12 @@ const RiskCard = ({ risk = {} }) => {
                 ) : (
                   <Icon component={CheckCircle2} size="md" color="warning" className="dark: shrink-0 mt-0.5" />
                 )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-[#1a1a1a] dark:text-white break-words" style={{ wordBreak: 'break-word' }}>
+                <div className="flex-1 min-w-0 overflow-hidden">
+                  <p className="text-sm text-[#1a1a1a] dark:text-white" style={{ wordBreak: 'break-word', overflowWrap: 'break-word', lineHeight: '1.4' }}>
                     {factorText}
                   </p>
                   {factor.recommendation && (
-                    <p className="text-xs text-[#6E6E73] dark:text-gray-400 mt-1">
+                    <p className="text-xs text-[#6E6E73] dark:text-gray-400 mt-1" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                       💡 {factor.recommendation}
                     </p>
                   )}

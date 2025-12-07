@@ -189,19 +189,19 @@ const ScenarioCard = ({ icon: Icon, title, description, monthly, annual, current
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay }}
-      className={cn('p-4 rounded-xl border-2', currentColor)}
+      className={cn('p-3 md:p-4 rounded-xl border-2 overflow-hidden w-full', currentColor)}
     >
-      <div className="flex items-start gap-3 mb-3">
+      <div className="flex items-start gap-3 mb-3 w-full">
         <div className={cn('p-2 rounded-lg border shrink-0', currentColor)}>
           <Icon className="w-4 h-4" />
         </div>
-        <div className="flex-1 min-w-0">
-          <h4 className="font-semibold text-sm mb-1 break-words" style={{ wordBreak: 'break-word' }}>{title}</h4>
-          <p className="text-xs opacity-80 break-words" style={{ wordBreak: 'break-word' }}>{description}</p>
+        <div className="flex-1 min-w-0 overflow-hidden">
+          <h4 className="font-semibold text-sm mb-1" style={{ wordBreak: 'break-word', overflowWrap: 'break-word', lineHeight: '1.4' }}>{title}</h4>
+          <p className="text-xs opacity-80" style={{ wordBreak: 'break-word', overflowWrap: 'break-word', lineHeight: '1.4' }}>{description}</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mt-4">
+      <div className="flex flex-col gap-3 mt-4">
         <div>
           <p className="text-xs opacity-80 mb-1">Mensual</p>
           <p className="text-xl font-bold">{formatCurrency(monthly)}</p>

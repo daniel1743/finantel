@@ -91,25 +91,43 @@ const PatternCard = ({ patterns = [] }) => {
     }
   };
 
+  // Función para formatear porcentajes grandes
+  const formatPercentage = (value) => {
+    if (typeof value !== 'number') {
+      const str = String(value);
+      return str.length > 8 ? `${str.substring(0, 8)}...` : str;
+    }
+    
+    // Si es muy grande (probablemente un error de cálculo), mostrar como "Muy alto"
+    if (Math.abs(value) >= 100000) {
+      return `${value > 0 ? '+' : ''}Muy alto`;
+    }
+    // Si es muy grande, usar formato compacto
+    if (Math.abs(value) >= 1000) {
+      return `${value > 0 ? '+' : ''}${(value / 1000).toFixed(1)}k%`;
+    }
+    return `${value > 0 ? '+' : ''}${value.toFixed(1)}%`;
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 shadow-lg overflow-hidden min-w-0"
+      className="bg-white dark:bg-[#0f1624] rounded-2xl border-2 border-gray-200 dark:border-[#1C8FA0]/30 p-4 md:p-6 shadow-lg overflow-hidden min-w-0 w-full"
     >
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 rounded-xl bg-[#1C8FA0]/10 border border-[#1C8FA0]/20">
+      <div className="flex items-center gap-3 mb-4 md:mb-6">
+        <div className="p-2 rounded-xl bg-[#1C8FA0]/10 border border-[#1C8FA0]/20 shrink-0">
           <Icon component={BarChart3} size="md" color="primary" />
         </div>
-        <div>
-          <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white">Patrones Detectados</h3>
+        <div className="min-w-0">
+          <h3 className="text-lg font-bold text-[#1a1a1a] dark:text-white truncate">Patrones Detectados</h3>
           <p className="text-xs text-[#6E6E73] dark:text-gray-400">
             {processedPatterns.length} patrón{processedPatterns.length !== 1 ? 'es' : ''} encontrado{processedPatterns.length !== 1 ? 's' : ''}
           </p>
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {processedPatterns.slice(0, 5).map((pattern, index) => {
           const Icon = getPatternIcon(pattern.type || pattern.pattern_type);
           const colorClasses = getPatternColor(pattern.type || pattern.pattern_type);
@@ -122,6 +140,14 @@ const PatternCard = ({ patterns = [] }) => {
           const trend = pattern.trend || pattern.trend_type;
           const impact = pattern.impact || pattern.percentage || pattern.difference;
 
+          // Construir texto del patrón
+          const patternText = description || 
+            (day && `Mayor gasto los ${dayNames[day] || day}`) ||
+            (hour && `Gastos frecuentes a las ${hour}:00`) ||
+            (category && `Categoría dominante: ${category}`) ||
+            (trend && `Tendencia: ${trend}`) ||
+            'Patrón detectado';
+
           return (
             <motion.div
               key={index}
@@ -129,38 +155,53 @@ const PatternCard = ({ patterns = [] }) => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
               className={cn(
-                'p-4 rounded-xl border-2 flex items-start gap-4 transition-all hover:shadow-md',
+                'p-3 md:p-4 rounded-xl border-2 transition-all hover:shadow-md w-full',
                 colorClasses
               )}
+              style={{ overflow: 'hidden', maxWidth: '100%' }}
             >
-              <div className={cn(
-                'p-2 rounded-lg border shrink-0',
-                colorClasses
-              )}>
-                <Icon className="w-4 h-4" />
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <h4 className="font-semibold text-sm text-[#1a1a1a] dark:text-white break-words min-w-0" style={{ wordBreak: 'break-word' }}>
-                    {description || 
-                     (day && `Mayor gasto los ${dayNames[day] || day}`) ||
-                     (hour && `Gastos frecuentes a las ${hour}:00`) ||
-                     (category && `Categoría dominante: ${category}`) ||
-                     (trend && `Tendencia: ${trend}`) ||
-                     'Patrón detectado'}
-                  </h4>
-                  {impact && (
-                    <span className="text-xs font-bold px-2 py-1 rounded-md bg-white/50 dark:bg-black/20">
-                      {typeof impact === 'number' 
-                        ? `${impact > 0 ? '+' : ''}${impact.toFixed(1)}%`
-                        : impact}
-                    </span>
-                  )}
+              <div className="flex items-start gap-3" style={{ width: '100%', minWidth: 0 }}>
+                {/* Icono */}
+                <div className={cn(
+                  'p-2 rounded-lg border shrink-0',
+                  colorClasses
+                )} style={{ flexShrink: 0 }}>
+                  <Icon className="w-4 h-4" />
                 </div>
                 
-                {(day || hour || category || trend) && (
-                  <div className="flex flex-wrap gap-2 mt-2">
+                {/* Contenido */}
+                <div className="flex-1" style={{ minWidth: 0, width: '100%', overflow: 'hidden' }}>
+                  {/* Título */}
+                  <div className="mb-2">
+                    <h4 
+                      className="font-semibold text-sm text-[#1a1a1a] dark:text-white"
+                      style={{ 
+                        wordBreak: 'break-word',
+                        overflowWrap: 'break-word',
+                        lineHeight: '1.4',
+                        whiteSpace: 'normal',
+                        width: '100%',
+                        display: 'block'
+                      }}
+                    >
+                      {patternText}
+                    </h4>
+                  </div>
+                  
+                  {/* Porcentaje y badges en la misma línea */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {impact && (
+                      <span 
+                        className="text-xs font-bold px-2 py-1 rounded-md bg-white/50 dark:bg-black/20"
+                        style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+                      >
+                        {typeof impact === 'number' 
+                          ? formatPercentage(impact)
+                          : String(impact).length > 10 
+                            ? `${String(impact).substring(0, 10)}...`
+                            : impact}
+                      </span>
+                    )}
                     {day && (
                       <span className="text-xs px-2 py-1 rounded-md bg-white/50 dark:bg-black/20 text-[#1a1a1a] dark:text-white">
                         {dayNames[day] || day}
@@ -182,7 +223,7 @@ const PatternCard = ({ patterns = [] }) => {
                       </span>
                     )}
                   </div>
-                )}
+                </div>
               </div>
             </motion.div>
           );
@@ -201,4 +242,3 @@ const PatternCard = ({ patterns = [] }) => {
 };
 
 export default PatternCard;
-
