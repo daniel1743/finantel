@@ -42,7 +42,7 @@ const testimonials = [
 const Testimonials = () => {
   return (
     <section className="py-16 md:py-20 bg-gradient-to-b from-white to-[#F9FAFB]">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -58,7 +58,7 @@ const Testimonials = () => {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 items-stretch">
           {testimonials.map((testimonial, index) => (
             <motion.div
               key={testimonial.id}
@@ -66,7 +66,7 @@ const Testimonials = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="bg-white p-6 rounded-[24px] border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1 relative flex flex-col h-full"
+              className="bg-white p-4 md:p-6 rounded-[24px] border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1 relative flex flex-col h-full overflow-hidden min-w-0"
             >
               {/* Quote Icon */}
               <div className="absolute top-4 right-4 opacity-10">
@@ -74,34 +74,44 @@ const Testimonials = () => {
               </div>
 
               {/* Rating */}
-              <div className="flex gap-1 mb-4">
+              <div className="flex gap-1 mb-4 flex-shrink-0">
                 {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-[#FFD700] text-[#FFD700]" />
+                  <Star key={i} className="w-4 h-4 fill-[#FFD700] text-[#FFD700] flex-shrink-0" />
                 ))}
               </div>
 
               {/* Testimonial Text */}
-              <p className="text-[#1a1a1a] mb-6 leading-relaxed text-sm flex-grow">
+              <p className="text-[#1a1a1a] mb-6 leading-relaxed text-sm flex-grow break-words min-h-0" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                 "{testimonial.text}"
               </p>
 
               {/* User Info - Siempre en la misma posición vertical */}
-              <div className="pt-4 border-t border-gray-100 mt-auto">
-                <div className="flex items-center gap-3">
+              <div className="pt-4 border-t border-gray-100 mt-auto flex-shrink-0">
+                <div className="flex items-start gap-3 min-w-0">
                   <img
                     src={testimonial.image}
                     alt={testimonial.name}
-                    className="w-12 h-12 rounded-full border-2 border-[#1C8FA0]/20 object-cover flex-shrink-0"
+                    className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-[#1C8FA0]/20 object-cover flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-semibold text-[#1a1a1a] text-sm truncate">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <p className="font-semibold text-[#1a1a1a] text-sm truncate min-w-0">
                         {testimonial.name}
                       </p>
                       {testimonial.verified && (
-                        <div className="flex-shrink-0 flex items-center gap-1 bg-blue-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium">
-                          <Icon component={Check} size="md" color="default" className="w-3 h-3" />
-                          Verificado
+                        <div className="flex-shrink-0 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="white"
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="w-2.5 h-2.5"
+                          >
+                            <path d="M5 13l4 4L19 7" />
+                          </svg>
                         </div>
                       )}
                     </div>

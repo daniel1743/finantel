@@ -37,7 +37,7 @@ const Header = () => {
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      const headerOffset = 80; // Altura del header
+      const headerOffset = 70; // Altura del header (reducida)
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -67,25 +67,25 @@ const Header = () => {
       <header
         className={cn(
           "fixed top-0 left-0 right-0 z-[var(--z-fixed)] transition-all duration-300 ease-in-out",
-          scrolled ? "bg-white/80 backdrop-blur-xl border-b border-gray-100 py-3" : "bg-transparent py-5"
+          scrolled ? "bg-white/80 backdrop-blur-xl border-b border-gray-100 py-2" : "bg-transparent py-3"
         )}
       >
-        <nav className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between">
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <img
               src="/INANTEL.svg"
               alt="Finantel Logo"
-              className="h-[110px] w-auto drop-shadow-2xl"
+              className="h-10 sm:h-12 w-auto"
             />
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-6">
             {['Características', 'Precios', 'Seguridad'].map((item) => (
               <button
                 key={item}
                 onClick={() => handleNavClick(item)}
-                className="text-sm font-medium text-neutral-500 hover:text-primary-500 transition-colors cursor-pointer"
+                className="text-sm font-medium text-neutral-600 hover:text-primary-500 transition-colors cursor-pointer"
               >
                 {item}
               </button>
@@ -93,7 +93,7 @@ const Header = () => {
           </div>
 
           {/* Desktop Buttons */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-3">
             <Button
               variant="ghost"
               onClick={() => navigate('/auth')}
@@ -154,7 +154,7 @@ const Header = () => {
                   <img
                     src="/INANTEL.svg"
                     alt="Finantel Logo"
-                    className="h-[110px] w-auto drop-shadow-2xl"
+                    className="h-10 w-auto"
                   />
                   <button
                     onClick={() => setMobileMenuOpen(false)}
